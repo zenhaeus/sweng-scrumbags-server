@@ -9,6 +9,7 @@ ScrumToolAppEngine/bin/
 ScrumToolAppEngine/endpoint-libs/
 ScrumToolAppEngine/war/WEB-INF/classes/
 ScrumToolAppEngine/war/WEB-INF/deploy/
+ScrumToolAppEngine/war/WEB-INF/appengine-generated/
 
 # Checkstyle Plug-In
 .checkstyle
