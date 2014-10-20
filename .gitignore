@@ -4,12 +4,11 @@ local.properties
 .loadpath
 
 # Generated files
-tmp/
-bin/
-*/endpoint-libs/
-*/war/WEB-INF/lib/
-*/war/WEB-INF/classes/
-*/war/WEB-INF/deploy/
+ScrumToolAppEngine/tmp/
+ScrumToolAppEngine/bin/
+ScrumToolAppEngine/endpoint-libs/
+ScrumToolAppEngine/war/WEB-INF/classes/
+ScrumToolAppEngine/war/WEB-INF/deploy/
 
 # Checkstyle Plug-In
 .checkstyle
