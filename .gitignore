@@ -1,0 +1,26 @@
+# Eclipse files
+.metadata/
+local.properties
+.loadpath
+
+# Generated files
+tmp/
+bin/
+*/endpoint-libs/
+*/war/WEB-INF/lib/
+*/war/WEB-INF/classes/
+*/war/WEB-INF/deploy/
+
+# Checkstyle Plug-In
+.checkstyle
+
+# OS X files
+*.DS_Store
+
+# Unwanted files
+*.swp
+*.bak
+*.tmp
+*.launch
+*.class
+*.*~
