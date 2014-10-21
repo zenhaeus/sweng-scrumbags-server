@@ -1,6 +1,6 @@
 {
  "kind": "discovery#rpcDescription",
- "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/IHD8PHxyVUNk0ssSDMt4cUJOp_4\"",
+ "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/gLPZeX6FDPTbLN7QdYHUiMd5oXY\"",
  "discoveryVersion": "v1",
  "id": "messageEndpoint:v1",
  "name": "messageEndpoint",
@@ -14,8 +14,8 @@
   "x32": "http://www.google.com/images/icons/product/search-32.gif"
  },
  "protocol": "rpc",
- "rootUrl": "https://myapp.appspot.com/_ah/api/",
- "rpcUrl": "https://myapp.appspot.com/_ah/api/rpc",
+ "rootUrl": "https://arched-memory-733.appspot.com/_ah/api/",
+ "rpcUrl": "https://arched-memory-733.appspot.com/_ah/api/rpc",
  "rpcPath": "/_ah/api/rpc",
  "parameters": {
   "alt": {

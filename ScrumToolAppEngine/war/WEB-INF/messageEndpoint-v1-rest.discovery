@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/IHD8PHxyVUNk0ssSDMt4cUJOp_4\"",
+ "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/gLPZeX6FDPTbLN7QdYHUiMd5oXY\"",
  "discoveryVersion": "v1",
  "id": "messageEndpoint:v1",
  "name": "messageEndpoint",
@@ -14,9 +14,9 @@
   "x32": "http://www.google.com/images/icons/product/search-32.gif"
  },
  "protocol": "rest",
- "baseUrl": "https://myapp.appspot.com/_ah/api/messageEndpoint/v1/",
+ "baseUrl": "https://arched-memory-733.appspot.com/_ah/api/messageEndpoint/v1/",
  "basePath": "/_ah/api/messageEndpoint/v1/",
- "rootUrl": "https://myapp.appspot.com/_ah/api/",
+ "rootUrl": "https://arched-memory-733.appspot.com/_ah/api/",
  "servicePath": "messageEndpoint/v1/",
  "batchPath": "batch",
  "parameters": {

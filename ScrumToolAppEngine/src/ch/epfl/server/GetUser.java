@@ -26,7 +26,7 @@ public class GetUser {
         return name;
     }
 
-    public void setName2(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 

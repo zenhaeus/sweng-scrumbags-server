@@ -1,6 +1,6 @@
 {
  "kind": "discovery#rpcDescription",
- "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/Vx8yMCNROaRsVQDs2K6_4pwEaZk\"",
+ "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/Dk9mIdVVAnt94BP2_JFSoJteoSM\"",
  "discoveryVersion": "v1",
  "id": "deviceinfoendpoint:v1",
  "name": "deviceinfoendpoint",
@@ -14,8 +14,8 @@
   "x32": "http://www.google.com/images/icons/product/search-32.gif"
  },
  "protocol": "rpc",
- "rootUrl": "https://myapp.appspot.com/_ah/api/",
- "rpcUrl": "https://myapp.appspot.com/_ah/api/rpc",
+ "rootUrl": "https://arched-memory-733.appspot.com/_ah/api/",
+ "rpcUrl": "https://arched-memory-733.appspot.com/_ah/api/rpc",
  "rpcPath": "/_ah/api/rpc",
  "parameters": {
   "alt": {

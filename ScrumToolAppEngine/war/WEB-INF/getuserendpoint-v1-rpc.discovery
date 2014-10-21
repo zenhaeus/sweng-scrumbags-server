@@ -1,6 +1,6 @@
 {
  "kind": "discovery#rpcDescription",
- "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/yaQXZKaptw3EtqXBSp2vL6tclcM\"",
+ "etag": "\"koCc_mmAOJe4d9CoedmJUnZeEcg/r0CqbnnsJqyjAFpizdo8I8seCLM\"",
  "discoveryVersion": "v1",
  "id": "getuserendpoint:v1",
  "name": "getuserendpoint",
@@ -14,8 +14,8 @@
   "x32": "http://www.google.com/images/icons/product/search-32.gif"
  },
  "protocol": "rpc",
- "rootUrl": "https://myapp.appspot.com/_ah/api/",
- "rpcUrl": "https://myapp.appspot.com/_ah/api/rpc",
+ "rootUrl": "https://arched-memory-733.appspot.com/_ah/api/",
+ "rpcUrl": "https://arched-memory-733.appspot.com/_ah/api/rpc",
  "rpcPath": "/_ah/api/rpc",
  "parameters": {
   "alt": {
@@ -98,9 +98,6 @@
      "$ref": "Key"
     },
     "name": {
-     "type": "string"
-    },
-    "name2": {
      "type": "string"
     }
    }
