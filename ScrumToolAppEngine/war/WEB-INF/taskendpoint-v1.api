@@ -1,0 +1,328 @@
+{
+  "extends" : "thirdParty.api",
+  "abstract" : false,
+  "root" : "https://arched-memory-733.appspot.com/_ah/api",
+  "name" : "taskendpoint",
+  "version" : "v1",
+  "defaultVersion" : false,
+  "adapter" : {
+    "bns" : "https://arched-memory-733.appspot.com/_ah/spi",
+    "deadline" : 65.0,
+    "type" : "lily"
+  },
+  "auth" : {
+    "allowCookieAuth" : false
+  },
+  "frontendLimits" : {
+    "unregisteredUserQps" : -1,
+    "unregisteredQps" : -1,
+    "unregisteredDaily" : -1,
+    "rules" : [ ]
+  },
+  "cacheControl" : {
+    "type" : "no-cache",
+    "maxAge" : 0
+  },
+  "ownerDomain" : "epfl.ch",
+  "ownerName" : "epfl.ch",
+  "packagePath" : "entity",
+  "methods" : {
+    "taskendpoint.removeTask" : {
+      "path" : "task/{id}",
+      "httpMethod" : "DELETE",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "ch.epfl.entity.TaskEndpoint.removeTask",
+      "request" : {
+        "parameters" : {
+          "id" : {
+            "type" : "int64",
+            "required" : true
+          }
+        },
+        "body" : "empty"
+      },
+      "response" : {
+        "body" : "empty"
+      }
+    },
+    "taskendpoint.insertTask" : {
+      "path" : "task",
+      "httpMethod" : "POST",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "ch.epfl.entity.TaskEndpoint.insertTask",
+      "request" : {
+        "body" : "autoTemplate(backendRequest)",
+        "bodyName" : "resource"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    },
+    "taskendpoint.listTask" : {
+      "path" : "task",
+      "httpMethod" : "GET",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "ch.epfl.entity.TaskEndpoint.listTask",
+      "request" : {
+        "parameters" : {
+          "cursor" : {
+            "type" : "string",
+            "required" : false
+          },
+          "limit" : {
+            "type" : "int32",
+            "required" : false
+          }
+        },
+        "body" : "empty"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    },
+    "taskendpoint.getTask" : {
+      "path" : "task/{id}",
+      "httpMethod" : "GET",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "ch.epfl.entity.TaskEndpoint.getTask",
+      "request" : {
+        "parameters" : {
+          "id" : {
+            "type" : "int64",
+            "required" : true
+          }
+        },
+        "body" : "empty"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    },
+    "taskendpoint.updateTask" : {
+      "path" : "task",
+      "httpMethod" : "PUT",
+      "authLevel" : "NONE",
+      "scopes" : [ "https://www.googleapis.com/auth/userinfo.email" ],
+      "audiences" : [ ],
+      "clientIds" : [ "292824132082.apps.googleusercontent.com" ],
+      "rosyMethod" : "ch.epfl.entity.TaskEndpoint.updateTask",
+      "request" : {
+        "body" : "autoTemplate(backendRequest)",
+        "bodyName" : "resource"
+      },
+      "response" : {
+        "body" : "autoTemplate(backendResponse)"
+      }
+    }
+  },
+  "descriptor" : {
+    "schemas" : {
+      "Task" : {
+        "id" : "Task",
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "$ref" : "Key"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "issues" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "Issue"
+            }
+          }
+        }
+      },
+      "Key" : {
+        "id" : "Key",
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string"
+          },
+          "appId" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "parent" : {
+            "$ref" : "Key"
+          },
+          "namespace" : {
+            "type" : "string"
+          },
+          "complete" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "Issue" : {
+        "id" : "Issue",
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "$ref" : "Key"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "estimation" : {
+            "type" : "number",
+            "format" : "float"
+          },
+          "assignedPlayer" : {
+            "$ref" : "Player"
+          }
+        }
+      },
+      "Player" : {
+        "id" : "Player",
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "$ref" : "Key"
+          },
+          "role" : {
+            "$ref" : "Role"
+          },
+          "account" : {
+            "$ref" : "User"
+          }
+        }
+      },
+      "Role" : {
+        "id" : "Role",
+        "type" : "string",
+        "enum" : [ "PRODUCT_OWNER", "STAKEHOLDER", "SCRUM_MASTER", "DEVELOPER" ]
+      },
+      "User" : {
+        "id" : "User",
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "$ref" : "Key"
+          },
+          "token" : {
+            "type" : "string",
+            "format" : "int64"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "username" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "projects" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "Project"
+            }
+          }
+        }
+      },
+      "Project" : {
+        "id" : "Project",
+        "type" : "object",
+        "properties" : {
+          "key" : {
+            "$ref" : "Key"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "admin" : {
+            "$ref" : "Player"
+          },
+          "players" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "Player"
+            }
+          },
+          "backlog" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "Task"
+            }
+          }
+        }
+      },
+      "CollectionResponse_Task" : {
+        "id" : "CollectionResponse_Task",
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "Task"
+            }
+          },
+          "nextPageToken" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "methods" : {
+      "ch.epfl.entity.TaskEndpoint.removeTask" : {
+      },
+      "ch.epfl.entity.TaskEndpoint.insertTask" : {
+        "request" : {
+          "$ref" : "Task"
+        },
+        "response" : {
+          "$ref" : "Task"
+        }
+      },
+      "ch.epfl.entity.TaskEndpoint.listTask" : {
+        "response" : {
+          "$ref" : "CollectionResponse_Task"
+        }
+      },
+      "ch.epfl.entity.TaskEndpoint.getTask" : {
+        "response" : {
+          "$ref" : "Task"
+        }
+      },
+      "ch.epfl.entity.TaskEndpoint.updateTask" : {
+        "request" : {
+          "$ref" : "Task"
+        },
+        "response" : {
+          "$ref" : "Task"
+        }
+      }
+    }
+  }
+}
