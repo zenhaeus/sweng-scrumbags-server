@@ -19,6 +19,8 @@ public enum Priority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     
+    // TODO find how to implement an enum
+    
     private Key key;
     private String stringValue;
     

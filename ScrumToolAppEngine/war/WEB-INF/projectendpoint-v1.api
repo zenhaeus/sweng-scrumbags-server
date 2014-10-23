@@ -194,18 +194,10 @@
           "key" : {
             "$ref" : "Key"
           },
-          "role" : {
-            "$ref" : "Role"
-          },
           "account" : {
             "$ref" : "User"
           }
         }
-      },
-      "Role" : {
-        "id" : "Role",
-        "type" : "string",
-        "enum" : [ "PRODUCT_OWNER", "STAKEHOLDER", "SCRUM_MASTER", "DEVELOPER" ]
       },
       "User" : {
         "id" : "User",

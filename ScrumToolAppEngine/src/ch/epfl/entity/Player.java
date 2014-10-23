@@ -18,7 +18,7 @@ public class Player {
     
     private Key key;
     private User user;
-    private Role role;
+//    private Role role; TODO implement the enum
 
     public Key getKey() {
         return key;
@@ -32,6 +32,7 @@ public class Player {
         this.user = user;
     }
 
+    /*
     public Role getRole() {
         return role;
     }
@@ -39,5 +40,6 @@ public class Player {
     public void setRole(Role role) {
         this.role = role;
     }
+    */
 
 }

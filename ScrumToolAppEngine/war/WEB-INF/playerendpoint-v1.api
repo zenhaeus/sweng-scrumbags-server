@@ -136,9 +136,6 @@
           "key" : {
             "$ref" : "Key"
           },
-          "role" : {
-            "$ref" : "Role"
-          },
           "account" : {
             "$ref" : "User"
           }
@@ -171,11 +168,6 @@
             "type" : "boolean"
           }
         }
-      },
-      "Role" : {
-        "id" : "Role",
-        "type" : "string",
-        "enum" : [ "PRODUCT_OWNER", "STAKEHOLDER", "SCRUM_MASTER", "DEVELOPER" ]
       },
       "User" : {
         "id" : "User",

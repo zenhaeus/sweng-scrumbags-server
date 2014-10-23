@@ -9,3 +9,4 @@ import javax.persistence.Entity;
 public enum Role {
     PRODUCT_OWNER, STAKEHOLDER, SCRUM_MASTER, DEVELOPER;
 }
+// TODO find how to implement an enum
