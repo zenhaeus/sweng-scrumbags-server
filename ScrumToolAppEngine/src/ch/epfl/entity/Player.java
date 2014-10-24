@@ -13,17 +13,17 @@ import javax.persistence.Id;
  */
 @Entity
 public class Player {
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    
     private Key key;
     private User user;
-//    private Role role; TODO implement the enum
+
+    // private Role role; TODO implement the enum
 
     public Key getKey() {
         return key;
     }
-    
+
     public User getAccount() {
         return user;
     }
@@ -33,13 +33,9 @@ public class Player {
     }
 
     /*
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-    */
+     * public Role getRole() { return role; }
+     * 
+     * public void setRole(Role role) { this.role = role; }
+     */
 
 }

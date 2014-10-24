@@ -14,20 +14,19 @@ import javax.persistence.Id;
  */
 @Entity
 public class User {
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
-	private Key key;
+    private Key key;
     private long token;
     private String name;
     private String username;
     private String email;
     private Set<Project> projects;
-    
+
     public Key getKey() {
         return key;
     }
-    
+
     public long getToken() {
         return token;
     }
@@ -35,7 +34,7 @@ public class User {
     public void setToken(long token) {
         this.token = token;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -55,7 +54,7 @@ public class User {
     public String getEmail() {
         return email;
     }
-    
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -63,9 +62,9 @@ public class User {
     public Set<Project> getProjects() {
         return projects;
     }
-    
+
     public void setProjects(Set<Project> projects) {
-    	this.projects = projects;
+        this.projects = projects;
     }
 
 }
