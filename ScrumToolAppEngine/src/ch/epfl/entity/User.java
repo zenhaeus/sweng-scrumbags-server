@@ -4,24 +4,36 @@ import java.util.Set;
 
 import com.google.appengine.api.datastore.Key;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
 
 /**
  * @author sylb
  */
-@Entity
+
+@PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key;
+    
+    @Persistent
     private long token;
+
+    @Persistent
     private String name;
+
+    @Persistent
     private String username;
+
+    @Persistent
     private String email;
-    private Set<Project> projects;
+
+    @Persistent
+    private Set<Key> projects;
 
     public Key getKey() {
         return key;
@@ -58,13 +70,13 @@ public class User {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    public Set<Project> getProjects() {
+    
+    public Set<Key> getProjects() {
         return projects;
     }
 
-    public void setProjects(Set<Project> projects) {
-        this.projects = projects;
+    public void addProject(Key project) {
+        projects.add(project);
     }
 
 }

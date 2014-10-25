@@ -1,24 +1,32 @@
 package ch.epfl.entity;
 
-import com.google.appengine.api.datastore.Key;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import com.google.appengine.api.datastore.Key;
 
 /**
  * @author sylb
  * 
  */
-@Entity
+
+@PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Player {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key;
+
+    @Persistent
     private User user;
 
-    // private Role role; TODO implement the enum
+    @Persistent
+    private Role role;
+
+    @Persistent
+    private Project project;
 
     public Key getKey() {
         return key;
@@ -32,10 +40,12 @@ public class Player {
         this.user = user;
     }
 
-    /*
-     * public Role getRole() { return role; }
-     * 
-     * public void setRole(Role role) { this.role = role; }
-     */
-
+    
+    public Role getRole() { 
+        return role; 
+    }
+    
+    public void setRole(Role role) {
+        this.role = role;
+    }
 }
