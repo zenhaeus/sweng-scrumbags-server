@@ -8,7 +8,7 @@ ScrumToolAppEngine/tmp/
 ScrumToolAppEngine/bin/
 ScrumToolAppEngine/endpoint-libs/
 ScrumToolAppEngine/war/WEB-INF/*.api
-ScrumToolAppengine/war/WEB-INF/*.discovery
+ScrumToolAppEngine/war/WEB-INF/*.discovery
 ScrumToolAppEngine/war/WEB-INF/classes/
 ScrumToolAppEngine/war/WEB-INF/deploy/
 ScrumToolAppEngine/war/WEB-INF/appengine-generated/
