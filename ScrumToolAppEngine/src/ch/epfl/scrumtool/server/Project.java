@@ -1,7 +1,4 @@
-/**
- * 
- */
-package ch.epfl.entity;
+package ch.epfl.scrumtool.server;
 
 import java.util.Set;
 
@@ -83,7 +80,7 @@ public class Project {
         this.backlog = backlog;
     }
 
-    public int getChangesCount(User user) {
+    public int getChangesCount(ScrumUser user) {
         return 1;
     }
 

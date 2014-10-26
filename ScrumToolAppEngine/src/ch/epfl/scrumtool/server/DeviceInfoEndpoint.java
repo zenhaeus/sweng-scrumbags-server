@@ -1,6 +1,6 @@
-package ch.epfl.entity;
+package ch.epfl.scrumtool.server;
 
-import ch.epfl.scrumtool.EMF;
+import ch.epfl.scrumtool.server.EMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
@@ -18,8 +18,8 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-@Api(name = "issueendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
-public class IssueEndpoint {
+@Api(name = "deviceinfoendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool"))
+public class DeviceInfoEndpoint {
 
 	/**
 	 * This method lists all the entities inserted in datastore.
@@ -29,18 +29,19 @@ public class IssueEndpoint {
 	 * persisted and a cursor to the next page.
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
-	@ApiMethod(name = "listIssue")
-	public CollectionResponse<Issue> listIssue(
+	@ApiMethod(name = "listDeviceInfo")
+	public CollectionResponse<DeviceInfo> listDeviceInfo(
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
 		EntityManager mgr = null;
 		Cursor cursor = null;
-		List<Issue> execute = null;
+		List<DeviceInfo> execute = null;
 
 		try {
 			mgr = getEntityManager();
-			Query query = mgr.createQuery("select from Issue as Issue");
+			Query query = mgr
+					.createQuery("select from DeviceInfo as DeviceInfo");
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
 				query.setHint(JPACursorHelper.CURSOR_HINT, cursor);
@@ -51,20 +52,20 @@ public class IssueEndpoint {
 				query.setMaxResults(limit);
 			}
 
-			execute = (List<Issue>) query.getResultList();
+			execute = (List<DeviceInfo>) query.getResultList();
 			cursor = JPACursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
 			// Tight loop for fetching all entities from datastore and accomodate
 			// for lazy fetch.
-			for (Issue obj : execute)
+			for (DeviceInfo obj : execute)
 				;
 		} finally {
 			mgr.close();
 		}
 
-		return CollectionResponse.<Issue> builder().setItems(execute)
+		return CollectionResponse.<DeviceInfo> builder().setItems(execute)
 				.setNextPageToken(cursorString).build();
 	}
 
@@ -74,16 +75,16 @@ public class IssueEndpoint {
 	 * @param id the primary key of the java bean.
 	 * @return The entity with primary key id.
 	 */
-	@ApiMethod(name = "getIssue")
-	public Issue getIssue(@Named("id") Long id) {
+	@ApiMethod(name = "getDeviceInfo")
+	public DeviceInfo getDeviceInfo(@Named("id") String id) {
 		EntityManager mgr = getEntityManager();
-		Issue issue = null;
+		DeviceInfo deviceinfo = null;
 		try {
-			issue = mgr.find(Issue.class, id);
+			deviceinfo = mgr.find(DeviceInfo.class, id);
 		} finally {
 			mgr.close();
 		}
-		return issue;
+		return deviceinfo;
 	}
 
 	/**
@@ -91,21 +92,21 @@ public class IssueEndpoint {
 	 * exists in the datastore, an exception is thrown.
 	 * It uses HTTP POST method.
 	 *
-	 * @param issue the entity to be inserted.
+	 * @param deviceinfo the entity to be inserted.
 	 * @return The inserted entity.
 	 */
-	@ApiMethod(name = "insertIssue")
-	public Issue insertIssue(Issue issue) {
+	@ApiMethod(name = "insertDeviceInfo")
+	public DeviceInfo insertDeviceInfo(DeviceInfo deviceinfo) {
 		EntityManager mgr = getEntityManager();
 		try {
-			if (containsIssue(issue)) {
+			if (containsDeviceInfo(deviceinfo)) {
 				throw new EntityExistsException("Object already exists");
 			}
-			mgr.persist(issue);
+			mgr.persist(deviceinfo);
 		} finally {
 			mgr.close();
 		}
-		return issue;
+		return deviceinfo;
 	}
 
 	/**
@@ -113,21 +114,21 @@ public class IssueEndpoint {
 	 * exist in the datastore, an exception is thrown.
 	 * It uses HTTP PUT method.
 	 *
-	 * @param issue the entity to be updated.
+	 * @param deviceinfo the entity to be updated.
 	 * @return The updated entity.
 	 */
-	@ApiMethod(name = "updateIssue")
-	public Issue updateIssue(Issue issue) {
+	@ApiMethod(name = "updateDeviceInfo")
+	public DeviceInfo updateDeviceInfo(DeviceInfo deviceinfo) {
 		EntityManager mgr = getEntityManager();
 		try {
-			if (!containsIssue(issue)) {
+			if (!containsDeviceInfo(deviceinfo)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}
-			mgr.persist(issue);
+			mgr.persist(deviceinfo);
 		} finally {
 			mgr.close();
 		}
-		return issue;
+		return deviceinfo;
 	}
 
 	/**
@@ -136,22 +137,23 @@ public class IssueEndpoint {
 	 *
 	 * @param id the primary key of the entity to be deleted.
 	 */
-	@ApiMethod(name = "removeIssue")
-	public void removeIssue(@Named("id") Long id) {
+	@ApiMethod(name = "removeDeviceInfo")
+	public void removeDeviceInfo(@Named("id") String id) {
 		EntityManager mgr = getEntityManager();
 		try {
-			Issue issue = mgr.find(Issue.class, id);
-			mgr.remove(issue);
+			DeviceInfo deviceinfo = mgr.find(DeviceInfo.class, id);
+			mgr.remove(deviceinfo);
 		} finally {
 			mgr.close();
 		}
 	}
 
-	private boolean containsIssue(Issue issue) {
+	private boolean containsDeviceInfo(DeviceInfo deviceinfo) {
 		EntityManager mgr = getEntityManager();
 		boolean contains = true;
 		try {
-			Issue item = mgr.find(Issue.class, issue.getKey());
+			DeviceInfo item = mgr.find(DeviceInfo.class,
+					deviceinfo.getDeviceRegistrationID());
 			if (item == null) {
 				contains = false;
 			}

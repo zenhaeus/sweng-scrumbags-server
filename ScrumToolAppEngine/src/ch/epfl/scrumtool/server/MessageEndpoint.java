@@ -1,4 +1,4 @@
-package ch.epfl.scrumtool;
+package ch.epfl.scrumtool.server;
 
 import java.io.IOException;
 import java.util.List;

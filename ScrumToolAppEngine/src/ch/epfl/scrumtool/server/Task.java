@@ -1,4 +1,6 @@
-package ch.epfl.entity;
+package ch.epfl.scrumtool.server;
+
+import java.util.Set;
 
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -11,8 +13,9 @@ import com.google.appengine.api.datastore.Key;
 /**
  * @author sylb
  */
+
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Issue {
+public class Task {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key;
@@ -23,16 +26,14 @@ public class Issue {
     @Persistent
     private String description;
 
-    @Persistent
-    private float estimation;
+    @Persistent(mappedBy = "task")
+    private Set<Issue> issues;
 
     @Persistent
-    private Player player;
-    
-    @Persistent
-    private Task task;
-//    private Status status; TODO later
-    
+    private Project project;
+
+//    private Status status; TODO to implement later
+
     public Key getKey() {
         return key;
     }
@@ -45,17 +46,11 @@ public class Issue {
         return description;
     }
 
-    public float getEstimation() {
-        return estimation;
-    }
-
-    public Player getAssignedPlayer() {
-        return player;
-    }
-
-
 //    public Status getStatus() {
 //        return status;
 //    }
 
+    public Set<Issue> getIssues() {
+        return issues;
+    }
 }

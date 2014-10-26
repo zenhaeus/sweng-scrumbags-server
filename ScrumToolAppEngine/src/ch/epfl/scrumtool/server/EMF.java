@@ -1,4 +1,4 @@
-package ch.epfl.scrumtool;
+package ch.epfl.scrumtool.server;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;

@@ -1,6 +1,4 @@
-package ch.epfl.entity;
-
-import java.util.Set;
+package ch.epfl.scrumtool.server;
 
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -12,45 +10,42 @@ import com.google.appengine.api.datastore.Key;
 
 /**
  * @author sylb
+ * 
  */
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Task {
+public class Player {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key;
 
     @Persistent
-    private String name;
+    private ScrumUser user;
 
     @Persistent
-    private String description;
-
-    @Persistent(mappedBy = "task")
-    private Set<Issue> issues;
+    private Role role;
 
     @Persistent
     private Project project;
-
-//    private Status status; TODO to implement later
 
     public Key getKey() {
         return key;
     }
 
-    public String getName() {
-        return name;
+    public ScrumUser getAccount() {
+        return user;
     }
 
-    public String getDescription() {
-        return description;
+    public void setAccount(ScrumUser user) {
+        this.user = user;
     }
 
-//    public Status getStatus() {
-//        return status;
-//    }
-
-    public Set<Issue> getIssues() {
-        return issues;
+    
+    public Role getRole() { 
+        return role; 
+    }
+    
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

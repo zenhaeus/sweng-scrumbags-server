@@ -1,6 +1,7 @@
-package ch.epfl.entity;
+package ch.epfl.scrumtool.server;
 
-import ch.epfl.scrumtool.EMF;
+import ch.epfl.scrumtool.server.Constants;
+import ch.epfl.scrumtool.server.EMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
@@ -18,7 +19,15 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-@Api(name = "taskendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
+
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {Constants.ANDROID_CLIENT_ID},
+        audiences = {Constants.ANDROID_AUDIENCE}
+        )
+
 public class TaskEndpoint {
 
 	/**
