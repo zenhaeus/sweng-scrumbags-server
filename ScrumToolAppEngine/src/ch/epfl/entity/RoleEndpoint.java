@@ -19,8 +19,8 @@ import javax.persistence.EntityNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
-@Api(name = "projectendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
-public class ProjectEndpoint {
+@Api(name = "roleendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
+public class RoleEndpoint {
 
 	/**
 	 * This method lists all the entities inserted in datastore.
@@ -30,18 +30,18 @@ public class ProjectEndpoint {
 	 * persisted and a cursor to the next page.
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
-	@ApiMethod(name = "listProject")
-	public CollectionResponse<Project> listProject(
+	@ApiMethod(name = "listRole")
+	public CollectionResponse<Role> listRole(
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
 		PersistenceManager mgr = null;
 		Cursor cursor = null;
-		List<Project> execute = null;
+		List<Role> execute = null;
 
 		try {
 			mgr = getPersistenceManager();
-			Query query = mgr.newQuery(Project.class);
+			Query query = mgr.newQuery(Role.class);
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
 				HashMap<String, Object> extensionMap = new HashMap<String, Object>();
@@ -53,20 +53,20 @@ public class ProjectEndpoint {
 				query.setRange(0, limit);
 			}
 
-			execute = (List<Project>) query.execute();
+			execute = (List<Role>) query.execute();
 			cursor = JDOCursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
 			// Tight loop for fetching all entities from datastore and accomodate
 			// for lazy fetch.
-			for (Project obj : execute)
+			for (Role obj : execute)
 				;
 		} finally {
 			mgr.close();
 		}
 
-		return CollectionResponse.<Project> builder().setItems(execute)
+		return CollectionResponse.<Role> builder().setItems(execute)
 				.setNextPageToken(cursorString).build();
 	}
 
@@ -76,16 +76,16 @@ public class ProjectEndpoint {
 	 * @param id the primary key of the java bean.
 	 * @return The entity with primary key id.
 	 */
-	@ApiMethod(name = "getProject")
-	public Project getProject(@Named("id") Long id) {
+	@ApiMethod(name = "getRole")
+	public Role getRole(@Named("id") Long id) {
 		PersistenceManager mgr = getPersistenceManager();
-		Project project = null;
+		Role role = null;
 		try {
-			project = mgr.getObjectById(Project.class, id);
+			role = mgr.getObjectById(Role.class, id);
 		} finally {
 			mgr.close();
 		}
-		return project;
+		return role;
 	}
 
 	/**
@@ -93,21 +93,21 @@ public class ProjectEndpoint {
 	 * exists in the datastore, an exception is thrown.
 	 * It uses HTTP POST method.
 	 *
-	 * @param project the entity to be inserted.
+	 * @param role the entity to be inserted.
 	 * @return The inserted entity.
 	 */
-	@ApiMethod(name = "insertProject")
-	public Project insertProject(Project project) {
+	@ApiMethod(name = "insertRole")
+	public Role insertRole(Role role) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
-			if (containsProject(project)) {
+			if (containsRole(role)) {
 				throw new EntityExistsException("Object already exists");
 			}
-			mgr.makePersistent(project);
+			mgr.makePersistent(role);
 		} finally {
 			mgr.close();
 		}
-		return project;
+		return role;
 	}
 
 	/**
@@ -115,21 +115,21 @@ public class ProjectEndpoint {
 	 * exist in the datastore, an exception is thrown.
 	 * It uses HTTP PUT method.
 	 *
-	 * @param project the entity to be updated.
+	 * @param role the entity to be updated.
 	 * @return The updated entity.
 	 */
-	@ApiMethod(name = "updateProject")
-	public Project updateProject(Project project) {
+	@ApiMethod(name = "updateRole")
+	public Role updateRole(Role role) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
-			if (!containsProject(project)) {
+			if (!containsRole(role)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}
-			mgr.makePersistent(project);
+			mgr.makePersistent(role);
 		} finally {
 			mgr.close();
 		}
-		return project;
+		return role;
 	}
 
 	/**
@@ -138,22 +138,22 @@ public class ProjectEndpoint {
 	 *
 	 * @param id the primary key of the entity to be deleted.
 	 */
-	@ApiMethod(name = "removeProject")
-	public void removeProject(@Named("id") Long id) {
+	@ApiMethod(name = "removeRole")
+	public void removeRole(@Named("id") Long id) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
-			Project project = mgr.getObjectById(Project.class, id);
-			mgr.deletePersistent(project);
+			Role role = mgr.getObjectById(Role.class, id);
+			mgr.deletePersistent(role);
 		} finally {
 			mgr.close();
 		}
 	}
 
-	private boolean containsProject(Project project) {
+	private boolean containsRole(Role role) {
 		PersistenceManager mgr = getPersistenceManager();
 		boolean contains = true;
 		try {
-			mgr.getObjectById(Project.class, project.getKey());
+			mgr.getObjectById(Role.class, role.getKey());
 		} catch (javax.jdo.JDOObjectNotFoundException ex) {
 			contains = false;
 		} finally {

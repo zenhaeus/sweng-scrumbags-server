@@ -37,7 +37,10 @@ public class Project {
     private Set<Player> players;
 
     @Persistent(mappedBy="project")
-    private Set<Task> backlog;
+    private Set<MainTask> backlog;
+    
+    @Persistent(mappedBy="project")
+    private Set<Sprint> sprints;
 
     public Key getKey() {
         return key;
@@ -75,12 +78,20 @@ public class Project {
         this.players = players;
     }
 
-    public Set<Task> getBacklog() {
+    public Set<MainTask> getBacklog() {
         return backlog;
     }
 
-    public void setBacklog(Set<Task> backlog) {
+    public void setBacklog(Set<MainTask> backlog) {
         this.backlog = backlog;
+    }
+    
+    public Set<Sprint> getSprint() {
+    	return sprints;
+    }
+    
+    public void setSprints(Set<Sprint> sprints) {
+    	this.sprints = sprints;
     }
 
     public int getChangesCount(User user) {

@@ -1,5 +1,7 @@
 package ch.epfl.entity;
 
+import java.util.Set;
+
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
@@ -11,8 +13,9 @@ import com.google.appengine.api.datastore.Key;
 /**
  * @author sylb
  */
+
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Issue {
+public class MainTask {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key;
@@ -23,15 +26,15 @@ public class Issue {
     @Persistent
     private String description;
 
-    @Persistent
-    private float estimation;
+    @Persistent(mappedBy="mainTask")
+    private Set<Issue> issues;
 
     @Persistent
-    private Player player;
-    
+    private Project project;
+
     @Persistent
     private Status status;
-    
+
     public Key getKey() {
         return key;
     }
@@ -47,25 +50,9 @@ public class Issue {
     public String getDescription() {
         return description;
     }
-
-    public void setDescription(String description) {
+    
+    public void setdescription(String description) {
     	this.description = description;
-    }
-    
-    public float getEstimation() {
-        return estimation;
-    }
-    
-    public void setEstimaion(float estimation) {
-    	this.estimation = estimation;
-    }
-
-    public Player getAssignedPlayer() {
-        return player;
-    }
-    
-    public void setAssignedPlayer(Player player) {
-    	this.player = player;
     }
 
     public Status getStatus() {
@@ -73,7 +60,15 @@ public class Issue {
     }
     
     public void setStatus(Status status) {
-    	this.status = status;
+    	this.status = status; 	
     }
 
+    public Set<Issue> getIssues() {
+        return issues;
+    }
+    
+    public void setIssues(Set<Issue> issues) {
+    	this.issues = issues;
+    }
+    
 }

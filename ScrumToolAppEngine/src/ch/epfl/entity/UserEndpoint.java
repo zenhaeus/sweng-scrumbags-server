@@ -1,22 +1,23 @@
 package ch.epfl.entity;
 
-import ch.epfl.scrumtool.EMF;
+import ch.epfl.entity.PMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.datanucleus.query.JPACursorHelper;
+import com.google.appengine.datanucleus.query.JDOCursorHelper;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 
 @Api(name = "userendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
 public class UserEndpoint {
@@ -34,25 +35,26 @@ public class UserEndpoint {
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
-		EntityManager mgr = null;
+		PersistenceManager mgr = null;
 		Cursor cursor = null;
 		List<User> execute = null;
 
 		try {
-			mgr = getEntityManager();
-			Query query = mgr.createQuery("select from User as User");
+			mgr = getPersistenceManager();
+			Query query = mgr.newQuery(User.class);
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
-				query.setHint(JPACursorHelper.CURSOR_HINT, cursor);
+				HashMap<String, Object> extensionMap = new HashMap<String, Object>();
+				extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
+				query.setExtensions(extensionMap);
 			}
 
 			if (limit != null) {
-				query.setFirstResult(0);
-				query.setMaxResults(limit);
+				query.setRange(0, limit);
 			}
 
-			execute = (List<User>) query.getResultList();
-			cursor = JPACursorHelper.getCursor(execute);
+			execute = (List<User>) query.execute();
+			cursor = JDOCursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
@@ -76,10 +78,10 @@ public class UserEndpoint {
 	 */
 	@ApiMethod(name = "getUser")
 	public User getUser(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		User user = null;
 		try {
-			user = mgr.find(User.class, id);
+			user = mgr.getObjectById(User.class, id);
 		} finally {
 			mgr.close();
 		}
@@ -96,12 +98,12 @@ public class UserEndpoint {
 	 */
 	@ApiMethod(name = "insertUser")
 	public User insertUser(User user) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
 			if (containsUser(user)) {
 				throw new EntityExistsException("Object already exists");
 			}
-			mgr.persist(user);
+			mgr.makePersistent(user);
 		} finally {
 			mgr.close();
 		}
@@ -118,12 +120,12 @@ public class UserEndpoint {
 	 */
 	@ApiMethod(name = "updateUser")
 	public User updateUser(User user) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
 			if (!containsUser(user)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}
-			mgr.persist(user);
+			mgr.makePersistent(user);
 		} finally {
 			mgr.close();
 		}
@@ -138,31 +140,30 @@ public class UserEndpoint {
 	 */
 	@ApiMethod(name = "removeUser")
 	public void removeUser(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
-			User user = mgr.find(User.class, id);
-			mgr.remove(user);
+			User user = mgr.getObjectById(User.class, id);
+			mgr.deletePersistent(user);
 		} finally {
 			mgr.close();
 		}
 	}
 
 	private boolean containsUser(User user) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		boolean contains = true;
 		try {
-			User item = mgr.find(User.class, user.getKey());
-			if (item == null) {
-				contains = false;
-			}
+			mgr.getObjectById(User.class, user.getKey());
+		} catch (javax.jdo.JDOObjectNotFoundException ex) {
+			contains = false;
 		} finally {
 			mgr.close();
 		}
 		return contains;
 	}
 
-	private static EntityManager getEntityManager() {
-		return EMF.get().createEntityManager();
+	private static PersistenceManager getPersistenceManager() {
+		return PMF.get().getPersistenceManager();
 	}
 
 }

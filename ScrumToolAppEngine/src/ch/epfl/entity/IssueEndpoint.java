@@ -1,22 +1,23 @@
 package ch.epfl.entity;
 
-import ch.epfl.scrumtool.EMF;
+import ch.epfl.entity.PMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.datanucleus.query.JPACursorHelper;
+import com.google.appengine.datanucleus.query.JDOCursorHelper;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 
 @Api(name = "issueendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
 public class IssueEndpoint {
@@ -34,25 +35,26 @@ public class IssueEndpoint {
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
-		EntityManager mgr = null;
+		PersistenceManager mgr = null;
 		Cursor cursor = null;
 		List<Issue> execute = null;
 
 		try {
-			mgr = getEntityManager();
-			Query query = mgr.createQuery("select from Issue as Issue");
+			mgr = getPersistenceManager();
+			Query query = mgr.newQuery(Issue.class);
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
-				query.setHint(JPACursorHelper.CURSOR_HINT, cursor);
+				HashMap<String, Object> extensionMap = new HashMap<String, Object>();
+				extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
+				query.setExtensions(extensionMap);
 			}
 
 			if (limit != null) {
-				query.setFirstResult(0);
-				query.setMaxResults(limit);
+				query.setRange(0, limit);
 			}
 
-			execute = (List<Issue>) query.getResultList();
-			cursor = JPACursorHelper.getCursor(execute);
+			execute = (List<Issue>) query.execute();
+			cursor = JDOCursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
@@ -76,10 +78,10 @@ public class IssueEndpoint {
 	 */
 	@ApiMethod(name = "getIssue")
 	public Issue getIssue(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		Issue issue = null;
 		try {
-			issue = mgr.find(Issue.class, id);
+			issue = mgr.getObjectById(Issue.class, id);
 		} finally {
 			mgr.close();
 		}
@@ -96,12 +98,12 @@ public class IssueEndpoint {
 	 */
 	@ApiMethod(name = "insertIssue")
 	public Issue insertIssue(Issue issue) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
 			if (containsIssue(issue)) {
 				throw new EntityExistsException("Object already exists");
 			}
-			mgr.persist(issue);
+			mgr.makePersistent(issue);
 		} finally {
 			mgr.close();
 		}
@@ -118,12 +120,12 @@ public class IssueEndpoint {
 	 */
 	@ApiMethod(name = "updateIssue")
 	public Issue updateIssue(Issue issue) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
 			if (!containsIssue(issue)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}
-			mgr.persist(issue);
+			mgr.makePersistent(issue);
 		} finally {
 			mgr.close();
 		}
@@ -138,31 +140,30 @@ public class IssueEndpoint {
 	 */
 	@ApiMethod(name = "removeIssue")
 	public void removeIssue(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
-			Issue issue = mgr.find(Issue.class, id);
-			mgr.remove(issue);
+			Issue issue = mgr.getObjectById(Issue.class, id);
+			mgr.deletePersistent(issue);
 		} finally {
 			mgr.close();
 		}
 	}
 
 	private boolean containsIssue(Issue issue) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		boolean contains = true;
 		try {
-			Issue item = mgr.find(Issue.class, issue.getKey());
-			if (item == null) {
-				contains = false;
-			}
+			mgr.getObjectById(Issue.class, issue.getKey());
+		} catch (javax.jdo.JDOObjectNotFoundException ex) {
+			contains = false;
 		} finally {
 			mgr.close();
 		}
 		return contains;
 	}
 
-	private static EntityManager getEntityManager() {
-		return EMF.get().createEntityManager();
+	private static PersistenceManager getPersistenceManager() {
+		return PMF.get().getPersistenceManager();
 	}
 
 }

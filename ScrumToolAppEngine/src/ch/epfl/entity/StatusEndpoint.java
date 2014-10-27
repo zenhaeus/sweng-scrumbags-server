@@ -1,25 +1,26 @@
 package ch.epfl.entity;
 
-import ch.epfl.scrumtool.EMF;
+import ch.epfl.entity.PMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.datanucleus.query.JPACursorHelper;
+import com.google.appengine.datanucleus.query.JDOCursorHelper;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 
-@Api(name = "taskendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
-public class TaskEndpoint {
+@Api(name = "statusendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
+public class StatusEndpoint {
 
 	/**
 	 * This method lists all the entities inserted in datastore.
@@ -29,42 +30,43 @@ public class TaskEndpoint {
 	 * persisted and a cursor to the next page.
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
-	@ApiMethod(name = "listTask")
-	public CollectionResponse<Task> listTask(
+	@ApiMethod(name = "listStatus")
+	public CollectionResponse<Status> listStatus(
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
-		EntityManager mgr = null;
+		PersistenceManager mgr = null;
 		Cursor cursor = null;
-		List<Task> execute = null;
+		List<Status> execute = null;
 
 		try {
-			mgr = getEntityManager();
-			Query query = mgr.createQuery("select from Task as Task");
+			mgr = getPersistenceManager();
+			Query query = mgr.newQuery(Status.class);
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
-				query.setHint(JPACursorHelper.CURSOR_HINT, cursor);
+				HashMap<String, Object> extensionMap = new HashMap<String, Object>();
+				extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
+				query.setExtensions(extensionMap);
 			}
 
 			if (limit != null) {
-				query.setFirstResult(0);
-				query.setMaxResults(limit);
+				query.setRange(0, limit);
 			}
 
-			execute = (List<Task>) query.getResultList();
-			cursor = JPACursorHelper.getCursor(execute);
+			execute = (List<Status>) query.execute();
+			cursor = JDOCursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
 			// Tight loop for fetching all entities from datastore and accomodate
 			// for lazy fetch.
-			for (Task obj : execute)
+			for (Status obj : execute)
 				;
 		} finally {
 			mgr.close();
 		}
 
-		return CollectionResponse.<Task> builder().setItems(execute)
+		return CollectionResponse.<Status> builder().setItems(execute)
 				.setNextPageToken(cursorString).build();
 	}
 
@@ -74,16 +76,16 @@ public class TaskEndpoint {
 	 * @param id the primary key of the java bean.
 	 * @return The entity with primary key id.
 	 */
-	@ApiMethod(name = "getTask")
-	public Task getTask(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
-		Task task = null;
+	@ApiMethod(name = "getStatus")
+	public Status getStatus(@Named("id") Long id) {
+		PersistenceManager mgr = getPersistenceManager();
+		Status status = null;
 		try {
-			task = mgr.find(Task.class, id);
+			status = mgr.getObjectById(Status.class, id);
 		} finally {
 			mgr.close();
 		}
-		return task;
+		return status;
 	}
 
 	/**
@@ -91,21 +93,21 @@ public class TaskEndpoint {
 	 * exists in the datastore, an exception is thrown.
 	 * It uses HTTP POST method.
 	 *
-	 * @param task the entity to be inserted.
+	 * @param status the entity to be inserted.
 	 * @return The inserted entity.
 	 */
-	@ApiMethod(name = "insertTask")
-	public Task insertTask(Task task) {
-		EntityManager mgr = getEntityManager();
+	@ApiMethod(name = "insertStatus")
+	public Status insertStatus(Status status) {
+		PersistenceManager mgr = getPersistenceManager();
 		try {
-			if (containsTask(task)) {
+			if (containsStatus(status)) {
 				throw new EntityExistsException("Object already exists");
 			}
-			mgr.persist(task);
+			mgr.makePersistent(status);
 		} finally {
 			mgr.close();
 		}
-		return task;
+		return status;
 	}
 
 	/**
@@ -113,21 +115,21 @@ public class TaskEndpoint {
 	 * exist in the datastore, an exception is thrown.
 	 * It uses HTTP PUT method.
 	 *
-	 * @param task the entity to be updated.
+	 * @param status the entity to be updated.
 	 * @return The updated entity.
 	 */
-	@ApiMethod(name = "updateTask")
-	public Task updateTask(Task task) {
-		EntityManager mgr = getEntityManager();
+	@ApiMethod(name = "updateStatus")
+	public Status updateStatus(Status status) {
+		PersistenceManager mgr = getPersistenceManager();
 		try {
-			if (!containsTask(task)) {
+			if (!containsStatus(status)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}
-			mgr.persist(task);
+			mgr.makePersistent(status);
 		} finally {
 			mgr.close();
 		}
-		return task;
+		return status;
 	}
 
 	/**
@@ -136,33 +138,32 @@ public class TaskEndpoint {
 	 *
 	 * @param id the primary key of the entity to be deleted.
 	 */
-	@ApiMethod(name = "removeTask")
-	public void removeTask(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
+	@ApiMethod(name = "removeStatus")
+	public void removeStatus(@Named("id") Long id) {
+		PersistenceManager mgr = getPersistenceManager();
 		try {
-			Task task = mgr.find(Task.class, id);
-			mgr.remove(task);
+			Status status = mgr.getObjectById(Status.class, id);
+			mgr.deletePersistent(status);
 		} finally {
 			mgr.close();
 		}
 	}
 
-	private boolean containsTask(Task task) {
-		EntityManager mgr = getEntityManager();
+	private boolean containsStatus(Status status) {
+		PersistenceManager mgr = getPersistenceManager();
 		boolean contains = true;
 		try {
-			Task item = mgr.find(Task.class, task.getKey());
-			if (item == null) {
-				contains = false;
-			}
+			mgr.getObjectById(Status.class, status.getKey());
+		} catch (javax.jdo.JDOObjectNotFoundException ex) {
+			contains = false;
 		} finally {
 			mgr.close();
 		}
 		return contains;
 	}
 
-	private static EntityManager getEntityManager() {
-		return EMF.get().createEntityManager();
+	private static PersistenceManager getPersistenceManager() {
+		return PMF.get().getPersistenceManager();
 	}
 
 }

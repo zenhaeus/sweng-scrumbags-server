@@ -32,7 +32,7 @@ public class User {
     @Persistent
     private String email;
 
-    @Persistent
+    @Persistent(mappedBy="user")
     private Set<Key> projects;
 
     public Key getKey() {

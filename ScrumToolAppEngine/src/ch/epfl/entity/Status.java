@@ -8,28 +8,28 @@ import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 
-
 /**
  * @author sylb
+ *
  */
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Priority {
+public class Status {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key;
     
 	@Persistent
-	private PriorityEnum priority;
+	private StatusEnum status;
 
 	public Key getKey() {
 		return key;
 	}
 	
-	public PriorityEnum getPriority() {
-		return priority;
+	public StatusEnum getStatus() {
+		return status;
 	}
 	
-	public void setPriority(PriorityEnum value) {
-		this.priority = value;
+	public void setStatus(StatusEnum value) {
+		this.status = value;
 	}
 }

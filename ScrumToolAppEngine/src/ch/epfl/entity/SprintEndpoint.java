@@ -19,8 +19,8 @@ import javax.persistence.EntityNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
-@Api(name = "projectendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
-public class ProjectEndpoint {
+@Api(name = "sprintendpoint", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "entity"))
+public class SprintEndpoint {
 
 	/**
 	 * This method lists all the entities inserted in datastore.
@@ -30,18 +30,18 @@ public class ProjectEndpoint {
 	 * persisted and a cursor to the next page.
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
-	@ApiMethod(name = "listProject")
-	public CollectionResponse<Project> listProject(
+	@ApiMethod(name = "listSprint")
+	public CollectionResponse<Sprint> listSprint(
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
 		PersistenceManager mgr = null;
 		Cursor cursor = null;
-		List<Project> execute = null;
+		List<Sprint> execute = null;
 
 		try {
 			mgr = getPersistenceManager();
-			Query query = mgr.newQuery(Project.class);
+			Query query = mgr.newQuery(Sprint.class);
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
 				HashMap<String, Object> extensionMap = new HashMap<String, Object>();
@@ -53,20 +53,20 @@ public class ProjectEndpoint {
 				query.setRange(0, limit);
 			}
 
-			execute = (List<Project>) query.execute();
+			execute = (List<Sprint>) query.execute();
 			cursor = JDOCursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
 			// Tight loop for fetching all entities from datastore and accomodate
 			// for lazy fetch.
-			for (Project obj : execute)
+			for (Sprint obj : execute)
 				;
 		} finally {
 			mgr.close();
 		}
 
-		return CollectionResponse.<Project> builder().setItems(execute)
+		return CollectionResponse.<Sprint> builder().setItems(execute)
 				.setNextPageToken(cursorString).build();
 	}
 
@@ -76,16 +76,16 @@ public class ProjectEndpoint {
 	 * @param id the primary key of the java bean.
 	 * @return The entity with primary key id.
 	 */
-	@ApiMethod(name = "getProject")
-	public Project getProject(@Named("id") Long id) {
+	@ApiMethod(name = "getSprint")
+	public Sprint getSprint(@Named("id") Long id) {
 		PersistenceManager mgr = getPersistenceManager();
-		Project project = null;
+		Sprint sprint = null;
 		try {
-			project = mgr.getObjectById(Project.class, id);
+			sprint = mgr.getObjectById(Sprint.class, id);
 		} finally {
 			mgr.close();
 		}
-		return project;
+		return sprint;
 	}
 
 	/**
@@ -93,21 +93,21 @@ public class ProjectEndpoint {
 	 * exists in the datastore, an exception is thrown.
 	 * It uses HTTP POST method.
 	 *
-	 * @param project the entity to be inserted.
+	 * @param sprint the entity to be inserted.
 	 * @return The inserted entity.
 	 */
-	@ApiMethod(name = "insertProject")
-	public Project insertProject(Project project) {
+	@ApiMethod(name = "insertSprint")
+	public Sprint insertSprint(Sprint sprint) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
-			if (containsProject(project)) {
+			if (containsSprint(sprint)) {
 				throw new EntityExistsException("Object already exists");
 			}
-			mgr.makePersistent(project);
+			mgr.makePersistent(sprint);
 		} finally {
 			mgr.close();
 		}
-		return project;
+		return sprint;
 	}
 
 	/**
@@ -115,21 +115,21 @@ public class ProjectEndpoint {
 	 * exist in the datastore, an exception is thrown.
 	 * It uses HTTP PUT method.
 	 *
-	 * @param project the entity to be updated.
+	 * @param sprint the entity to be updated.
 	 * @return The updated entity.
 	 */
-	@ApiMethod(name = "updateProject")
-	public Project updateProject(Project project) {
+	@ApiMethod(name = "updateSprint")
+	public Sprint updateSprint(Sprint sprint) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
-			if (!containsProject(project)) {
+			if (!containsSprint(sprint)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}
-			mgr.makePersistent(project);
+			mgr.makePersistent(sprint);
 		} finally {
 			mgr.close();
 		}
-		return project;
+		return sprint;
 	}
 
 	/**
@@ -138,22 +138,22 @@ public class ProjectEndpoint {
 	 *
 	 * @param id the primary key of the entity to be deleted.
 	 */
-	@ApiMethod(name = "removeProject")
-	public void removeProject(@Named("id") Long id) {
+	@ApiMethod(name = "removeSprint")
+	public void removeSprint(@Named("id") Long id) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
-			Project project = mgr.getObjectById(Project.class, id);
-			mgr.deletePersistent(project);
+			Sprint sprint = mgr.getObjectById(Sprint.class, id);
+			mgr.deletePersistent(sprint);
 		} finally {
 			mgr.close();
 		}
 	}
 
-	private boolean containsProject(Project project) {
+	private boolean containsSprint(Sprint sprint) {
 		PersistenceManager mgr = getPersistenceManager();
 		boolean contains = true;
 		try {
-			mgr.getObjectById(Project.class, project.getKey());
+			mgr.getObjectById(Sprint.class, sprint.getKey());
 		} catch (javax.jdo.JDOObjectNotFoundException ex) {
 			contains = false;
 		} finally {

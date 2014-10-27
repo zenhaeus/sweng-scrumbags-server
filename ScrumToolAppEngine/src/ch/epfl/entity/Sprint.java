@@ -1,5 +1,6 @@
 package ch.epfl.entity;
 
+import java.util.Date;
 import java.util.Set;
 
 import javax.jdo.annotations.IdGeneratorStrategy;
@@ -12,45 +13,38 @@ import com.google.appengine.api.datastore.Key;
 
 /**
  * @author sylb
+ *
  */
-
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Task {
+public class Sprint {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key;
-
+    
     @Persistent
-    private String name;
-
-    @Persistent
-    private String description;
-
-    @Persistent(mappedBy = "task")
+    private Date date;
+    
+    @Persistent(mappedBy="sprint")
     private Set<Issue> issues;
-
-    @Persistent
-    private Project project;
-
-//    private Status status; TODO to implement later
-
+    
     public Key getKey() {
-        return key;
+    	return key;
     }
-
-    public String getName() {
-        return name;
+    
+    public Date getDate() {
+    	return date;
     }
-
-    public String getDescription() {
-        return description;
+    
+    public void setDate(Date date) {
+    	this.date = date;
     }
-
-//    public Status getStatus() {
-//        return status;
-//    }
-
+    
     public Set<Issue> getIssues() {
-        return issues;
+    	return issues;
     }
+    
+    public void setIssues(Set<Issue> issues) {
+    	this.issues = issues;
+    }
+    
 }
