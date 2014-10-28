@@ -5,7 +5,7 @@
   <servlet-class>com.google.api.server.spi.SystemServiceServlet</servlet-class>
   <init-param>
    <param-name>services</param-name>
-   <param-value>ch.epfl.entity.IssueEndpoint,ch.epfl.entity.MainTaskEndpoint,ch.epfl.entity.PlayerEndpoint,ch.epfl.entity.PriorityEndpoint,ch.epfl.entity.ProjectEndpoint,ch.epfl.entity.RoleEndpoint,ch.epfl.entity.SprintEndpoint,ch.epfl.entity.StatusEndpoint,ch.epfl.entity.UserEndpoint,ch.epfl.scrumtool.DeviceInfoEndpoint,ch.epfl.scrumtool.MessageEndpoint</param-value>
+   <param-value>ch.epfl.scrumtool.server.IssueEndpoint,ch.epfl.scrumtool.server.PlayerEndpoint,ch.epfl.scrumtool.server.ProjectEndpoint,ch.epfl.scrumtool.server.ScrumUserEndpoint,ch.epfl.scrumtool.server.TaskEndpoint</param-value>
   </init-param>
  </servlet>
  <servlet-mapping>

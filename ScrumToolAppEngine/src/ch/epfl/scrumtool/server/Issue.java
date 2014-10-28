@@ -1,4 +1,4 @@
-package ch.epfl.entity;
+package ch.epfl.scrumtool.server;
 
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -11,6 +11,7 @@ import com.google.appengine.api.datastore.Key;
 /**
  * @author sylb
  */
+
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Issue {
     @PrimaryKey

@@ -1,4 +1,4 @@
-package ch.epfl.entity;
+package ch.epfl.scrumtool.server;
 
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -8,10 +8,7 @@ import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 
-/**
- * @author sylb
- * 
- */
+
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Player {
@@ -20,7 +17,7 @@ public class Player {
     private Key key;
 
     @Persistent
-    private User user;
+    private ScrumUser user;
 
     @Persistent
     private Role role;
@@ -32,11 +29,11 @@ public class Player {
         return key;
     }
 
-    public User getAccount() {
+    public ScrumUser getAccount() {
         return user;
     }
 
-    public void setAccount(User user) {
+    public void setAccount(ScrumUser user) {
         this.user = user;
     }
 

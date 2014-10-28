@@ -1,4 +1,4 @@
-package ch.epfl.entity;
+package ch.epfl.scrumtool.server;
 
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
