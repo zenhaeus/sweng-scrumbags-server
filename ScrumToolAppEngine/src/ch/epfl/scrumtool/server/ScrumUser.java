@@ -2,6 +2,7 @@ package ch.epfl.scrumtool.server;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
@@ -17,44 +18,46 @@ import com.google.appengine.api.datastore.KeyFactory;
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class ScrumUser {
+    @Persistent
     @PrimaryKey
-    private String mName;
+    private String email;
 
     @Persistent
-    private String mEmail;
+    private String name;
 
     @Persistent
-    private Set<Key> mProjects;
+    private Set<Key> projects = new HashSet<Key>();
 
-    
     public String getName() {
-        return mName;
+        return name;
     }
 
     public void setName(String name) {
-        this.mName = name;
+        this.name = name;
     }
 
     public String getEmail() {
-        return mEmail;
+        return email;
     }
 
     public void setEmail(String email) {
-        this.mEmail = email;
+        this.email = email;
     }
-    
+
     public Set<String> getProjects() {
+        final Logger log = Logger.getLogger(ScrumUser.class.getName()); 
+        log.info("Trying to get projects");
         Set<String> keys = new HashSet<String>();
-        for(Key k : mProjects) {
+        for (Key k : projects) {
             keys.add(k.toString());
         }
         return keys;
     }
 
     public void setProjects(Set<String> projects) {
-        this.mProjects.clear();
-        for(String k : projects) {
-            this.mProjects.add(KeyFactory.stringToKey(k));
+        this.projects.clear();
+        for (String k : projects) {
+            this.projects.add(KeyFactory.stringToKey(k));
         }
     }
 
