@@ -31,6 +31,12 @@ public class Issue {
     private Player player;
     
     @Persistent
+    private MainTask task;
+    
+    @Persistent
+    private Sprint sprint;
+    
+    @Persistent
     private Status status;
     
     public Key getKey() {
@@ -42,39 +48,55 @@ public class Issue {
     }
     
     public void setName(String name) {
-    	this.name = name;
+        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
-
-    public void setDescription(String description) {
-    	this.description = description;
-    }
     
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public float getEstimation() {
         return estimation;
     }
     
-    public void setEstimaion(float estimation) {
-    	this.estimation = estimation;
+    public void setEstimation(float estimation) {
+        this.estimation = estimation;
     }
 
     public Player getAssignedPlayer() {
         return player;
     }
     
-    public void setAssignedPlayer(Player player) {
-    	this.player = player;
-    }
-
-    public Status getStatus() {
-        return status;
+    public void setAsignedPlayer(Player player) {
+        this.player = player;
     }
     
-    public void setStatus(Status status) {
-    	this.status = status;
+    public MainTask getTask() {
+        return task;
     }
+    
+    public void setTask(MainTask task) {
+        this.task = task;
+    }
+    
+    public Sprint getSprint() {
+        return sprint;
+    }
+    
+    public void setSprint(Sprint sprint) {
+        this.sprint = sprint;
+    }
+
+   public Status getStatus() {
+        return status;
+    }
+   
+   public void setStatus(Status status) {
+       this.status = status;
+   }
 
 }

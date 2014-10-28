@@ -8,8 +8,6 @@ import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 
-
-
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Player {
     @PrimaryKey
