@@ -1,23 +1,23 @@
 package ch.epfl.scrumtool.server;
 
-import ch.epfl.scrumtool.server.Constants;
-import ch.epfl.scrumtool.server.EMF;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Nullable;
+import javax.inject.Named;
+import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
+import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
+
+import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.datanucleus.query.JPACursorHelper;
-
-import java.util.List;
-
-import javax.annotation.Nullable;
-import javax.inject.Named;
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import com.google.appengine.datanucleus.query.JDOCursorHelper;
 
 @Api(
         name = "scrumtool",
@@ -26,7 +26,6 @@ import javax.persistence.Query;
         clientIds = {Constants.ANDROID_CLIENT_ID},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
-
 public class ProjectEndpoint {
 
 	/**
@@ -42,25 +41,26 @@ public class ProjectEndpoint {
 			@Nullable @Named("cursor") String cursorString,
 			@Nullable @Named("limit") Integer limit) {
 
-		EntityManager mgr = null;
+		PersistenceManager mgr = null;
 		Cursor cursor = null;
 		List<Project> execute = null;
 
 		try {
-			mgr = getEntityManager();
-			Query query = mgr.createQuery("select from Project as Project");
+			mgr = getPersistenceManager();
+			Query query = mgr.newQuery(Project.class);
 			if (cursorString != null && cursorString != "") {
 				cursor = Cursor.fromWebSafeString(cursorString);
-				query.setHint(JPACursorHelper.CURSOR_HINT, cursor);
+				HashMap<String, Object> extensionMap = new HashMap<String, Object>();
+				extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
+				query.setExtensions(extensionMap);
 			}
 
 			if (limit != null) {
-				query.setFirstResult(0);
-				query.setMaxResults(limit);
+				query.setRange(0, limit);
 			}
 
-			execute = (List<Project>) query.getResultList();
-			cursor = JPACursorHelper.getCursor(execute);
+			execute = (List<Project>) query.execute();
+			cursor = JDOCursorHelper.getCursor(execute);
 			if (cursor != null)
 				cursorString = cursor.toWebSafeString();
 
@@ -84,10 +84,10 @@ public class ProjectEndpoint {
 	 */
 	@ApiMethod(name = "getProject")
 	public Project getProject(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		Project project = null;
 		try {
-			project = mgr.find(Project.class, id);
+			project = mgr.getObjectById(Project.class, id);
 		} finally {
 			mgr.close();
 		}
@@ -104,12 +104,12 @@ public class ProjectEndpoint {
 	 */
 	@ApiMethod(name = "insertProject")
 	public Project insertProject(Project project) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
 			if (containsProject(project)) {
 				throw new EntityExistsException("Object already exists");
 			}
-			mgr.persist(project);
+			mgr.makePersistent(project);
 		} finally {
 			mgr.close();
 		}
@@ -126,12 +126,12 @@ public class ProjectEndpoint {
 	 */
 	@ApiMethod(name = "updateProject")
 	public Project updateProject(Project project) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
 			if (!containsProject(project)) {
 				throw new EntityNotFoundException("Object does not exist");
 			}
-			mgr.persist(project);
+			mgr.makePersistent(project);
 		} finally {
 			mgr.close();
 		}
@@ -146,31 +146,30 @@ public class ProjectEndpoint {
 	 */
 	@ApiMethod(name = "removeProject")
 	public void removeProject(@Named("id") Long id) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		try {
-			Project project = mgr.find(Project.class, id);
-			mgr.remove(project);
+			Project project = mgr.getObjectById(Project.class, id);
+			mgr.deletePersistent(project);
 		} finally {
 			mgr.close();
 		}
 	}
 
 	private boolean containsProject(Project project) {
-		EntityManager mgr = getEntityManager();
+		PersistenceManager mgr = getPersistenceManager();
 		boolean contains = true;
 		try {
-			Project item = mgr.find(Project.class, project.getKey());
-			if (item == null) {
-				contains = false;
-			}
+			mgr.getObjectById(Project.class, project.getKey());
+		} catch (javax.jdo.JDOObjectNotFoundException ex) {
+			contains = false;
 		} finally {
 			mgr.close();
 		}
 		return contains;
 	}
 
-	private static EntityManager getEntityManager() {
-		return EMF.get().createEntityManager();
+	private static PersistenceManager getPersistenceManager() {
+		return PMF.get().getPersistenceManager();
 	}
 
 }
