@@ -10,7 +10,9 @@ import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.datanucleus.query.JDOCursorHelper;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -106,9 +108,22 @@ public class ScrumProjectEndpoint {
     public ScrumProject insertScrumProject(ScrumProject scrumproject) {
         PersistenceManager mgr = getPersistenceManager();
         try {
-            if (containsScrumProject(scrumproject)) {
-                throw new EntityExistsException("Object already exists");
-            }
+            String userKey = scrumproject.getLastModUser();
+            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class, userKey);
+            
+            ScrumPlayer scrumPlayer = new ScrumPlayer();
+            scrumPlayer.setAdminFlag(true);
+            scrumPlayer.setRole(Role.PRODUCT_OWNER);
+            scrumPlayer.setLastModDate(scrumproject.getLastModDate());
+            scrumPlayer.setLastModUser(scrumproject.getLastModUser());
+            scrumPlayer.setAccount(scrumUser);
+            
+            scrumUser.addPlayer(scrumPlayer);
+            
+            Set<ScrumPlayer> scrumPlayers = new HashSet<ScrumPlayer>();
+            scrumPlayers.add(scrumPlayer);
+            scrumproject.setPlayers(scrumPlayers);
+            
             mgr.makePersistent(scrumproject);
         } finally {
             mgr.close();
