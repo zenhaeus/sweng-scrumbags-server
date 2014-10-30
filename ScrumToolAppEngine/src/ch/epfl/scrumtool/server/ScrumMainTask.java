@@ -1,6 +1,7 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.Date;
+import java.util.Set;
 
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
@@ -10,11 +11,11 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 /**
- * @author sylb, aschneuw, zenhaeus
+ * @author sylb
  */
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Issue {
+public class ScrumMainTask {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
@@ -27,11 +28,11 @@ public class Issue {
     private String description;
 
     @Persistent
-    private float estimation;
+    private Set<ScrumIssue> issues;
 
     @Persistent
-    private Player player;
-    
+    private ScrumProject project;
+
     @Persistent
     private Status status;
     
@@ -40,7 +41,7 @@ public class Issue {
     
     @Persistent
     private String lastModUser;
-    
+
     public String getKey() {
         return key;
     }
@@ -54,7 +55,7 @@ public class Issue {
     }
     
     public void setName(String name) {
-        this.name = name;
+    	this.name = name;
     }
 
     public String getDescription() {
@@ -62,48 +63,39 @@ public class Issue {
     }
     
     public void setDescription(String description) {
-        this.description = description;
+    	this.description = description;
     }
 
-    public float getEstimation() {
-        return estimation;
-    }
-    
-    public void setEstimation(float estimation) {
-        this.estimation = estimation;
-    }
-
-    public Player getAssignedPlayer() {
-        return player;
-    }
-    
-    public void setAssignedPlayer(Player player) {
-        this.player = player;
-    }
-    
-
-   public Status getStatus() {
+    public Status getStatus() {
         return status;
     }
-   
-   public void setStatus(Status status) {
-       this.status = status;
-   }
-   
-   public Date getLastModDate() {
-       return this.getLastModDate();
-   }
-   
-   public void setLastModDate(Date date){
-       this.lastModDate = date;
-   }
-   
-   public String getLastModUser() {
-       return this.lastModUser;
-   }
-   
-   public void setLastModUser(String user) {
-       this.lastModUser = user;
-   }
+    
+    public void setStatus(Status status) {
+    	this.status = status; 	
+    }
 
+    public Set<ScrumIssue> getIssues() {
+        return issues;
+    }
+    
+    public void setIssues(Set<ScrumIssue> issues) {
+    	this.issues = issues;
+    }
+    
+    public Date getLastModDate() {
+        return this.getLastModDate();
+    }
+    
+    public void setLastModDate(Date date){
+        this.lastModDate = date;
+    }
+    
+    public String getLastModUser() {
+        return this.lastModUser;
+    }
+    
+    public void setLastModUser(String user) {
+        this.lastModUser = user;
+    }
+    
 }

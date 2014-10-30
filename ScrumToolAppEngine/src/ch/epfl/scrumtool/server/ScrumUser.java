@@ -22,7 +22,7 @@ public class ScrumUser {
     private String name;
 
     @Persistent(mappedBy="user")
-    private Set<Player> players;
+    private Set<ScrumPlayer> players;
     
     @Persistent
     private long lastModDate;
@@ -47,11 +47,11 @@ public class ScrumUser {
         this.email = email;
     }
 
-    public Set<Player> getPlayers() {
+    public Set<ScrumPlayer> getPlayers() {
         return players;
     }
 
-    public void setProjects(Set<Player> players) {
+    public void setProjects(Set<ScrumPlayer> players) {
         this.players = players;
     }
     

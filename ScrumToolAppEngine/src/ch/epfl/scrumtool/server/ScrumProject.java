@@ -16,7 +16,7 @@ import javax.jdo.annotations.PrimaryKey;
  */
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Project {
+public class ScrumProject {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
@@ -35,13 +35,13 @@ public class Project {
     private String lastModUser;
 
     @Persistent
-    private Set<Player> players;
+    private Set<ScrumPlayer> players;
     
     @Persistent(mappedBy="project")
-    private Set<MainTask> backlog;
+    private Set<ScrumMainTask> backlog;
     
     @Persistent(mappedBy="project")
-    private Set<Sprint> sprints;
+    private Set<ScrumSprint> sprints;
 
     public String getKey() {
         return key;
@@ -67,27 +67,27 @@ public class Project {
         this.description = description;
     }
 
-    public Set<Player> getPlayers() {
+    public Set<ScrumPlayer> getPlayers() {
         return players;
     }
 
-    public void setPlayers(Set<Player> players) {
+    public void setPlayers(Set<ScrumPlayer> players) {
         this.players = players;
     }
 
-    public Set<MainTask> getBacklog() {
+    public Set<ScrumMainTask> getBacklog() {
         return backlog;
     }
 
-    public void setBacklog(Set<MainTask> backlog) {
+    public void setBacklog(Set<ScrumMainTask> backlog) {
         this.backlog = backlog;
     }
     
-    public Set<Sprint> getSprint() {
+    public Set<ScrumSprint> getSprint() {
     	return sprints;
     }
     
-    public void setSprints(Set<Sprint> sprints) {
+    public void setSprints(Set<ScrumSprint> sprints) {
     	this.sprints = sprints;
     }
 

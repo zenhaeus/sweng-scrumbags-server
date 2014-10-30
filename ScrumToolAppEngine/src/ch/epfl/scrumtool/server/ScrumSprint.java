@@ -15,7 +15,7 @@ import javax.jdo.annotations.PrimaryKey;
  *
  */
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class Sprint {
+public class ScrumSprint {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
@@ -25,7 +25,7 @@ public class Sprint {
     private Date date;
     
     @Persistent
-    private Set<Issue> issues;
+    private Set<ScrumIssue> issues;
     
     @Persistent
     private Date lastModDate;
@@ -45,11 +45,11 @@ public class Sprint {
     	this.date = date;
     }
     
-    public Set<Issue> getIssues() {
+    public Set<ScrumIssue> getIssues() {
     	return issues;
     }
     
-    public void setIssues(Set<Issue> issues) {
+    public void setIssues(Set<ScrumIssue> issues) {
     	this.issues = issues;
     }
     

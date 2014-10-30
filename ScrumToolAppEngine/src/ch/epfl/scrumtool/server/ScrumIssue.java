@@ -1,7 +1,6 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.Date;
-import java.util.Set;
 
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
@@ -11,11 +10,11 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 /**
- * @author sylb
+ * @author sylb, aschneuw, zenhaeus
  */
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
-public class MainTask {
+public class ScrumIssue {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
@@ -28,11 +27,11 @@ public class MainTask {
     private String description;
 
     @Persistent
-    private Set<Issue> issues;
+    private float estimation;
 
     @Persistent
-    private Project project;
-
+    private ScrumPlayer player;
+    
     @Persistent
     private Status status;
     
@@ -41,7 +40,7 @@ public class MainTask {
     
     @Persistent
     private String lastModUser;
-
+    
     public String getKey() {
         return key;
     }
@@ -55,7 +54,7 @@ public class MainTask {
     }
     
     public void setName(String name) {
-    	this.name = name;
+        this.name = name;
     }
 
     public String getDescription() {
@@ -63,39 +62,48 @@ public class MainTask {
     }
     
     public void setDescription(String description) {
-    	this.description = description;
+        this.description = description;
     }
 
-    public Status getStatus() {
+    public float getEstimation() {
+        return estimation;
+    }
+    
+    public void setEstimation(float estimation) {
+        this.estimation = estimation;
+    }
+
+    public ScrumPlayer getAssignedPlayer() {
+        return player;
+    }
+    
+    public void setAssignedPlayer(ScrumPlayer player) {
+        this.player = player;
+    }
+    
+
+   public Status getStatus() {
         return status;
     }
-    
-    public void setStatus(Status status) {
-    	this.status = status; 	
-    }
+   
+   public void setStatus(Status status) {
+       this.status = status;
+   }
+   
+   public Date getLastModDate() {
+       return this.getLastModDate();
+   }
+   
+   public void setLastModDate(Date date){
+       this.lastModDate = date;
+   }
+   
+   public String getLastModUser() {
+       return this.lastModUser;
+   }
+   
+   public void setLastModUser(String user) {
+       this.lastModUser = user;
+   }
 
-    public Set<Issue> getIssues() {
-        return issues;
-    }
-    
-    public void setIssues(Set<Issue> issues) {
-    	this.issues = issues;
-    }
-    
-    public Date getLastModDate() {
-        return this.getLastModDate();
-    }
-    
-    public void setLastModDate(Date date){
-        this.lastModDate = date;
-    }
-    
-    public String getLastModUser() {
-        return this.lastModUser;
-    }
-    
-    public void setLastModUser(String user) {
-        this.lastModUser = user;
-    }
-    
 }
