@@ -28,7 +28,7 @@ public class ScrumSprint {
     private Set<ScrumIssue> issues;
     
     @Persistent
-    private Date lastModDate;
+    private long lastModDate;
     
     @Persistent
     private String lastModUser;
@@ -53,11 +53,11 @@ public class ScrumSprint {
     	this.issues = issues;
     }
     
-    public Date getLastModDate() {
-        return this.getLastModDate();
+    public long getLastModDate() {
+        return this.lastModDate;
     }
     
-    public void setLastModDate(Date date){
+    public void setLastModDate(long date){
         this.lastModDate = date;
     }
     

@@ -36,7 +36,7 @@ public class ScrumIssue {
     private Status status;
     
     @Persistent
-    private Date lastModDate;
+    private long lastModDate;
     
     @Persistent
     private String lastModUser;
@@ -90,11 +90,11 @@ public class ScrumIssue {
        this.status = status;
    }
    
-   public Date getLastModDate() {
-       return this.getLastModDate();
+   public long getLastModDate() {
+       return this.lastModDate;
    }
    
-   public void setLastModDate(Date date){
+   public void setLastModDate(long date){
        this.lastModDate = date;
    }
    
