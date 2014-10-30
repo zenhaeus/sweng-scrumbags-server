@@ -83,7 +83,7 @@ public class MainTaskEndpoint {
 	 * @return The entity with primary key id.
 	 */
 	@ApiMethod(name = "getMainTask")
-	public MainTask getMainTask(@Named("id") Long id) {
+	public MainTask getMainTask(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		MainTask maintask = null;
 		try {
@@ -145,7 +145,7 @@ public class MainTaskEndpoint {
 	 * @param id the primary key of the entity to be deleted.
 	 */
 	@ApiMethod(name = "removeMainTask")
-	public void removeMainTask(@Named("id") Long id) {
+	public void removeMainTask(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
 			MainTask maintask = mgr.getObjectById(MainTask.class, id);

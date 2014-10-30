@@ -1,29 +1,41 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Date;
+
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-import com.google.appengine.api.datastore.Key;
-
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Player {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    private Key key;
+    @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
+    private String key;
 
     @Persistent
     private ScrumUser user;
 
     @Persistent
     private Role role;
-
+    
     @Persistent
-    private Project project;
+    private boolean admin;
+    
+    @Persistent
+    private Date lastModDate;
+    
+    @Persistent
+    private String lastModUser;
 
-    public Key getKey() {
+    public String getKey() {
+        return key;
+    }
+    
+    public String setKey() {
         return key;
     }
 
@@ -35,7 +47,6 @@ public class Player {
         this.user = user;
     }
 
-    
     public Role getRole() { 
         return role; 
     }
@@ -43,4 +54,28 @@ public class Player {
     public void setRole(Role role) {
         this.role = role;
     }
+    
+    public Date getLastModDate() {
+        return this.getLastModDate();
+    }
+    
+    public void setLastModDate(Date date){
+        this.lastModDate = date;
+    }
+    
+    public String getLastModUser() {
+        return this.lastModUser;
+    }
+    
+    public void setLastModUser(String user) {
+        this.lastModUser = user;
+    }
+    
+    public void setAdminFlag(boolean admin){
+        this.admin = admin;
+    } 
+    
+    public boolean getAdminFlag(){
+        return this.admin;
+    } 
 }

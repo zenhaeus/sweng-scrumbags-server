@@ -1,17 +1,17 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Date;
 import java.util.Set;
 
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-import com.google.appengine.api.datastore.Key;
-
 /**
- * @author sylb
+ * @author sylb, aschneuw, zenhaeus
  * 
  */
 
@@ -19,28 +19,36 @@ import com.google.appengine.api.datastore.Key;
 public class Project {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    private Key key;
+    @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
+    private String key;
 
     @Persistent
     private String name;
 
     @Persistent
     private String description;
+    
+    @Persistent
+    private Date lastModDate;
+    
+    @Persistent
+    private String lastModUser;
 
     @Persistent
-    private Player admin;
-
-    @Persistent(mappedBy="project")
     private Set<Player> players;
-
+    
     @Persistent(mappedBy="project")
     private Set<MainTask> backlog;
     
     @Persistent(mappedBy="project")
     private Set<Sprint> sprints;
 
-    public Key getKey() {
+    public String getKey() {
         return key;
+    }
+    
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -57,14 +65,6 @@ public class Project {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Player getAdmin() {
-        return admin;
-    }
-
-    public void setAdmin(Player admin) {
-        this.admin = admin;
     }
 
     public Set<Player> getPlayers() {
@@ -91,8 +91,20 @@ public class Project {
     	this.sprints = sprints;
     }
 
-    public int getChangesCount(ScrumUser user) {
-        return 1;
+    public Date getLastModDate() {
+        return this.getLastModDate();
+    }
+    
+    public void setLastModDate(Date date){
+        this.lastModDate = date;
+    }
+    
+    public String getLastModUser() {
+        return this.lastModUser;
+    }
+    
+    public void setLastModUser(String user) {
+        this.lastModUser = user;
     }
 
 }

@@ -83,7 +83,7 @@ public class PlayerEndpoint {
 	 * @return The entity with primary key id.
 	 */
 	@ApiMethod(name = "getPlayer")
-	public Player getPlayer(@Named("id") Long id) {
+	public Player getPlayer(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		Player player = null;
 		try {
@@ -145,7 +145,7 @@ public class PlayerEndpoint {
 	 * @param id the primary key of the entity to be deleted.
 	 */
 	@ApiMethod(name = "removePlayer")
-	public void removePlayer(@Named("id") Long id) {
+	public void removePlayer(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
 			Player player = mgr.getObjectById(Player.class, id);

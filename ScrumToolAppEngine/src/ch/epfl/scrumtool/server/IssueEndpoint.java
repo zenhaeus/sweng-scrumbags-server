@@ -83,7 +83,7 @@ public class IssueEndpoint {
 	 * @return The entity with primary key id.
 	 */
 	@ApiMethod(name = "getIssue")
-	public Issue getIssue(@Named("id") Long id) {
+	public Issue getIssue(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		Issue issue = null;
 		try {
@@ -145,7 +145,7 @@ public class IssueEndpoint {
 	 * @param id the primary key of the entity to be deleted.
 	 */
 	@ApiMethod(name = "removeIssue")
-	public void removeIssue(@Named("id") Long id) {
+	public void removeIssue(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
 			Issue issue = mgr.getObjectById(Issue.class, id);

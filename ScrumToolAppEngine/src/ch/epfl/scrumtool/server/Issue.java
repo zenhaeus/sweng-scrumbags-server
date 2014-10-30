@@ -1,22 +1,24 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Date;
+
+import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
-import com.google.appengine.api.datastore.Key;
-
 /**
- * @author sylb
+ * @author sylb, aschneuw, zenhaeus
  */
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class Issue {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    private Key key;
+    @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
+    private String key;
 
     @Persistent
     private String name;
@@ -31,16 +33,20 @@ public class Issue {
     private Player player;
     
     @Persistent
-    private MainTask task;
-    
-    @Persistent
-    private Sprint sprint;
-    
-    @Persistent
     private Status status;
     
-    public Key getKey() {
+    @Persistent
+    private Date lastModDate;
+    
+    @Persistent
+    private String lastModUser;
+    
+    public String getKey() {
         return key;
+    }
+    
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getName() {
@@ -71,25 +77,10 @@ public class Issue {
         return player;
     }
     
-    public void setAsignedPlayer(Player player) {
+    public void setAssignedPlayer(Player player) {
         this.player = player;
     }
     
-    public MainTask getTask() {
-        return task;
-    }
-    
-    public void setTask(MainTask task) {
-        this.task = task;
-    }
-    
-    public Sprint getSprint() {
-        return sprint;
-    }
-    
-    public void setSprint(Sprint sprint) {
-        this.sprint = sprint;
-    }
 
    public Status getStatus() {
         return status;
@@ -97,6 +88,22 @@ public class Issue {
    
    public void setStatus(Status status) {
        this.status = status;
+   }
+   
+   public Date getLastModDate() {
+       return this.getLastModDate();
+   }
+   
+   public void setLastModDate(Date date){
+       this.lastModDate = date;
+   }
+   
+   public String getLastModUser() {
+       return this.lastModUser;
+   }
+   
+   public void setLastModUser(String user) {
+       this.lastModUser = user;
    }
 
 }

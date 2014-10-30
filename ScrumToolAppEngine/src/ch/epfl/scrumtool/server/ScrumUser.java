@@ -1,16 +1,12 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.HashSet;
+import java.util.Date;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
-
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 
 /**
  * @author sylb, aschneuw
@@ -25,8 +21,15 @@ public class ScrumUser {
     @Persistent
     private String name;
 
+    @Persistent(mappedBy="user")
+    private Set<Player> players;
+    
     @Persistent
-    private Set<Key> projects = new HashSet<Key>();
+    private Date lastModDate;
+    
+    @Persistent
+    private String lastModUser;
+    
 
     public String getName() {
         return name;
@@ -44,21 +47,28 @@ public class ScrumUser {
         this.email = email;
     }
 
-    public Set<String> getProjects() {
-        final Logger log = Logger.getLogger(ScrumUser.class.getName()); 
-        log.info("Trying to get projects");
-        Set<String> keys = new HashSet<String>();
-        for (Key k : projects) {
-            keys.add(k.toString());
-        }
-        return keys;
+    public Set<Player> getPlayers() {
+        return players;
     }
 
-    public void setProjects(Set<String> projects) {
-        this.projects.clear();
-        for (String k : projects) {
-            this.projects.add(KeyFactory.stringToKey(k));
-        }
+    public void setProjects(Set<Player> players) {
+        this.players = players;
+    }
+    
+    public Date getLastModDate() {
+        return this.getLastModDate();
+    }
+    
+    public void setLastModDate(Date date){
+        this.lastModDate = date;
+    }
+    
+    public String getLastModUser() {
+        return this.lastModUser;
+    }
+    
+    public void setLastModUser(String user) {
+        this.lastModUser = user;
     }
 
 }

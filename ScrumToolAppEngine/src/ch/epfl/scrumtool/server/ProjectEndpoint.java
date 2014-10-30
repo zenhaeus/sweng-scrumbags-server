@@ -83,7 +83,7 @@ public class ProjectEndpoint {
 	 * @return The entity with primary key id.
 	 */
 	@ApiMethod(name = "getProject")
-	public Project getProject(@Named("id") Long id) {
+	public Project getProject(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		Project project = null;
 		try {
@@ -145,7 +145,7 @@ public class ProjectEndpoint {
 	 * @param id the primary key of the entity to be deleted.
 	 */
 	@ApiMethod(name = "removeProject")
-	public void removeProject(@Named("id") Long id) {
+	public void removeProject(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
 			Project project = mgr.getObjectById(Project.class, id);

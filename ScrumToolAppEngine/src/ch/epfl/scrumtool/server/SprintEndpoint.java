@@ -83,7 +83,7 @@ public class SprintEndpoint {
 	 * @return The entity with primary key id.
 	 */
 	@ApiMethod(name = "getSprint")
-	public Sprint getSprint(@Named("id") Long id) {
+	public Sprint getSprint(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		Sprint sprint = null;
 		try {
@@ -145,7 +145,7 @@ public class SprintEndpoint {
 	 * @param id the primary key of the entity to be deleted.
 	 */
 	@ApiMethod(name = "removeSprint")
-	public void removeSprint(@Named("id") Long id) {
+	public void removeSprint(@Named("id") String id) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
 			Sprint sprint = mgr.getObjectById(Sprint.class, id);
