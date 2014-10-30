@@ -25,7 +25,7 @@ public class ScrumUser {
     private Set<Player> players;
     
     @Persistent
-    private Date lastModDate;
+    private long lastModDate;
     
     @Persistent
     private String lastModUser;
@@ -55,11 +55,11 @@ public class ScrumUser {
         this.players = players;
     }
     
-    public Date getLastModDate() {
-        return this.getLastModDate();
+    public long getLastModDate() {
+        return this.lastModDate;
     }
     
-    public void setLastModDate(Date date){
+    public void setLastModDate(long date){
         this.lastModDate = date;
     }
     

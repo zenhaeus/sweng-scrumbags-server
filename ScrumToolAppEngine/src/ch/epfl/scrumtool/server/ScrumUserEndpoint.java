@@ -106,9 +106,11 @@ public class ScrumUserEndpoint {
 	public ScrumUser insertScrumUser(ScrumUser scrumuser) {
 		PersistenceManager mgr = getPersistenceManager();
 		try {
-			if (containsScrumUser(scrumuser)) {
-				throw new EntityExistsException("Object already exists");
-			}
+		    if(scrumuser != null) {
+	            if (containsScrumUser(scrumuser)) {
+	                throw new EntityExistsException("Object already exists");
+	            }
+		    }
 			mgr.makePersistent(scrumuser);
 		} finally {
 			mgr.close();
