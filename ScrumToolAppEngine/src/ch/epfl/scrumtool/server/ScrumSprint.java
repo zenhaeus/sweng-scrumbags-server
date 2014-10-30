@@ -33,6 +33,9 @@ public class ScrumSprint {
     @Persistent
     private String lastModUser;
     
+    @Persistent
+    private ScrumProject project;
+    
     public String getKey() {
     	return key;
     }
@@ -67,6 +70,14 @@ public class ScrumSprint {
     
     public void setLastModUser(String user) {
         this.lastModUser = user;
+    }
+    
+    public void setProject(ScrumProject project){
+        this.project = project;
+    }
+    
+    public ScrumProject getProject(){
+        return this.project;
     }
     
 }
