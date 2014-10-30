@@ -1,6 +1,7 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.jdo.annotations.IdentityType;
@@ -69,6 +70,16 @@ public class ScrumUser {
     
     public void setLastModUser(String user) {
         this.lastModUser = user;
+    }
+    
+    public void addPlayer(ScrumPlayer player){
+        if (players != null) {
+            players.add(player);
+        } else {
+            this.players = new HashSet<ScrumPlayer>();
+            
+        }
+        
     }
 
 }
