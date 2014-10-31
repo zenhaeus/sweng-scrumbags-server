@@ -192,7 +192,7 @@ public class ScrumUserEndpoint {
      */
     
     @ApiMethod(name = "loginUser")
-    public ScrumUser loginUser(String eMail) {
+    public ScrumUser loginUser(@Named("eMail") String eMail) {
         PersistenceManager mgr = getPersistenceManager();
         try {
             return mgr.getObjectById(ScrumUser.class, eMail);
