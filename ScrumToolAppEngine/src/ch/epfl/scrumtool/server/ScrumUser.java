@@ -21,15 +21,14 @@ public class ScrumUser {
     @Persistent
     private String name;
 
-    @Persistent(mappedBy="user")
+    @Persistent(mappedBy = "user")
     private Set<ScrumPlayer> players;
-    
+
     @Persistent
     private long lastModDate;
-    
+
     @Persistent
     private String lastModUser;
-    
 
     public String getName() {
         return name;
@@ -54,31 +53,31 @@ public class ScrumUser {
     public void setProjects(Set<ScrumPlayer> players) {
         this.players = players;
     }
-    
+
     public long getLastModDate() {
         return this.lastModDate;
     }
-    
-    public void setLastModDate(long date){
+
+    public void setLastModDate(long date) {
         this.lastModDate = date;
     }
-    
+
     public String getLastModUser() {
         return this.lastModUser;
     }
-    
+
     public void setLastModUser(String user) {
         this.lastModUser = user;
     }
-    
-    public void addPlayer(ScrumPlayer player){
+
+    public void addPlayer(ScrumPlayer player) {
         if (players != null) {
             players.add(player);
         } else {
             this.players = new HashSet<ScrumPlayer>();
-            
+
         }
-        
+
     }
 
 }

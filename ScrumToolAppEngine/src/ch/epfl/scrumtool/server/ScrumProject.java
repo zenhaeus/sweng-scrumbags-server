@@ -1,6 +1,5 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.Date;
 import java.util.Set;
 
 import javax.jdo.annotations.Extension;
@@ -19,7 +18,7 @@ import javax.jdo.annotations.PrimaryKey;
 public class ScrumProject {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
+    @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
 
     @Persistent
@@ -27,26 +26,26 @@ public class ScrumProject {
 
     @Persistent
     private String description;
-    
+
     @Persistent
     private long lastModDate;
-    
+
     @Persistent
     private String lastModUser;
 
     @Persistent
     private Set<ScrumPlayer> players;
-    
-    @Persistent(mappedBy="project")
+
+    @Persistent(mappedBy = "project")
     private Set<ScrumMainTask> backlog;
-    
-    @Persistent(mappedBy="project")
+
+    @Persistent(mappedBy = "project")
     private Set<ScrumSprint> sprints;
 
     public String getKey() {
         return key;
     }
-    
+
     public void setKey(String key) {
         this.key = key;
     }
@@ -82,27 +81,27 @@ public class ScrumProject {
     public void setBacklog(Set<ScrumMainTask> backlog) {
         this.backlog = backlog;
     }
-    
+
     public Set<ScrumSprint> getSprint() {
-    	return sprints;
+        return sprints;
     }
-    
+
     public void setSprints(Set<ScrumSprint> sprints) {
-    	this.sprints = sprints;
+        this.sprints = sprints;
     }
 
     public long getLastModDate() {
         return this.lastModDate;
     }
-    
-    public void setLastModDate(long date){
+
+    public void setLastModDate(long date) {
         this.lastModDate = date;
     }
-    
+
     public String getLastModUser() {
         return this.lastModUser;
     }
-    
+
     public void setLastModUser(String user) {
         this.lastModUser = user;
     }

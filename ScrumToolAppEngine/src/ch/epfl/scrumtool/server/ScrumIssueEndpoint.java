@@ -18,7 +18,11 @@ import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
-
+/**
+ * 
+ * @author aschneuw
+ *
+ */
 @Api(
         name = "scrumtool",
         version = "v1",
@@ -48,7 +52,7 @@ public class ScrumIssueEndpoint {
         try {
             mgr = getPersistenceManager();
             Query query = mgr.newQuery(ScrumIssue.class);
-            if (cursorString != null && cursorString != "") {
+            if (cursorString != null && !cursorString.equals("")) {
                 cursor = Cursor.fromWebSafeString(cursorString);
                 HashMap<String, Object> extensionMap = new HashMap<String, Object>();
                 extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
@@ -61,18 +65,19 @@ public class ScrumIssueEndpoint {
 
             execute = (List<ScrumIssue>) query.execute();
             cursor = JDOCursorHelper.getCursor(execute);
-            if (cursor != null)
+            if (cursor != null) {
                 cursorString = cursor.toWebSafeString();
+            }
 
-            // Tight loop for fetching all entities from datastore and accomodate
-            // for lazy fetch.
-            for (ScrumIssue obj : execute)
-                ;
+            for (ScrumIssue obj : execute) {
+                // Tight loop for fetching all entities from datastore and accomodate
+                // for lazy fetch.
+            }
         } finally {
             mgr.close();
         }
 
-        return CollectionResponse.<ScrumIssue> builder().setItems(execute)
+        return CollectionResponse.<ScrumIssue>builder().setItems(execute)
                 .setNextPageToken(cursorString).build();
     }
 

@@ -15,7 +15,7 @@ import javax.jdo.annotations.PrimaryKey;
 public class ScrumIssue {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
+    @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
 
     @Persistent
@@ -29,28 +29,28 @@ public class ScrumIssue {
 
     @Persistent
     private ScrumPlayer player;
-    
+
     @Persistent
     private Status status;
-    
+
     @Persistent
     private long lastModDate;
-    
+
     @Persistent
     private String lastModUser;
-    
+
     public String getKey() {
         return key;
     }
-    
-    public void setKey(String key) {
-        this.key = key;
+
+    public void setKey(String aKey) {
+        this.key = aKey;
     }
 
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
@@ -58,7 +58,7 @@ public class ScrumIssue {
     public String getDescription() {
         return description;
     }
-    
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -66,7 +66,7 @@ public class ScrumIssue {
     public float getEstimation() {
         return estimation;
     }
-    
+
     public void setEstimation(float estimation) {
         this.estimation = estimation;
     }
@@ -74,34 +74,33 @@ public class ScrumIssue {
     public ScrumPlayer getAssignedPlayer() {
         return player;
     }
-    
+
     public void setAssignedPlayer(ScrumPlayer player) {
         this.player = player;
     }
-    
 
-   public Status getStatus() {
+    public Status getStatus() {
         return status;
     }
-   
-   public void setStatus(Status status) {
-       this.status = status;
-   }
-   
-   public long getLastModDate() {
-       return this.lastModDate;
-   }
-   
-   public void setLastModDate(long date){
-       this.lastModDate = date;
-   }
-   
-   public String getLastModUser() {
-       return this.lastModUser;
-   }
-   
-   public void setLastModUser(String user) {
-       this.lastModUser = user;
-   }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public long getLastModDate() {
+        return this.lastModDate;
+    }
+
+    public void setLastModDate(long date) {
+        this.lastModDate = date;
+    }
+
+    public String getLastModUser() {
+        return this.lastModUser;
+    }
+
+    public void setLastModUser(String user) {
+        this.lastModUser = user;
+    }
 
 }

@@ -17,7 +17,7 @@ import javax.jdo.annotations.PrimaryKey;
 public class ScrumMainTask {
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
-    @Extension(vendorName="datanucleus", key="gae.encoded-pk", value="true")
+    @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
 
     @Persistent
@@ -34,17 +34,17 @@ public class ScrumMainTask {
 
     @Persistent
     private Status status;
-    
+
     @Persistent
     private long lastModDate;
-    
+
     @Persistent
     private String lastModUser;
 
     public String getKey() {
         return key;
     }
-    
+
     public void setKey(String key) {
         this.key = key;
     }
@@ -52,49 +52,49 @@ public class ScrumMainTask {
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
-    	this.name = name;
+        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
-    
+
     public void setDescription(String description) {
-    	this.description = description;
+        this.description = description;
     }
 
     public Status getStatus() {
         return status;
     }
-    
+
     public void setStatus(Status status) {
-    	this.status = status; 	
+        this.status = status;
     }
 
     public Set<ScrumIssue> getIssues() {
         return issues;
     }
-    
+
     public void setIssues(Set<ScrumIssue> issues) {
-    	this.issues = issues;
+        this.issues = issues;
     }
-    
+
     public long getLastModDate() {
         return this.lastModDate;
     }
-    
-    public void setLastModDate(long date){
+
+    public void setLastModDate(long date) {
         this.lastModDate = date;
     }
-    
+
     public String getLastModUser() {
         return this.lastModUser;
     }
-    
+
     public void setLastModUser(String user) {
         this.lastModUser = user;
     }
-    
+
 }

@@ -1,15 +1,5 @@
 package ch.epfl.scrumtool.server;
 
-import ch.epfl.scrumtool.PMF;
-
-import com.google.api.server.spi.config.Api;
-import com.google.api.server.spi.config.ApiMethod;
-import com.google.api.server.spi.config.ApiNamespace;
-import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.datastore.Cursor;
-
-import com.google.appengine.datanucleus.query.JDOCursorHelper;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,11 +7,25 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
-import javax.jdo.Transaction;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
+import javax.jdo.Transaction;
+import javax.persistence.EntityNotFoundException;
+
+import ch.epfl.scrumtool.PMF;
+
+import com.google.api.server.spi.config.Api;
+import com.google.api.server.spi.config.ApiMethod;
+import com.google.api.server.spi.config.ApiNamespace;
+import com.google.api.server.spi.response.CollectionResponse;
+import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.datanucleus.query.JDOCursorHelper;
+
+/**
+ * 
+ * @author aschneuw
+ *
+ */
 
 @Api(
         name = "scrumtool",
@@ -30,6 +34,7 @@ import javax.jdo.Query;
         clientIds = {Constants.ANDROID_CLIENT_ID},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
+
 public class ScrumProjectEndpoint {
 
     /**
@@ -52,7 +57,7 @@ public class ScrumProjectEndpoint {
         try {
             mgr = getPersistenceManager();
             Query query = mgr.newQuery(ScrumProject.class);
-            if (cursorString != null && cursorString != "") {
+            if (cursorString != null && !cursorString.equals(Constants.EMPTY_STRING)) {
                 cursor = Cursor.fromWebSafeString(cursorString);
                 HashMap<String, Object> extensionMap = new HashMap<String, Object>();
                 extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
@@ -65,18 +70,20 @@ public class ScrumProjectEndpoint {
 
             execute = (List<ScrumProject>) query.execute();
             cursor = JDOCursorHelper.getCursor(execute);
-            if (cursor != null)
+            if (cursor != null) {
                 cursorString = cursor.toWebSafeString();
+            }
 
-            // Tight loop for fetching all entities from datastore and accomodate
-            // for lazy fetch.
-            for (ScrumProject obj : execute)
-                ;
+
+            for (ScrumProject obj : execute) {
+                // Tight loop for fetching all entities from datastore and accomodate
+                // for lazy fetch.
+            }
         } finally {
             mgr.close();
         }
 
-        return CollectionResponse.<ScrumProject> builder().setItems(execute)
+        return CollectionResponse.<ScrumProject>builder().setItems(execute)
                 .setNextPageToken(cursorString).build();
     }
 

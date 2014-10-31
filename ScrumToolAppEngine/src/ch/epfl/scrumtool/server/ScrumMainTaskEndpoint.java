@@ -19,6 +19,12 @@ import javax.persistence.EntityNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
+/**
+ * 
+ * @author aschneuw
+ * 
+ */
+
 @Api(
         name = "scrumtool",
         version = "v1",
@@ -26,14 +32,15 @@ import javax.jdo.Query;
         clientIds = {Constants.ANDROID_CLIENT_ID},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
+
 public class ScrumMainTaskEndpoint {
 
     /**
-     * This method lists all the entities inserted in datastore.
-     * It uses HTTP GET method and paging support.
-     *
+     * This method lists all the entities inserted in datastore. It uses HTTP
+     * GET method and paging support.
+     * 
      * @return A CollectionResponse class containing the list of all entities
-     * persisted and a cursor to the next page.
+     *         persisted and a cursor to the next page.
      */
     @SuppressWarnings({ "unchecked", "unused" })
     @ApiMethod(name = "listScrumMainTask")
@@ -48,7 +55,7 @@ public class ScrumMainTaskEndpoint {
         try {
             mgr = getPersistenceManager();
             Query query = mgr.newQuery(ScrumMainTask.class);
-            if (cursorString != null && cursorString != "") {
+            if (cursorString != null && !cursorString.equals(Constants.EMPTY_STRING)) {
                 cursor = Cursor.fromWebSafeString(cursorString);
                 HashMap<String, Object> extensionMap = new HashMap<String, Object>();
                 extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
@@ -61,25 +68,30 @@ public class ScrumMainTaskEndpoint {
 
             execute = (List<ScrumMainTask>) query.execute();
             cursor = JDOCursorHelper.getCursor(execute);
-            if (cursor != null)
+            if (cursor != null) {
                 cursorString = cursor.toWebSafeString();
+            }
 
-            // Tight loop for fetching all entities from datastore and accomodate
-            // for lazy fetch.
-            for (ScrumMainTask obj : execute)
-                ;
+            for (ScrumMainTask obj : execute) {
+                // Tight loop for fetching all entities from datastore and
+                // accomodate
+                // for lazy fetch.
+            }
+            
         } finally {
             mgr.close();
         }
 
-        return CollectionResponse.<ScrumMainTask> builder().setItems(execute)
+        return CollectionResponse.<ScrumMainTask>builder().setItems(execute)
                 .setNextPageToken(cursorString).build();
     }
 
     /**
-     * This method gets the entity having primary key id. It uses HTTP GET method.
-     *
-     * @param id the primary key of the java bean.
+     * This method gets the entity having primary key id. It uses HTTP GET
+     * method.
+     * 
+     * @param id
+     *            the primary key of the java bean.
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumMainTask")
@@ -95,11 +107,12 @@ public class ScrumMainTaskEndpoint {
     }
 
     /**
-     * This inserts a new entity into App Engine datastore. If the entity already
-     * exists in the datastore, an exception is thrown.
-     * It uses HTTP POST method.
-     *
-     * @param scrummaintask the entity to be inserted.
+     * This inserts a new entity into App Engine datastore. If the entity
+     * already exists in the datastore, an exception is thrown. It uses HTTP
+     * POST method.
+     * 
+     * @param scrummaintask
+     *            the entity to be inserted.
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumMainTask")
@@ -117,11 +130,12 @@ public class ScrumMainTaskEndpoint {
     }
 
     /**
-     * This method is used for updating an existing entity. If the entity does not
-     * exist in the datastore, an exception is thrown.
-     * It uses HTTP PUT method.
-     *
-     * @param scrummaintask the entity to be updated.
+     * This method is used for updating an existing entity. If the entity does
+     * not exist in the datastore, an exception is thrown. It uses HTTP PUT
+     * method.
+     * 
+     * @param scrummaintask
+     *            the entity to be updated.
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumMainTask")
@@ -139,10 +153,11 @@ public class ScrumMainTaskEndpoint {
     }
 
     /**
-     * This method removes the entity with primary key id.
-     * It uses HTTP DELETE method.
-     *
-     * @param id the primary key of the entity to be deleted.
+     * This method removes the entity with primary key id. It uses HTTP DELETE
+     * method.
+     * 
+     * @param id
+     *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumMainTask")
     public void removeScrumMainTask(@Named("id") String id) {

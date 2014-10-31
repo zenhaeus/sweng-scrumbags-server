@@ -19,6 +19,14 @@ import javax.persistence.EntityNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
+
+/**
+ * 
+ * @author aschneuw
+ *
+ */
+
+
 @Api(
         name = "scrumtool",
         version = "v1",
@@ -48,7 +56,7 @@ public class ScrumSprintEndpoint {
         try {
             mgr = getPersistenceManager();
             Query query = mgr.newQuery(ScrumSprint.class);
-            if (cursorString != null && cursorString != "") {
+            if (cursorString != null && !cursorString.equals(Constants.EMPTY_STRING)) {
                 cursor = Cursor.fromWebSafeString(cursorString);
                 HashMap<String, Object> extensionMap = new HashMap<String, Object>();
                 extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
@@ -61,18 +69,21 @@ public class ScrumSprintEndpoint {
 
             execute = (List<ScrumSprint>) query.execute();
             cursor = JDOCursorHelper.getCursor(execute);
-            if (cursor != null)
+            if (cursor != null) {
                 cursorString = cursor.toWebSafeString();
+            }
 
-            // Tight loop for fetching all entities from datastore and accomodate
-            // for lazy fetch.
-            for (ScrumSprint obj : execute)
-                ;
+            
+            for (ScrumSprint obj : execute) {
+                // Tight loop for fetching all entities from datastore and accomodate
+                // for lazy fetch.
+            }
+                
         } finally {
             mgr.close();
         }
 
-        return CollectionResponse.<ScrumSprint> builder().setItems(execute)
+        return CollectionResponse.<ScrumSprint>builder().setItems(execute)
                 .setNextPageToken(cursorString).build();
     }
 
