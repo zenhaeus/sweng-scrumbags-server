@@ -1,23 +1,18 @@
 package ch.epfl.scrumtool.server;
 
+import javax.inject.Named;
+import javax.jdo.PersistenceManager;
+import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
+
+import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
-import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.datanucleus.query.JDOCursorHelper;
-
-import java.util.HashMap;
-import java.util.List;
-
-import javax.annotation.Nullable;
-import javax.inject.Named;
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
-import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
+import com.google.appengine.api.oauth.OAuthRequestException;
+import com.google.appengine.api.users.User;
 
 /**
  * 
@@ -35,62 +30,14 @@ import javax.jdo.Query;
 public class ScrumPlayerEndpoint {
 
     /**
-     * This method lists all the entities inserted in datastore.
-     * It uses HTTP GET method and paging support.
-     *
-     * @return A CollectionResponse class containing the list of all entities
-     * persisted and a cursor to the next page.
-     */
-    @SuppressWarnings({ "unchecked", "unused" })
-    @ApiMethod(name = "listScrumPlayer")
-    public CollectionResponse<ScrumPlayer> listScrumPlayer(
-            @Nullable @Named("cursor") String cursorString,
-            @Nullable @Named("limit") Integer limit) {
-
-        PersistenceManager mgr = null;
-        Cursor cursor = null;
-        List<ScrumPlayer> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumPlayer.class);
-            if (cursorString != null && !cursorString.equals(Constants.EMPTY_STRING)) {
-                cursor = Cursor.fromWebSafeString(cursorString);
-                HashMap<String, Object> extensionMap = new HashMap<String, Object>();
-                extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
-                query.setExtensions(extensionMap);
-            }
-
-            if (limit != null) {
-                query.setRange(0, limit);
-            }
-
-            execute = (List<ScrumPlayer>) query.execute();
-            cursor = JDOCursorHelper.getCursor(execute);
-            if (cursor != null) {
-                cursorString = cursor.toWebSafeString();
-            }
-
-            for (ScrumPlayer obj : execute) {
-                // Tight loop for fetching all entities from datastore and accomodate
-                // for lazy fetch.
-            }
-        } finally {
-            mgr.close();
-        }
-
-        return CollectionResponse.<ScrumPlayer>builder().setItems(execute)
-                .setNextPageToken(cursorString).build();
-    }
-
-    /**
      * This method gets the entity having primary key id. It uses HTTP GET method.
      *
      * @param id the primary key of the java bean.
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumPlayer")
-    public ScrumPlayer getScrumPlayer(@Named("id") String id) {
+    public ScrumPlayer getScrumPlayer(@Named("id") String id, User user) throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         ScrumPlayer scrumplayer = null;
         try {
@@ -110,7 +57,8 @@ public class ScrumPlayerEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumPlayer")
-    public ScrumPlayer insertScrumPlayer(ScrumPlayer scrumplayer) {
+    public ScrumPlayer insertScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
             if (containsScrumPlayer(scrumplayer)) {
@@ -132,7 +80,8 @@ public class ScrumPlayerEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumPlayer")
-    public ScrumPlayer updateScrumPlayer(ScrumPlayer scrumplayer) {
+    public ScrumPlayer updateScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
             if (!containsScrumPlayer(scrumplayer)) {
@@ -152,7 +101,8 @@ public class ScrumPlayerEndpoint {
      * @param id the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumPlayer")
-    public void removeScrumPlayer(@Named("id") String id) {
+    public void removeScrumPlayer(@Named("id") String id, User user) throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
             ScrumPlayer scrumplayer = mgr.getObjectById(ScrumPlayer.class, id);

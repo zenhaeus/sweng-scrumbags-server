@@ -1,24 +1,19 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Date;
+
+import javax.inject.Named;
+import javax.jdo.PersistenceManager;
+import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
+
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
-import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.datanucleus.query.JDOCursorHelper;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import javax.annotation.Nullable;
-import javax.inject.Named;
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
-import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
+import com.google.appengine.api.oauth.OAuthRequestException;
+import com.google.appengine.api.users.User;
 /**
  * 
  * @author aschneuw
@@ -34,56 +29,6 @@ import javax.jdo.Query;
 public class ScrumUserEndpoint {
 
     /**
-     * This method lists all the entities inserted in datastore. It uses HTTP
-     * GET method and paging support.
-     * 
-     * @return A CollectionResponse class containing the list of all entities
-     *         persisted and a cursor to the next page.
-     */
-    @SuppressWarnings({ "unchecked", "unused" })
-    @ApiMethod(name = "listScrumUser")
-    public CollectionResponse<ScrumUser> listScrumUser(
-            @Nullable @Named("cursor") String cursorString,
-            @Nullable @Named("limit") Integer limit) {
-
-        PersistenceManager mgr = null;
-        Cursor cursor = null;
-        List<ScrumUser> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumUser.class);
-            if (cursorString != null && !cursorString.equals(Constants.EMPTY_STRING)) {
-                cursor = Cursor.fromWebSafeString(cursorString);
-                HashMap<String, Object> extensionMap = new HashMap<String, Object>();
-                extensionMap.put(JDOCursorHelper.CURSOR_EXTENSION, cursor);
-                query.setExtensions(extensionMap);
-            }
-
-            if (limit != null) {
-                query.setRange(0, limit);
-            }
-
-            execute = (List<ScrumUser>) query.execute();
-            cursor = JDOCursorHelper.getCursor(execute);
-            if (cursor != null) {
-                cursorString = cursor.toWebSafeString();
-            }
-
-            for (ScrumUser obj : execute) {
-                // Tight loop for fetching all entities from datastore and
-                // accomodate
-                // for lazy fetch.
-            }
-        } finally {
-            mgr.close();
-        }
-
-        return CollectionResponse.<ScrumUser>builder().setItems(execute)
-                .setNextPageToken(cursorString).build();
-    }
-
-    /**
      * This method gets the entity having primary key id. It uses HTTP GET
      * method.
      * 
@@ -92,7 +37,7 @@ public class ScrumUserEndpoint {
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumUser")
-    public ScrumUser getScrumUser(@Named("id") String id) {
+    public ScrumUser getScrumUser(@Named("id") String id, User user) throws OAuthRequestException {
         PersistenceManager mgr = getPersistenceManager();
         ScrumUser scrumuser = null;
         try {
@@ -112,8 +57,7 @@ public class ScrumUserEndpoint {
      *            the entity to be inserted.
      * @return The inserted entity.
      */
-    @ApiMethod(name = "insertScrumUser")
-    public ScrumUser insertScrumUser(ScrumUser scrumuser) {
+    private ScrumUser insertScrumUser(ScrumUser scrumuser) {
         PersistenceManager mgr = getPersistenceManager();
         try {
             if (scrumuser != null) {
@@ -138,7 +82,7 @@ public class ScrumUserEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser")
-    public ScrumUser updateScrumUser(ScrumUser scrumuser) {
+    public ScrumUser updateScrumUser(ScrumUser scrumuser, User user) throws OAuthRequestException {
         PersistenceManager mgr = getPersistenceManager();
         try {
             if (!containsScrumUser(scrumuser)) {
@@ -205,6 +149,7 @@ public class ScrumUserEndpoint {
             newUser.setLastModUser(eMail);
             newUser.setName(eMail);
             insertScrumUser(newUser);
+
             return mgr.getObjectById(ScrumUser.class, eMail);
         }
     }
