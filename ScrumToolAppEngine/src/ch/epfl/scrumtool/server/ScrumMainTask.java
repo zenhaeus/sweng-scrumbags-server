@@ -1,6 +1,5 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.Date;
 import java.util.Set;
 
 import javax.jdo.annotations.Extension;

@@ -9,6 +9,7 @@ import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.datanucleus.query.JDOCursorHelper;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -168,6 +169,23 @@ public class ScrumUserEndpoint {
 			mgr.close();
 		}
 		return contains;
+	}
+	
+	public ScrumUser loginUser(String eMail){
+	    PersistenceManager mgr = getPersistenceManager();
+	    try {
+	        return mgr.getObjectById(ScrumUser.class, eMail);
+	        
+	    } catch (javax.jdo.JDOObjectNotFoundException ex) {
+	        ScrumUser newUser = new ScrumUser();
+	        newUser.setEmail(eMail);
+	        Date date = new Date();
+	        newUser.setLastModDate(date.getTime());
+	        newUser.setLastModUser(eMail);
+	        newUser.setName(eMail);
+	        insertScrumUser(newUser);
+	        return mgr.getObjectById(ScrumUser.class, eMail);
+	    }
 	}
 
 	private static PersistenceManager getPersistenceManager() {
