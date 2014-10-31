@@ -39,11 +39,11 @@ public class ScrumPlayer {
         return key;
     }
 
-    public ScrumUser getAccount() {
+    public ScrumUser getUser() {
         return user;
     }
 
-    public void setAccount(ScrumUser user) {
+    public void setUser(ScrumUser user) {
         this.user = user;
     }
 

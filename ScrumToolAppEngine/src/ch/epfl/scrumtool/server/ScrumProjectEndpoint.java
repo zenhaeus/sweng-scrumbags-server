@@ -7,6 +7,7 @@ import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.datastore.Cursor;
+
 import com.google.appengine.datanucleus.query.JDOCursorHelper;
 
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
+import javax.jdo.Transaction;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 
@@ -107,6 +109,7 @@ public class ScrumProjectEndpoint {
     @ApiMethod(name = "insertScrumProject")
     public ScrumProject insertScrumProject(ScrumProject scrumproject) {
         PersistenceManager mgr = getPersistenceManager();
+        Transaction tx = mgr.currentTransaction();
         try {
             String userKey = scrumproject.getLastModUser();
             ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class, userKey);
@@ -114,11 +117,15 @@ public class ScrumProjectEndpoint {
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
             scrumPlayer.setRole(Role.PRODUCT_OWNER);
+            
+            /**
+             * An project insertion implies always an insertion of a new Player corresponding
+             * to the user inserting the project. Therefore the timestamp and lastermoduser tags
+             * are the same
+             */
             scrumPlayer.setLastModDate(scrumproject.getLastModDate());
             scrumPlayer.setLastModUser(scrumproject.getLastModUser());
-            scrumPlayer.setAccount(scrumUser);
-            
-            //scrumUser.addPlayer(scrumPlayer);
+            scrumPlayer.setUser(scrumUser);
             
             Set<ScrumPlayer> scrumPlayers = new HashSet<ScrumPlayer>();
             scrumPlayers.add(scrumPlayer);
@@ -129,9 +136,15 @@ public class ScrumProjectEndpoint {
             
             scrumproject.setBacklog(new HashSet<ScrumMainTask>());
             
-            
+            tx.begin();
             mgr.makePersistent(scrumproject);
+            tx.commit();
+            
+            
         } finally {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
             mgr.close();
         }
         return scrumproject;
