@@ -12,6 +12,7 @@ import ch.epfl.scrumtool.PMF;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 /**
@@ -23,7 +24,7 @@ import com.google.appengine.api.users.User;
         name = "scrumtool",
         version = "v1",
         namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-        clientIds = {Constants.ANDROID_CLIENT_ID},
+        clientIds = {Constants.ANDROID_CLIENT_IDS},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumUserEndpoint {
@@ -54,15 +55,15 @@ public class ScrumUserEndpoint {
      */
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(@Named("id") String id) throws OAuthRequestException {
-        PersistenceManager mgr = getPersistenceManager();
-        CollectionResponse<ScrumProject> projects = new CollectionResponse();
-        try {
-            //TODO just do , nothing has been done here
-            projects.add(mgr.getObjectById(ScrumProject.class,id));
-        }finally{
-            mgr.close();
-        }
-        return projects;
+//        PersistenceManager mgr = getPersistenceManager();
+//        CollectionResponse<ScrumProject> projects = new CollectionResponse();
+//        try {
+//            //TODO just do , nothing has been done here
+//            projects.add(mgr.getObjectById(ScrumProject.class,id));
+//        }finally{
+//            mgr.close();
+//        }
+        return null;
     }
 
     /**
