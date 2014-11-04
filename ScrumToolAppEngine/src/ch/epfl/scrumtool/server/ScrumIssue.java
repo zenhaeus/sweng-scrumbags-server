@@ -102,5 +102,4 @@ public class ScrumIssue {
     public void setLastModUser(String user) {
         this.lastModUser = user;
     }
-
 }

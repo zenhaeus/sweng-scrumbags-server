@@ -24,7 +24,7 @@ import com.google.appengine.api.users.User;
         name = "scrumtool",
         version = "v1",
         namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-        clientIds = {Constants.ANDROID_CLIENT_IDS},
+        clientIds = {Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumPlayerEndpoint {

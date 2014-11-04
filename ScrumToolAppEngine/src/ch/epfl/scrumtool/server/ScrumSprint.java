@@ -79,5 +79,4 @@ public class ScrumSprint {
     public ScrumProject getProject() {
         return this.project;
     }
-
 }

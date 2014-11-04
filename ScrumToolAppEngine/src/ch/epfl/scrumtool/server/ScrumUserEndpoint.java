@@ -1,9 +1,13 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 
@@ -24,7 +28,7 @@ import com.google.appengine.api.users.User;
         name = "scrumtool",
         version = "v1",
         namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-        clientIds = {Constants.ANDROID_CLIENT_IDS},
+        clientIds = {Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumUserEndpoint {
@@ -53,17 +57,22 @@ public class ScrumUserEndpoint {
      * @return
      * @throws OAuthRequestException
      */
+    @SuppressWarnings("unchecked")
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(@Named("id") String id) throws OAuthRequestException {
-//        PersistenceManager mgr = getPersistenceManager();
-//        CollectionResponse<ScrumProject> projects = new CollectionResponse();
-//        try {
-//            //TODO just do , nothing has been done here
-//            projects.add(mgr.getObjectById(ScrumProject.class,id));
-//        }finally{
-//            mgr.close();
-//        }
-        return null;
+        PersistenceManager mgr = null;
+        List<ScrumProject> execute = null;
+        
+        try {
+            mgr = getPersistenceManager();
+//            ScrumUser scrumuser = mgr.getObjectById(ScrumUser.class, id);
+            Query query = mgr.newQuery(ScrumProject.class);
+            Set<ScrumProject> projects = (Set<ScrumProject>) query.execute();
+            execute = new ArrayList<ScrumProject>(projects);
+        } finally {
+            mgr.close();
+        }
+        return CollectionResponse.<ScrumProject> builder().setItems(execute).build();
     }
 
     /**
