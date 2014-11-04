@@ -1,9 +1,7 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
@@ -65,10 +63,8 @@ public class ScrumUserEndpoint {
         
         try {
             mgr = getPersistenceManager();
-//            ScrumUser scrumuser = mgr.getObjectById(ScrumUser.class, id);
             Query query = mgr.newQuery(ScrumProject.class);
-            Set<ScrumProject> projects = (Set<ScrumProject>) query.execute();
-            execute = new ArrayList<ScrumProject>(projects);
+            execute = (List<ScrumProject>) query.execute();
         } finally {
             mgr.close();
         }

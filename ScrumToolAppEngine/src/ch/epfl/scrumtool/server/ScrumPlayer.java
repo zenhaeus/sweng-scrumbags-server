@@ -81,4 +81,5 @@ public class ScrumPlayer {
     public boolean getAdminFlag() {
         return this.admin;
     }
+    
 }
