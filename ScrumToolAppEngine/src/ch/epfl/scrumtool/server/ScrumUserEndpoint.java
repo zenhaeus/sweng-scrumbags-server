@@ -63,7 +63,8 @@ public class ScrumUserEndpoint {
      */
     @SuppressWarnings("unchecked")
     @ApiMethod(name = "loadProjects")
-    public CollectionResponse<ScrumProject> loadProjects(@Named("id") String id, User user) throws OAuthRequestException {
+    public CollectionResponse<ScrumProject> loadProjects(@Named("id") String id, User user) 
+            throws OAuthRequestException {
         PersistenceManager mgr = null;
         List<ScrumProject> execute = null;
         
@@ -74,7 +75,7 @@ public class ScrumUserEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumProject> builder().setItems(execute).build();
+        return CollectionResponse.<ScrumProject>builder().setItems(execute).build();
     }
 
     /**
