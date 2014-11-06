@@ -1,36 +1,43 @@
 package ch.epfl.scrumtool.server;
 
-import javax.inject.Named;
-import javax.jdo.PersistenceManager;
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
-
-import ch.epfl.scrumtool.PMF;
 import ch.epfl.scrumtool.AppEngineUtils;
+import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.google.api.server.spi.response.CollectionResponse;
+import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
+import com.google.appengine.datanucleus.query.JDOCursorHelper;
+
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Nullable;
+import javax.inject.Named;
+import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
+import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
+
 /**
  * 
- * @author aschneuw
- *
+ * @author aschneuw, sylb
+ * 
  */
-@Api(
-        name = "scrumtool",
-        version = "v1",
-        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
-                        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
-                        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-                        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-                        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-                        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-                        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX},
-        audiences = {Constants.ANDROID_AUDIENCE}
-        )
+@Api(name = "scrumtool", 
+version = "v1", 
+namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), 
+clientIds = {
+    Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+    Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+    Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+    Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+    Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+    Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+    Constants.ANDROID_CLIENT_ID_VINCENT_LINUX }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumIssueEndpoint {
 
     /**
@@ -40,7 +47,8 @@ public class ScrumIssueEndpoint {
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumIssue")
-    public ScrumIssue getScrumIssue(@Named("id") String id, User user) throws OAuthRequestException {
+    public ScrumIssue getScrumIssue(@Named("id") String id, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         ScrumIssue scrumissue = null;
@@ -61,7 +69,8 @@ public class ScrumIssueEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumIssue")
-    public ScrumIssue insertScrumIssue(ScrumIssue scrumissue, User user) throws OAuthRequestException {
+    public ScrumIssue insertScrumIssue(ScrumIssue scrumissue, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
@@ -84,7 +93,8 @@ public class ScrumIssueEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumIssue")
-    public ScrumIssue updateScrumIssue(ScrumIssue scrumissue, User user) throws OAuthRequestException {
+    public ScrumIssue updateScrumIssue(ScrumIssue scrumissue, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
@@ -105,7 +115,8 @@ public class ScrumIssueEndpoint {
      * @param id the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumIssue")
-    public void removeScrumIssue(@Named("id") String id, User user) throws OAuthRequestException {
+    public void removeScrumIssue(@Named("id") String id, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
@@ -132,6 +143,5 @@ public class ScrumIssueEndpoint {
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
     }
-    
 
 }
