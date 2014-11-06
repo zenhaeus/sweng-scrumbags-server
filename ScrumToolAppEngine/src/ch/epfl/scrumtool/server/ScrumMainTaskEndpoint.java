@@ -78,9 +78,6 @@ public class ScrumMainTaskEndpoint {
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
-            if (containsScrumMainTask(scrummaintask)) {
-                throw new EntityExistsException("Object already exists");
-            }
             mgr.makePersistent(scrummaintask);
         } finally {
             mgr.close();
