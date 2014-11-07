@@ -14,6 +14,8 @@ public class Constants {
             "756445222019-p1lggd5881u5c9os9vtil4etag05472v.apps.googleusercontent.com";
     public static final String ANDROID_CLIENT_ID_JOEY_DESKTOP = 
             "756445222019-2mq78dl6qp4h5dmg0bjbqp019q848m5h.apps.googleusercontent.com";
+    public static final String ANDROID_CLIENT_ID_JOEY_LAPTOP = 
+            "756445222019-muib3u52s5s76nf6udo1m87kkq3d4atk.apps.googleusercontent.com";
     public static final String ANDROID_CLIENT_ID_LORIS_MACBOOK = 
             "756445222019-v03m2l0gph4aim5ocj7fpf2i8m2tjlcr.apps.googleusercontent.com";
     public static final String ANDROID_CLIENT_ID_VINCENT_THINKPAD = 

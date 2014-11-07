@@ -33,6 +33,7 @@ namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packag
 clientIds = {
     Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
     Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+    Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
     Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
     Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
     Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
