@@ -38,7 +38,8 @@ import javax.jdo.Query;
             Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
             Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
             Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX},
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumIssueEndpoint {
