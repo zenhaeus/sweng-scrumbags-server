@@ -17,24 +17,20 @@ import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
+
 /**
  * 
  * @author aschneuw
- *
+ * 
  */
-@Api(
-        name = "scrumtool",
-        version = "v1",
-        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-                clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
-            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
-            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX},
-        audiences = {Constants.ANDROID_AUDIENCE}
-        )
+@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
+        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumUserEndpoint {
 
     /**
@@ -46,7 +42,8 @@ public class ScrumUserEndpoint {
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumUser")
-    public ScrumUser getScrumUser(@Named("id") String id, User user) throws OAuthRequestException {
+    public ScrumUser getScrumUser(@Named("id") String id, User user)
+            throws OAuthRequestException {
         PersistenceManager mgr = getPersistenceManager();
         ScrumUser scrumuser = null;
         try {
@@ -56,18 +53,18 @@ public class ScrumUserEndpoint {
         }
         return scrumuser;
     }
-    
+
     /**
      * @return
      * @throws OAuthRequestException
      */
     @SuppressWarnings("unchecked")
     @ApiMethod(name = "loadProjects")
-    public CollectionResponse<ScrumProject> loadProjects(@Named("id") String id, User user) 
-            throws OAuthRequestException {
+    public CollectionResponse<ScrumProject> loadProjects(
+            @Named("id") String id, User user) throws OAuthRequestException {
         PersistenceManager mgr = null;
         List<ScrumProject> execute = null;
-        
+
         try {
             mgr = getPersistenceManager();
             Query query = mgr.newQuery(ScrumProject.class);
@@ -75,7 +72,8 @@ public class ScrumUserEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumProject>builder().setItems(execute).build();
+        return CollectionResponse.<ScrumProject> builder().setItems(execute)
+                .build();
     }
 
     /**
@@ -112,7 +110,8 @@ public class ScrumUserEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser")
-    public ScrumUser updateScrumUser(ScrumUser scrumuser, User user) throws OAuthRequestException {
+    public ScrumUser updateScrumUser(ScrumUser scrumuser, User user)
+            throws OAuthRequestException {
         PersistenceManager mgr = getPersistenceManager();
         try {
             if (!containsScrumUser(scrumuser)) {
@@ -143,6 +142,28 @@ public class ScrumUserEndpoint {
         }
     }
 
+    /**
+     * @return
+     * @throws OAuthRequestException
+     */
+    @SuppressWarnings("unchecked")
+    @ApiMethod(name = "loadAllUsers")
+    public CollectionResponse<ScrumUser> loadAllUsers()
+            throws OAuthRequestException {
+        PersistenceManager mgr = null;
+        List<ScrumUser> execute = null;
+
+        try {
+            mgr = getPersistenceManager();
+            Query query = mgr.newQuery(ScrumUser.class);
+            execute = (List<ScrumUser>) query.execute();
+        } finally {
+            mgr.close();
+        }
+        return CollectionResponse.<ScrumUser> builder().setItems(execute)
+                .build();
+    }
+
     private boolean containsScrumUser(ScrumUser scrumuser) {
         PersistenceManager mgr = getPersistenceManager();
         boolean contains = true;
@@ -164,7 +185,7 @@ public class ScrumUserEndpoint {
      * @param eMail
      * @return
      */
-    
+
     @ApiMethod(name = "loginUser")
     public ScrumUser loginUser(@Named("eMail") String eMail) {
         PersistenceManager mgr = getPersistenceManager();

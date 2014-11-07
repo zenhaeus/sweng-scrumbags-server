@@ -26,10 +26,7 @@ import com.google.appengine.api.users.User;
  * 
  */
 
-@Api(name = "scrumtool", 
-    version = "v1", 
-    namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), 
-    clientIds = {
+@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
         Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
         Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
         Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
@@ -161,6 +158,28 @@ public class ScrumProjectEndpoint {
     }
 
     /**
+     * @return
+     * @throws OAuthRequestException
+     */
+    @SuppressWarnings("unchecked")
+    @ApiMethod(name = "loadAllProjects")
+    public CollectionResponse<ScrumProject> loadAllProjects()
+            throws OAuthRequestException {
+        PersistenceManager mgr = null;
+        List<ScrumProject> execute = null;
+
+        try {
+            mgr = getPersistenceManager();
+            Query query = mgr.newQuery(ScrumProject.class);
+            execute = (List<ScrumProject>) query.execute();
+        } finally {
+            mgr.close();
+        }
+        return CollectionResponse.<ScrumProject> builder().setItems(execute)
+                .build();
+    }
+
+    /**
      * @param id
      * @param user
      * @return
@@ -180,7 +199,7 @@ public class ScrumProjectEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumMainTask>builder().setItems(execute)
+        return CollectionResponse.<ScrumMainTask> builder().setItems(execute)
                 .build();
     }
 
@@ -204,7 +223,7 @@ public class ScrumProjectEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumPlayer>builder().setItems(execute)
+        return CollectionResponse.<ScrumPlayer> builder().setItems(execute)
                 .build();
     }
 
@@ -228,7 +247,7 @@ public class ScrumProjectEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumSprint>builder().setItems(execute)
+        return CollectionResponse.<ScrumSprint> builder().setItems(execute)
                 .build();
     }
 
