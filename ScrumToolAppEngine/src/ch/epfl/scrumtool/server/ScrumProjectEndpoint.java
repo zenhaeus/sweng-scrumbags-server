@@ -158,28 +158,6 @@ public class ScrumProjectEndpoint {
     }
 
     /**
-     * @return
-     * @throws OAuthRequestException
-     */
-    @SuppressWarnings("unchecked")
-    @ApiMethod(name = "loadAllProjects")
-    public CollectionResponse<ScrumProject> loadAllProjects()
-            throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumProject> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumProject.class);
-            execute = (List<ScrumProject>) query.execute();
-        } finally {
-            mgr.close();
-        }
-        return CollectionResponse.<ScrumProject> builder().setItems(execute)
-                .build();
-    }
-
-    /**
      * @param id
      * @param user
      * @return

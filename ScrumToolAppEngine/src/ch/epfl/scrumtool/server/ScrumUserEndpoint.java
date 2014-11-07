@@ -142,28 +142,6 @@ public class ScrumUserEndpoint {
         }
     }
 
-    /**
-     * @return
-     * @throws OAuthRequestException
-     */
-    @SuppressWarnings("unchecked")
-    @ApiMethod(name = "loadAllUsers")
-    public CollectionResponse<ScrumUser> loadAllUsers()
-            throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumUser> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumUser.class);
-            execute = (List<ScrumUser>) query.execute();
-        } finally {
-            mgr.close();
-        }
-        return CollectionResponse.<ScrumUser> builder().setItems(execute)
-                .build();
-    }
-
     private boolean containsScrumUser(ScrumUser scrumuser) {
         PersistenceManager mgr = getPersistenceManager();
         boolean contains = true;
