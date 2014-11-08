@@ -22,7 +22,7 @@ public class Constants {
     public static final String ANDROID_CLIENT_ID_ALEX_MACBOOK = 
             "756445222019-imoc5kbegd7uacf6lr3a6j85r8vpu08n.apps.googleusercontent.com";
     public static final String ANDROID_CLIENT_ID_VINCENT_LINUX = 
-            "756445222019-f4q1ko07k0t4ukrrq7o4c92qvpk5uf7n.apps.googleusercontent.com";
+            "756445222019-5ga46tls711q9om5drao87ou2u202s9m.apps.googleusercontent.com";
     public static final String ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP =
             "756445222019-ed16qtorqc23o7n810ub8n6gg3q18o74.apps.googleusercontent.com";
     public static final String ANDROID_AUDIENCE = WEB_CLIENT_ID;
