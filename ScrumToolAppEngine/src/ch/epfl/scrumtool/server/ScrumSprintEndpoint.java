@@ -1,5 +1,8 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.persistence.EntityExistsException;
@@ -11,6 +14,7 @@ import ch.epfl.scrumtool.PMF;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
@@ -131,6 +135,26 @@ public class ScrumSprintEndpoint {
             mgr.close();
         }
         return contains;
+    }
+    
+    @ApiMethod(name = "loadSprints")
+    public CollectionResponse<ScrumSprint> loadSprints(@Named("projectKey") String projectKey,
+            User user) throws OAuthRequestException {
+        PersistenceManager mgr = null;
+        List<ScrumSprint> sprints = null;
+
+        try {
+            mgr = getPersistenceManager();
+            ScrumProject project = mgr.getObjectById(ScrumProject.class, projectKey);
+            sprints = new ArrayList<ScrumSprint>();
+            for (ScrumSprint s: project.getSprint()) {
+                sprints.add(s);
+            }
+        } finally {
+            mgr.close();
+        }
+        return CollectionResponse.<ScrumSprint>builder().setItems(sprints)
+                .build();
     }
 
     private static PersistenceManager getPersistenceManager() {

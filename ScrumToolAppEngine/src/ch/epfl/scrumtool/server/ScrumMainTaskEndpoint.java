@@ -1,11 +1,13 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
+import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
@@ -40,29 +42,6 @@ import com.google.appengine.api.users.User;
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumMainTaskEndpoint {
-
-    /**
-     * This method gets the entity having primary key id. It uses HTTP GET
-     * method.
-     * 
-     * @param id
-     *            the primary key of the java bean.
-     * @return The entity with primary key id.
-     */
-    @ApiMethod(name = "getScrumMainTask")
-    public ScrumMainTask getScrumMainTask(@Named("id") String id, User user)
-            throws OAuthRequestException {
-        AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
-        ScrumMainTask scrummaintask = null;
-        try {
-            scrummaintask = mgr.getObjectById(ScrumMainTask.class, id);
-        } finally {
-            mgr.close();
-        }
-        return scrummaintask;
-    }
-
     /**
      * This inserts a new entity into App Engine datastore. If the entity
      * already exists in the datastore, an exception is thrown. It uses HTTP
@@ -72,17 +51,62 @@ public class ScrumMainTaskEndpoint {
      *            the entity to be inserted.
      * @return The inserted entity.
      */
-    @ApiMethod(name = "insertScrumMainTask")
-    public ScrumMainTask insertScrumMainTask(ScrumMainTask scrummaintask, User user)
+    @ApiMethod(name = "insertScrumMainTask", path="operationstatus/taskinsert")
+    public OperationStatus insertScrumMainTask(ScrumMainTask scrummaintask, 
+            @Named("projectKey") String projectKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
         PersistenceManager mgr = getPersistenceManager();
+        Transaction tx = mgr.currentTransaction();
+        ScrumProject project = mgr.getObjectById(ScrumProject.class, projectKey);
+        project.getBacklog().add(scrummaintask);
         try {
-            mgr.makePersistent(scrummaintask);
+            tx.begin();
+            mgr.makePersistent(project);
+            tx.commit();
+            opStatus.setKey(scrummaintask.getKey());
+            opStatus.setSuccess(true);
+        } finally {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            mgr.close();
+        }
+        
+        return opStatus;
+    }
+    
+
+    /**
+     * @param projectKey
+     * @param user
+     * @return CollectionResponse<ScrumMainTask>
+     * @throws OAuthRequestException
+     */
+    @ApiMethod(name = "loadMainTasks")
+    public CollectionResponse<ScrumMainTask> loadMainTasks(
+            @Named("projectKey") String projectKey,
+            User user) throws OAuthRequestException {
+
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager mgr = getPersistenceManager();
+        
+        
+        Set<ScrumMainTask> tasks = null;
+        try {
+            ScrumProject scrumproject = null;
+            scrumproject = mgr.getObjectById(ScrumProject.class, projectKey);
+            tasks = scrumproject.getBacklog();
+
+            
+            
         } finally {
             mgr.close();
         }
-        return scrummaintask;
+        return CollectionResponse.<ScrumMainTask>builder().setItems(tasks)
+                .build();
     }
 
     /**
@@ -94,20 +118,33 @@ public class ScrumMainTaskEndpoint {
      *            the entity to be updated.
      * @return The updated entity.
      */
-    @ApiMethod(name = "updateScrumMainTask")
-    public ScrumMainTask updateScrumMainTask(ScrumMainTask scrummaintask, User user)
+    @ApiMethod(name = "updateScrumMainTask", path="operationstatus/taskupdate")
+    public OperationStatus updateScrumMainTask(ScrumMainTask scrummaintask, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
+        OperationStatus opStatus = null;
         PersistenceManager mgr = getPersistenceManager();
+        Transaction tx = mgr.currentTransaction();
         try {
             if (!containsScrumMainTask(scrummaintask)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
+            tx.begin();
             mgr.makePersistent(scrummaintask);
+            tx.commit();
+            
+            opStatus = new OperationStatus();
+            opStatus.setSuccess(true);
+            opStatus.setKey(scrummaintask.getKey());
         } finally {
+            if (tx.isActive()) {
+                tx.rollback();
+                opStatus = new OperationStatus();
+                opStatus.setSuccess(true);
+            }
             mgr.close();
         }
-        return scrummaintask;
+        return opStatus;
     }
 
     /**
@@ -117,18 +154,24 @@ public class ScrumMainTaskEndpoint {
      * @param id
      *            the primary key of the entity to be deleted.
      */
-    @ApiMethod(name = "removeScrumMainTask")
-    public void removeScrumMainTask(@Named("id") String id, User user)
+    @ApiMethod(name = "removeScrumMainTask", path="operationstatus/removeTask")
+    public OperationStatus removeScrumMainTask(@Named("id") String id, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
+        OperationStatus opStatus = null;
         PersistenceManager mgr = getPersistenceManager();
         try {
             ScrumMainTask scrummaintask = mgr.getObjectById(
                     ScrumMainTask.class, id);
             mgr.deletePersistent(scrummaintask);
+            opStatus = new OperationStatus();
+            opStatus.setKey(id);
+            opStatus.setSuccess(true);
         } finally {
+            
             mgr.close();
         }
+        return opStatus;
     }
 
     private boolean containsScrumMainTask(ScrumMainTask scrummaintask) {

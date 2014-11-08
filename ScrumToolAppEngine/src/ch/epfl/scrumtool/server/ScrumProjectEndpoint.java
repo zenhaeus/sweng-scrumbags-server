@@ -1,14 +1,11 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
@@ -16,7 +13,6 @@ import ch.epfl.scrumtool.PMF;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
-import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
@@ -43,28 +39,6 @@ import com.google.appengine.api.users.User;
         )
 public class ScrumProjectEndpoint {
     /**
-     * This method gets the entity having primary key id. It uses HTTP GET
-     * method.
-     * 
-     * @param id
-     *            the primary key of the java bean.
-     * @return The entity with primary key id.
-     */
-    @ApiMethod(name = "getScrumProject")
-    public ScrumProject getScrumProject(@Named("id") String id, User user)
-            throws OAuthRequestException {
-        AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
-        ScrumProject scrumproject = null;
-        try {
-            scrumproject = mgr.getObjectById(ScrumProject.class, id);
-        } finally {
-            mgr.close();
-        }
-        return scrumproject;
-    }
-
-    /**
      * This inserts a new entity into App Engine datastore. If the entity
      * already exists in the datastore, an exception is thrown. It uses HTTP
      * POST method.
@@ -73,10 +47,11 @@ public class ScrumProjectEndpoint {
      *            the entity to be inserted.
      * @return The inserted entity.
      */
-    @ApiMethod(name = "insertScrumProject")
-    public ScrumProject insertScrumProject(ScrumProject scrumproject, User user)
+    @ApiMethod(name = "insertScrumProject", path="operationstatus/insertProject")
+    public OperationStatus insertScrumProject(ScrumProject scrumproject, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
+        OperationStatus opStatus;
         PersistenceManager mgr = getPersistenceManager();
         Transaction tx = mgr.currentTransaction();
         try {
@@ -108,6 +83,9 @@ public class ScrumProjectEndpoint {
             tx.begin();
             mgr.makePersistent(scrumproject);
             tx.commit();
+            opStatus = new OperationStatus();
+            opStatus.setKey(scrumproject.getKey());
+            opStatus.setSuccess(true);
 
         } finally {
             if (tx.isActive()) {
@@ -115,7 +93,7 @@ public class ScrumProjectEndpoint {
             }
             mgr.close();
         }
-        return scrumproject;
+        return opStatus;
     }
 
     /**
@@ -127,20 +105,24 @@ public class ScrumProjectEndpoint {
      *            the entity to be updated.
      * @return The updated entity.
      */
-    @ApiMethod(name = "updateScrumProject")
-    public ScrumProject updateScrumProject(ScrumProject scrumproject, User user)
+    @ApiMethod(name = "updateScrumProject", path="operationstatus/updateProject")
+    public OperationStatus updateScrumProject(ScrumProject update, User user)
             throws OAuthRequestException {
+        OperationStatus opStatus = null;
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
-            if (!containsScrumProject(scrumproject)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
-            mgr.makePersistent(scrumproject);
+            ScrumProject project = mgr.getObjectById(ScrumProject.class, update.getKey());
+            project.setDescription(update.getDescription());
+            project.setLastModDate(update.getLastModDate());
+            project.setLastModUser(update.getLastModUser());
+            project.setName(update.getName());
+            opStatus = new OperationStatus();
+            opStatus.setSuccess(true);
         } finally {
             mgr.close();
         }
-        return scrumproject;
+        return opStatus;
     }
 
     /**
@@ -150,103 +132,22 @@ public class ScrumProjectEndpoint {
      * @param id
      *            the primary key of the entity to be deleted.
      */
-    @ApiMethod(name = "removeScrumProject")
-    public void removeScrumProject(@Named("id") String id, User user)
+    @ApiMethod(name = "removeScrumProject", path="operationstatus/removeProject")
+    public OperationStatus removeScrumProject(@Named("projectKey") String projectKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
+        OperationStatus opStatus = null;
         try {
             ScrumProject scrumproject = mgr.getObjectById(ScrumProject.class,
-                    id);
+                    projectKey);
             mgr.deletePersistent(scrumproject);
+            opStatus = new OperationStatus();
+            opStatus.setSuccess(true);
         } finally {
             mgr.close();
         }
-    }
-
-    /**
-     * @param id
-     * @param user
-     * @return
-     * @throws OAuthRequestException
-     */
-    @SuppressWarnings("unchecked")
-    @ApiMethod(name = "loadMainTasks")
-    public CollectionResponse<ScrumMainTask> loadMainTasks(
-            @Named("id") String id, User user) throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumMainTask> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumMainTask.class);
-            execute = (List<ScrumMainTask>) query.execute();
-        } finally {
-            mgr.close();
-        }
-        return CollectionResponse.<ScrumMainTask>builder().setItems(execute)
-                .build();
-    }
-
-    /**
-     * @param id
-     * @param user
-     * @return
-     * @throws OAuthRequestException
-     */
-    @SuppressWarnings("unchecked")
-    @ApiMethod(name = "loadPlayers")
-    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("id") String id,
-            User user) throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumPlayer> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumPlayer.class);
-            execute = (List<ScrumPlayer>) query.execute();
-        } finally {
-            mgr.close();
-        }
-        return CollectionResponse.<ScrumPlayer>builder().setItems(execute)
-                .build();
-    }
-
-    /**
-     * @param id
-     * @param user
-     * @return
-     * @throws OAuthRequestException
-     */
-    @SuppressWarnings("unchecked")
-    @ApiMethod(name = "loadSprints")
-    public CollectionResponse<ScrumSprint> loadSprints(@Named("id") String id,
-            User user) throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumSprint> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumSprint.class);
-            execute = (List<ScrumSprint>) query.execute();
-        } finally {
-            mgr.close();
-        }
-        return CollectionResponse.<ScrumSprint>builder().setItems(execute)
-                .build();
-    }
-
-    private boolean containsScrumProject(ScrumProject scrumproject) {
-        PersistenceManager mgr = getPersistenceManager();
-        boolean contains = true;
-        try {
-            mgr.getObjectById(ScrumProject.class, scrumproject.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            mgr.close();
-        }
-        return contains;
+        return opStatus;
     }
 
     private static PersistenceManager getPersistenceManager() {

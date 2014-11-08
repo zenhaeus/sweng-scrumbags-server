@@ -1,7 +1,11 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
+import javax.jdo.Transaction;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 
@@ -11,6 +15,7 @@ import ch.epfl.scrumtool.PMF;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
@@ -37,58 +42,46 @@ import com.google.appengine.api.users.User;
         )
 public class ScrumPlayerEndpoint {
 
-    /**
-     * This method gets the entity having primary key id. It uses HTTP GET method.
-     *
-     * @param id the primary key of the java bean.
-     * @return The entity with primary key id.
-     */
-    @ApiMethod(name = "getScrumPlayer")
-    public ScrumPlayer getScrumPlayer(@Named("id") String id, User user) throws OAuthRequestException {
-        AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
-        ScrumPlayer scrumplayer = null;
-        try {
-            scrumplayer = mgr.getObjectById(ScrumPlayer.class, id);
-        } finally {
-            mgr.close();
-        }
-        return scrumplayer;
-    }
 
-    /**
-     * This inserts a new entity into App Engine datastore. If the entity already
-     * exists in the datastore, an exception is thrown.
-     * It uses HTTP POST method.
-     *
-     * @param scrumplayer the entity to be inserted.
-     * @return The inserted entity.
-     */
-    @ApiMethod(name = "insertScrumPlayer")
-    public ScrumPlayer insertScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
+    @ApiMethod(name = "insertScrumPlayer", path="operationstatus/insertplayer")
+    public OperationStatus insertScrumPlayer(ScrumPlayer scrumplayer, 
+            @Named("projectKey") String projectKey,
+            @Named("userKey") String userKey,
+            User user) throws OAuthRequestException {
+        OperationStatus opStatus = null;
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
+        Transaction tx = mgr.currentTransaction();
         try {
             if (containsScrumPlayer(scrumplayer)) {
                 throw new EntityExistsException("Object already exists");
             }
+            ScrumUser sUser = mgr.getObjectById(ScrumUser.class, userKey);
+            scrumplayer.setUser(sUser);
+            
+            ScrumProject project = mgr.getObjectById(ScrumProject.class, projectKey);
+            project.getPlayers().add(scrumplayer);
+            
+            
+            
+            tx.begin();
             mgr.makePersistent(scrumplayer);
+            tx.commit();
+            opStatus = new OperationStatus();
+            opStatus.setKey(scrumplayer.getKey());
+            opStatus.setSuccess(true);
+            
         } finally {
             mgr.close();
         }
-        return scrumplayer;
+        return opStatus;
     }
+    
+    
 
-    /**
-     * This method is used for updating an existing entity. If the entity does not
-     * exist in the datastore, an exception is thrown.
-     * It uses HTTP PUT method.
-     *
-     * @param scrumplayer the entity to be updated.
-     * @return The updated entity.
-     */
     @ApiMethod(name = "updateScrumPlayer")
-    public ScrumPlayer updateScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
+    public OperationStatus updateScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
+        OperationStatus opStatus = null;
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
         try {
@@ -96,10 +89,12 @@ public class ScrumPlayerEndpoint {
                 throw new EntityNotFoundException("Object does not exist");
             }
             mgr.makePersistent(scrumplayer);
+            opStatus = new OperationStatus();
+            opStatus.setSuccess(true);
         } finally {
             mgr.close();
         }
-        return scrumplayer;
+        return opStatus;
     }
 
     /**
@@ -109,15 +104,20 @@ public class ScrumPlayerEndpoint {
      * @param id the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumPlayer")
-    public void removeScrumPlayer(@Named("id") String id, User user) throws OAuthRequestException {
+    public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, 
+            User user) throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
+        OperationStatus opStatus = null;
         PersistenceManager mgr = getPersistenceManager();
         try {
-            ScrumPlayer scrumplayer = mgr.getObjectById(ScrumPlayer.class, id);
+            ScrumPlayer scrumplayer = mgr.getObjectById(ScrumPlayer.class, playerKey);
             mgr.deletePersistent(scrumplayer);
+            opStatus = new OperationStatus();
+            opStatus.setSuccess(true);
         } finally {
             mgr.close();
         }
+        return opStatus;
     }
 
     private boolean containsScrumPlayer(ScrumPlayer scrumplayer) {
@@ -131,6 +131,27 @@ public class ScrumPlayerEndpoint {
             mgr.close();
         }
         return contains;
+    }
+    
+    @ApiMethod(name = "loadPlayers")
+    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey,
+            User user) throws OAuthRequestException {
+        PersistenceManager mgr = null;
+        List<ScrumPlayer> players = null;
+
+        try {
+            mgr = getPersistenceManager();
+            ScrumProject project = mgr.getObjectById(ScrumProject.class, projectKey);
+            players = new ArrayList<ScrumPlayer>();
+            for (ScrumPlayer p: project.getPlayers()) {
+                players.add(p);
+            }
+            
+        } finally {
+            mgr.close();
+        }
+        return CollectionResponse.<ScrumPlayer>builder().setItems(players)
+                .build();
     }
 
     private static PersistenceManager getPersistenceManager() {
