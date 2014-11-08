@@ -184,7 +184,7 @@ public class ScrumProjectEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumMainTask> builder().setItems(execute)
+        return CollectionResponse.<ScrumMainTask>builder().setItems(execute)
                 .build();
     }
 
@@ -208,7 +208,7 @@ public class ScrumProjectEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumPlayer> builder().setItems(execute)
+        return CollectionResponse.<ScrumPlayer>builder().setItems(execute)
                 .build();
     }
 
@@ -232,7 +232,7 @@ public class ScrumProjectEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumSprint> builder().setItems(execute)
+        return CollectionResponse.<ScrumSprint>builder().setItems(execute)
                 .build();
     }
 

@@ -79,7 +79,7 @@ public class ScrumUserEndpoint {
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumProject> builder().setItems(execute)
+        return CollectionResponse.<ScrumProject>builder().setItems(execute)
                 .build();
     }
 
