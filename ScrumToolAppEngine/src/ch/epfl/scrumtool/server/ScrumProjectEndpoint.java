@@ -55,8 +55,7 @@ public class ScrumProjectEndpoint {
         PersistenceManager mgr = getPersistenceManager();
         Transaction tx = mgr.currentTransaction();
         try {
-            String userKey = scrumproject.getLastModUser();
-            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class, userKey);
+            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class, user.getEmail());
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
@@ -75,8 +74,7 @@ public class ScrumProjectEndpoint {
             scrumPlayers.add(scrumPlayer);
             scrumproject.setPlayers(scrumPlayers);
 
-            Set<ScrumSprint> scrumSprints = new HashSet<ScrumSprint>();
-            scrumproject.setSprints(scrumSprints);
+            scrumproject.setSprints(new HashSet<ScrumSprint>());
 
             scrumproject.setBacklog(new HashSet<ScrumMainTask>());
 
@@ -175,7 +173,6 @@ public class ScrumProjectEndpoint {
      * @return
      * @throws OAuthRequestException
      */
-    @SuppressWarnings("unchecked")
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(
             @Named("id") String userKey, User user)
