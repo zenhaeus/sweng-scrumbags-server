@@ -62,27 +62,6 @@ public class ScrumUserEndpoint {
         return scrumuser;
     }
 
-    /**
-     * @return
-     * @throws OAuthRequestException
-     */
-    @SuppressWarnings("unchecked")
-    @ApiMethod(name = "loadProjects")
-    public CollectionResponse<ScrumProject> loadProjects(
-            @Named("id") String id, User user) throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumProject> execute = null;
-
-        try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumProject.class);
-            execute = (List<ScrumProject>) query.execute();
-        } finally {
-            mgr.close();
-        }
-        return CollectionResponse.<ScrumProject>builder().setItems(execute)
-                .build();
-    }
 
     /**
      * This inserts a new entity into App Engine datastore. If the entity

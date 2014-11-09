@@ -1,11 +1,14 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 import javax.jdo.Transaction;
+import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
@@ -13,6 +16,7 @@ import ch.epfl.scrumtool.PMF;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
+import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
@@ -22,22 +26,17 @@ import com.google.appengine.api.users.User;
  * 
  */
 
-@Api(
-        name = "scrumtool",
-        version = "v1",
-        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-                clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
-            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
-            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD},
-        audiences = {Constants.ANDROID_AUDIENCE}
-        )
+@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
+        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumProjectEndpoint {
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -48,9 +47,9 @@ public class ScrumProjectEndpoint {
      *            the entity to be inserted.
      * @return The inserted entity.
      */
-    @ApiMethod(name = "insertScrumProject", path="operationstatus/insertProject")
-    public OperationStatus insertScrumProject(ScrumProject scrumproject, User user)
-            throws OAuthRequestException {
+    @ApiMethod(name = "insertScrumProject", path = "operationstatus/insertProject")
+    public OperationStatus insertScrumProject(ScrumProject scrumproject,
+            User user) throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus;
         PersistenceManager mgr = getPersistenceManager();
@@ -106,21 +105,38 @@ public class ScrumProjectEndpoint {
      *            the entity to be updated.
      * @return The updated entity.
      */
-    @ApiMethod(name = "updateScrumProject", path="operationstatus/updateProject")
+    @ApiMethod(name = "updateScrumProject", path = "operationstatus/updateProject")
     public OperationStatus updateScrumProject(ScrumProject update, User user)
             throws OAuthRequestException {
-        OperationStatus opStatus = null;
         AppEngineUtils.basicAuthentication(user);
+        OperationStatus opStatus = null;
         PersistenceManager mgr = getPersistenceManager();
+        Transaction tx = mgr.currentTransaction();
         try {
-            ScrumProject project = mgr.getObjectById(ScrumProject.class, update.getKey());
-            project.setDescription(update.getDescription());
-            project.setLastModDate(update.getLastModDate());
-            project.setLastModUser(update.getLastModUser());
-            project.setName(update.getName());
+            if (!containsScrumProject(update)) {
+                throw new EntityNotFoundException(
+                        "This project does not exist in the Database");
+            }
+            tx.begin();
+            mgr.makePersistent(update);
+            tx.commit();
+
+            // ScrumProject project = mgr.getObjectById(ScrumProject.class,
+            // update.getKey());
+            // project.setDescription(update.getDescription());
+            // project.setLastModDate(update.getLastModDate());
+            // project.setLastModUser(update.getLastModUser());
+            // project.setName(update.getName());
+
             opStatus = new OperationStatus();
             opStatus.setSuccess(true);
+            opStatus.setKey(update.getKey());
         } finally {
+            if (tx.isActive()) {
+                tx.rollback();
+                opStatus = new OperationStatus();
+                opStatus.setSuccess(true);
+            }
             mgr.close();
         }
         return opStatus;
@@ -133,8 +149,9 @@ public class ScrumProjectEndpoint {
      * @param id
      *            the primary key of the entity to be deleted.
      */
-    @ApiMethod(name = "removeScrumProject", path="operationstatus/removeProject")
-    public OperationStatus removeScrumProject(@Named("projectKey") String projectKey, User user)
+    @ApiMethod(name = "removeScrumProject", path = "operationstatus/removeProject")
+    public OperationStatus removeScrumProject(
+            @Named("projectKey") String projectKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
@@ -145,14 +162,50 @@ public class ScrumProjectEndpoint {
             mgr.deletePersistent(scrumproject);
             opStatus = new OperationStatus();
             opStatus.setSuccess(true);
+            opStatus.setKey(projectKey);
         } finally {
             mgr.close();
         }
         return opStatus;
     }
 
+    /**
+     * @return
+     * @throws OAuthRequestException
+     */
+    @SuppressWarnings("unchecked")
+    @ApiMethod(name = "loadProjects")
+    public CollectionResponse<ScrumProject> loadProjects(
+            @Named("id") String id, User user) throws OAuthRequestException {
+        PersistenceManager mgr = null;
+        List<ScrumProject> execute = null;
+
+        try {
+            mgr = getPersistenceManager();
+            Query query = mgr.newQuery(ScrumProject.class);
+            execute = (List<ScrumProject>) query.execute();
+        } finally {
+            mgr.close();
+        }
+        return CollectionResponse.<ScrumProject> builder().setItems(execute)
+                .build();
+    }
+
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
+    }
+
+    private boolean containsScrumProject(ScrumProject scrumProject) {
+        PersistenceManager mgr = getPersistenceManager();
+        boolean contains = true;
+        try {
+            mgr.getObjectById(ScrumProject.class, scrumProject.getKey());
+        } catch (javax.jdo.JDOObjectNotFoundException ex) {
+            contains = false;
+        } finally {
+            mgr.close();
+        }
+        return contains;
     }
 
 }
