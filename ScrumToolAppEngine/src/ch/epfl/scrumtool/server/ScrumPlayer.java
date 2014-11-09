@@ -33,13 +33,24 @@ public class ScrumPlayer {
 
     @Persistent
     private String lastModUser;
+    
+    @Persistent
+    private String projectKey;
+    
+    public String getProjectKey(String newKey) {
+        return projectKey;
+    }
+    
+    public void setProjectKey(String newKey) {
+        this.projectKey= newKey;
+    }
 
     public String getKey() {
         return key;
     }
 
-    public String setKey() {
-        return key;
+    public void setKey(String newKey) {
+        this.key = newKey;
     }
 
     public ScrumUser getUser() {
