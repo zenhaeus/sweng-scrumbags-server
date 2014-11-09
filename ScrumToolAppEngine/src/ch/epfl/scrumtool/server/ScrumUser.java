@@ -50,7 +50,7 @@ public class ScrumUser {
         return players;
     }
 
-    public void setProjects(List<ScrumPlayer> players) {
+    public void setPlayers(List<ScrumPlayer> players) {
         this.players = players;
     }
 

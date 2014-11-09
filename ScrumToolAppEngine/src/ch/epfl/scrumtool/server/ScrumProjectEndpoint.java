@@ -121,12 +121,12 @@ public class ScrumProjectEndpoint {
             mgr.makePersistent(update);
             tx.commit();
 
-            // ScrumProject project = mgr.getObjectById(ScrumProject.class,
-            // update.getKey());
-            // project.setDescription(update.getDescription());
-            // project.setLastModDate(update.getLastModDate());
-            // project.setLastModUser(update.getLastModUser());
-            // project.setName(update.getName());
+            ScrumProject project = mgr.getObjectById(ScrumProject.class,
+            update.getKey());
+            project.setDescription(update.getDescription());
+            project.setLastModDate(update.getLastModDate());
+            project.setLastModUser(update.getLastModUser());
+            project.setName(update.getName());
 
             opStatus = new OperationStatus();
             opStatus.setSuccess(true);
@@ -176,13 +176,13 @@ public class ScrumProjectEndpoint {
     @SuppressWarnings("unchecked")
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(
-            @Named("id") String id, User user) throws OAuthRequestException {
+            @Named("id") String userKey, User user) throws OAuthRequestException {
         PersistenceManager mgr = null;
         List<ScrumProject> execute = null;
 
         try {
             mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumProject.class);
+            Query query = mgr.newQuery(ScrumProject.class,userKey);
             execute = (List<ScrumProject>) query.execute();
         } finally {
             mgr.close();

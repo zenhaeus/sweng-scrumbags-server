@@ -163,7 +163,7 @@ public class ScrumUserEndpoint {
             Date date = new Date();
             newUser.setLastModDate(date.getTime());
             newUser.setLastModUser(eMail);
-            newUser.setName(eMail);
+            newUser.setName(eMail.substring(0, eMail.indexOf('@')-1));
             insertScrumUser(newUser);
 
             return mgr.getObjectById(ScrumUser.class, eMail);
