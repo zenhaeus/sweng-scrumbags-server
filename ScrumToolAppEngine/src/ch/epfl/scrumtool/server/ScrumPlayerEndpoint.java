@@ -59,16 +59,16 @@ public class ScrumPlayerEndpoint {
             }
             ScrumUser sUser = mgr.getObjectById(ScrumUser.class, userKey);
             scrumplayer.setUser(sUser);
+            sUser.addPlayer(scrumplayer); // répercute les changements sur le DS?
+
 
             ScrumProject project = mgr.getObjectById(ScrumProject.class,
                     projectKey);
+            project.getPlayers().add(scrumplayer); //répercute les changements sur le DS?
+
 
             tx.begin();
             mgr.makePersistent(scrumplayer);
-            sUser.addPlayer(scrumplayer);
-            mgr.makePersistent(sUser);
-            project.getPlayers().add(scrumplayer);
-            mgr.makePersistent(project);
             tx.commit();
             opStatus = new OperationStatus();
             opStatus.setKey(scrumplayer.getKey());

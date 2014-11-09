@@ -55,7 +55,7 @@ public class ScrumProjectEndpoint {
         PersistenceManager mgr = getPersistenceManager();
         Transaction tx = mgr.currentTransaction();
         try {
-            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class, user.getEmail());
+            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class, scrumproject.getLastModUser());
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
