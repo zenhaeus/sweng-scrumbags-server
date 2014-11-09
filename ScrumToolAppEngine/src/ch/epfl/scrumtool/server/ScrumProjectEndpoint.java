@@ -82,6 +82,8 @@ public class ScrumProjectEndpoint {
 
             tx.begin();
             mgr.makePersistent(scrumproject);
+            scrumPlayer.setProjectKey(scrumproject.getKey());
+            mgr.makePersistent(scrumPlayer);
             tx.commit();
             opStatus = new OperationStatus();
             opStatus.setKey(scrumproject.getKey());
@@ -122,7 +124,7 @@ public class ScrumProjectEndpoint {
             tx.commit();
 
             ScrumProject project = mgr.getObjectById(ScrumProject.class,
-            update.getKey());
+                    update.getKey());
             project.setDescription(update.getDescription());
             project.setLastModDate(update.getLastModDate());
             project.setLastModUser(update.getLastModUser());
@@ -176,18 +178,22 @@ public class ScrumProjectEndpoint {
     @SuppressWarnings("unchecked")
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(
-            @Named("id") String userKey, User user) throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumProject> execute = null;
-
+            @Named("id") String userKey, User user)
+            throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager mgr = getPersistenceManager();
+        Set<ScrumProject> projects = new HashSet<ScrumProject>();
         try {
-            mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumProject.class,userKey);
-            execute = (List<ScrumProject>) query.execute();
+            ScrumUser sUser = mgr.getObjectById(ScrumUser.class,
+                    user.getEmail());
+            for (ScrumPlayer s : sUser.getPlayers()) {
+                projects.add(mgr.getObjectById(ScrumProject.class,
+                        s.getProjectKey()));
+            }
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumProject> builder().setItems(execute)
+        return CollectionResponse.<ScrumProject> builder().setItems(projects)
                 .build();
     }
 
