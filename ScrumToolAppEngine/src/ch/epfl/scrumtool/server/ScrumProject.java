@@ -1,6 +1,5 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.jdo.annotations.Extension;
@@ -35,24 +34,13 @@ public class ScrumProject {
     private String lastModUser;
 
     @Persistent
-    private Set<String> playerKeys;
+    private Set<ScrumPlayer> players;
 
     @Persistent(mappedBy = "project")
     private Set<ScrumMainTask> backlog;
 
     @Persistent(mappedBy = "project")
     private Set<ScrumSprint> sprints;
-
-    public void addPlayerKey(String playerKey) {
-        if (playerKeys == null) {
-            playerKeys = new HashSet<String>();
-        }
-        playerKeys.add(playerKey);
-    }
-    
-    public void removePlayerKey(String playerKey){
-        playerKeys.remove(playerKey);
-    }
 
     public String getKey() {
         return key;
@@ -78,12 +66,12 @@ public class ScrumProject {
         this.description = description;
     }
 
-    public Set<String> getPlayerKeys() {
-        return playerKeys;
+    public Set<ScrumPlayer> getPlayers() {
+        return players;
     }
 
-    public void setPlayerKeys(Set<String> playerKeys) {
-        this.playerKeys = playerKeys;
+    public void setPlayers(Set<ScrumPlayer> players) {
+        this.players = players;
     }
 
     public Set<ScrumMainTask> getBacklog() {
@@ -117,5 +105,5 @@ public class ScrumProject {
     public void setLastModUser(String user) {
         this.lastModUser = user;
     }
-
+    
 }

@@ -10,7 +10,7 @@ import javax.jdo.annotations.PrimaryKey;
 /**
  * 
  * @author aschneuw
- * 
+ *
  */
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class ScrumPlayer {
@@ -19,7 +19,7 @@ public class ScrumPlayer {
     @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
 
-    @Persistent
+    @Persistent(defaultFetchGroup = "true")
     private ScrumUser user;
 
     @Persistent
@@ -34,23 +34,12 @@ public class ScrumPlayer {
     @Persistent
     private String lastModUser;
 
-    @Persistent
-    private String projectKey;
-
-    public String getProjectKey() {
-        return projectKey;
-    }
-
-    public void setProjectKey(String projectKey) {
-        this.projectKey = projectKey;
-    }
-
     public String getKey() {
         return key;
     }
 
-    public void setKey(String newKey) {
-        this.key = newKey;
+    public String setKey() {
+        return key;
     }
 
     public ScrumUser getUser() {
@@ -92,5 +81,5 @@ public class ScrumPlayer {
     public boolean getAdminFlag() {
         return this.admin;
     }
-
+    
 }

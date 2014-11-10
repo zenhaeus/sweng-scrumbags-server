@@ -22,7 +22,7 @@ import com.google.appengine.api.users.User;
 /**
  * 
  * @author aschneuw
- * 
+ *
  */
 
 @Api(
@@ -41,14 +41,14 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
-
 public class ScrumPlayerEndpoint {
 
-    @ApiMethod(name = "insertScrumPlayer", path = "operationstatus/insertplayer")
-    public OperationStatus insertScrumPlayer(ScrumPlayer scrumplayer,
+
+    @ApiMethod(name = "insertScrumPlayer", path="operationstatus/insertplayer")
+    public OperationStatus insertScrumPlayer(ScrumPlayer scrumplayer, 
             @Named("projectKey") String projectKey,
-            @Named("userKey") String userKey, User user)
-            throws OAuthRequestException {
+            @Named("userKey") String userKey,
+            User user) throws OAuthRequestException {
         OperationStatus opStatus = null;
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
@@ -59,51 +59,43 @@ public class ScrumPlayerEndpoint {
             }
             ScrumUser sUser = mgr.getObjectById(ScrumUser.class, userKey);
             scrumplayer.setUser(sUser);
-            sUser.addPlayer(scrumplayer);
-
-            ScrumProject project = mgr.getObjectById(ScrumProject.class,
-                    projectKey);
-            project.getPlayerKeys().add(scrumplayer.getKey()); //répercute les changements sur le DS?
-
-
+            
+            ScrumProject project = mgr.getObjectById(ScrumProject.class, projectKey);
+            project.getPlayers().add(scrumplayer);
+            
+            
+            
             tx.begin();
             mgr.makePersistent(scrumplayer);
-            tx.commit();
-            tx.begin();
-            mgr.makePersistent(project);
             tx.commit();
             opStatus = new OperationStatus();
             opStatus.setKey(scrumplayer.getKey());
             opStatus.setSuccess(true);
-
+            
         } finally {
             mgr.close();
         }
         return opStatus;
     }
-//<<<<<<< HEAD
-//    
-//    
-//    @ApiMethod(name = "getScrumPlayer")
-//    public ScrumPlayer getScrumIssue(@Named("id") String id, User user)
-//            throws OAuthRequestException {
-//        AppEngineUtils.basicAuthentication(user);
-//        PersistenceManager mgr = getPersistenceManager();
-//        ScrumPlayer scrumplayer = null;
-//        try {
-//            scrumplayer = mgr.getObjectById(ScrumPlayer.class, id);
-//        } finally {
-//            mgr.close();
-//        }
-//        return scrumplayer;
-//    }
-//    
-//=======
-//>>>>>>> Correction of the link betwen player and project
+    
+    
+    @ApiMethod(name = "getScrumPlayer")
+    public ScrumPlayer getScrumIssue(@Named("id") String id, User user)
+            throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager mgr = getPersistenceManager();
+        ScrumPlayer scrumplayer = null;
+        try {
+            scrumplayer = mgr.getObjectById(ScrumPlayer.class, id);
+        } finally {
+            mgr.close();
+        }
+        return scrumplayer;
+    }
+    
 
     @ApiMethod(name = "updateScrumPlayer")
-    public OperationStatus updateScrumPlayer(ScrumPlayer scrumplayer, User user)
-            throws OAuthRequestException {
+    public OperationStatus updateScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
         OperationStatus opStatus = null;
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager mgr = getPersistenceManager();
@@ -121,22 +113,19 @@ public class ScrumPlayerEndpoint {
     }
 
     /**
-     * This method removes the entity with primary key id. It uses HTTP DELETE
-     * method.
-     * 
-     * @param id
-     *            the primary key of the entity to be deleted.
+     * This method removes the entity with primary key id.
+     * It uses HTTP DELETE method.
+     *
+     * @param id the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumPlayer")
-    public OperationStatus removeScrumPlayer(
-            @Named("playerKey") String playerKey, User user)
-            throws OAuthRequestException {
+    public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, 
+            User user) throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = null;
         PersistenceManager mgr = getPersistenceManager();
         try {
-            ScrumPlayer scrumplayer = mgr.getObjectById(ScrumPlayer.class,
-                    playerKey);
+            ScrumPlayer scrumplayer = mgr.getObjectById(ScrumPlayer.class, playerKey);
             mgr.deletePersistent(scrumplayer);
             opStatus = new OperationStatus();
             opStatus.setSuccess(true);
@@ -158,27 +147,25 @@ public class ScrumPlayerEndpoint {
         }
         return contains;
     }
-
+    
     @ApiMethod(name = "loadPlayers")
-    public CollectionResponse<ScrumPlayer> loadPlayers(
-            @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey,
+            User user) throws OAuthRequestException {
         PersistenceManager mgr = null;
         List<ScrumPlayer> players = null;
 
         try {
             mgr = getPersistenceManager();
-            ScrumProject project = mgr.getObjectById(ScrumProject.class,
-                    projectKey);
+            ScrumProject project = mgr.getObjectById(ScrumProject.class, projectKey);
             players = new ArrayList<ScrumPlayer>();
-            for (String p : project.getPlayerKeys()) {
-                players.add(mgr.getObjectById(ScrumPlayer.class,p));
+            for (ScrumPlayer p: project.getPlayers()) {
+                players.add(p);
             }
-
+            
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumPlayer> builder().setItems(players)
+        return CollectionResponse.<ScrumPlayer>builder().setItems(players)
                 .build();
     }
 

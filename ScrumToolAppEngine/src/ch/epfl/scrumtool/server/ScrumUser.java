@@ -50,7 +50,7 @@ public class ScrumUser {
         return players;
     }
 
-    public void setPlayers(List<ScrumPlayer> players) {
+    public void setProjects(List<ScrumPlayer> players) {
         this.players = players;
     }
 
@@ -75,7 +75,6 @@ public class ScrumUser {
             players.add(player);
         } else {
             this.players = new ArrayList<ScrumPlayer>();
-            this.players.add(player);
 
         }
     }
