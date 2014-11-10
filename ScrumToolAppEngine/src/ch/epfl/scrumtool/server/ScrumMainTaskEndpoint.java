@@ -40,7 +40,7 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD},
-        audiences = {Constants.ANDROID_AUDIENCE}}
+        audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumMainTaskEndpoint {
     /**
