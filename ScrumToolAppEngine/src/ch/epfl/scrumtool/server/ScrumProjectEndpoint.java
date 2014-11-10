@@ -155,7 +155,11 @@ public class ScrumProjectEndpoint {
         try {
             ScrumProject scrumproject = mgr.getObjectById(ScrumProject.class,
                     projectKey);
+            for(ScrumPlayer p: scrumproject.getPlayers()) {
+                mgr.deletePersistent(p);
+            }
             mgr.deletePersistent(scrumproject);
+
             opStatus = new OperationStatus();
             opStatus.setSuccess(true);
         } finally {
