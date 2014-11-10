@@ -75,28 +75,26 @@ public class ScrumProjectEndpoint {
             scrumPlayer.setLastModUser(scrumproject.getLastModUser());
             scrumPlayer.setUser(scrumUser);
 
-            scrumproject.addPlayerKey(scrumPlayer.getKey());
-
-            scrumPlayer.setProjectKey(scrumproject.getKey());
-
             scrumproject.setSprints(new HashSet<ScrumSprint>());
-
             scrumproject.setBacklog(new HashSet<ScrumMainTask>());
-            log.info("start transactions");
+            scrumUser.addPlayer(scrumPlayer);
+
             tx.begin();
             mgr.makePersistent(scrumPlayer);
-//            mgr.makePersistent(scrumUser);
             tx.commit();
+            
+            scrumproject.addPlayerKey(scrumPlayer.getKey());
+
             tx.begin();
             mgr.makePersistent(scrumproject);
             tx.commit();
-            scrumUser.addPlayer(scrumPlayer);
+            
+            scrumPlayer.setProjectKey(scrumproject.getKey());
+            
+            tx.begin();
+            mgr.makePersistent(scrumPlayer);
+            tx.commit();
 
-            if (scrumproject.getKey() == null) {
-                log.info("scrumproject.getKey");
-            } else {
-                log.info(scrumproject.getKey());
-            }
             opStatus = new OperationStatus();
             opStatus.setKey(scrumproject.getKey());
             opStatus.setSuccess(true);
@@ -197,26 +195,12 @@ public class ScrumProjectEndpoint {
         try {
             ScrumUser sUser = mgr.getObjectById(ScrumUser.class,
                     user.getEmail());
-            // if (sUser == null) {
-            // throw new NullPointerException("sUser");
-            //
-            // }
-            // if (sUser.getPlayers() == null) {
-            // throw new NullPointerException("players");
-            //
-            // }
-            // if (sUser.getPlayers().isEmpty()) {
-            // throw new NullPointerException("empty players list");
-            //
-            // }
             for (ScrumPlayer s : sUser.getPlayers()) {
+                
                 projects.add(mgr.getObjectById(ScrumProject.class,
                         s.getProjectKey()));
 
             }
-            // if (projects == null) {
-            // throw new NullPointerException("projects");
-            // }
         } finally {
             mgr.close();
         }
