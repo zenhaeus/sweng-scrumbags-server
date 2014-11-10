@@ -70,17 +70,30 @@ public class ScrumProjectEndpoint {
              */
             scrumPlayer.setLastModDate(scrumproject.getLastModDate());
             scrumPlayer.setLastModUser(scrumproject.getLastModUser());
-            scrumPlayer.setUser(scrumUser);
+            
 
             Set<ScrumPlayer> scrumPlayers = new HashSet<ScrumPlayer>();
             scrumPlayers.add(scrumPlayer);
-            scrumproject.setPlayers(scrumPlayers);
+            
 
             Set<ScrumSprint> scrumSprints = new HashSet<ScrumSprint>();
             scrumproject.setSprints(scrumSprints);
 
             scrumproject.setBacklog(new HashSet<ScrumMainTask>());
+            
+            
+            
+            
 
+            scrumUser.addPlayer(scrumPlayer);
+            tx.begin();
+            mgr.makePersistent(scrumUser);
+            tx.commit();
+            scrumproject.setPlayers(scrumPlayers);
+            tx.begin();
+            mgr.makePersistent(scrumproject);
+            tx.commit();
+            scrumPlayer.setProject(scrumproject);
             tx.begin();
             mgr.makePersistent(scrumproject);
             tx.commit();

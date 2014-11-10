@@ -8,6 +8,7 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+
 /**
  * @author sylb, aschneuw
  */
@@ -20,8 +21,8 @@ public class ScrumUser {
 
     @Persistent
     private String name;
-
-    @Persistent(mappedBy = "user")
+    
+    @Persistent(mappedBy="user")
     private List<ScrumPlayer> players;
 
     @Persistent

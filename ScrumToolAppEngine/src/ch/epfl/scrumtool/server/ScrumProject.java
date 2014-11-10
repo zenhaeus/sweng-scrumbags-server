@@ -9,6 +9,8 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import com.google.appengine.datanucleus.annotations.Unowned;
+
 /**
  * @author sylb, aschneuw, zenhaeus
  * 
@@ -20,7 +22,7 @@ public class ScrumProject {
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
-
+    
     @Persistent
     private String name;
 
@@ -33,6 +35,7 @@ public class ScrumProject {
     @Persistent
     private String lastModUser;
 
+    @Unowned
     @Persistent
     private Set<ScrumPlayer> players;
 

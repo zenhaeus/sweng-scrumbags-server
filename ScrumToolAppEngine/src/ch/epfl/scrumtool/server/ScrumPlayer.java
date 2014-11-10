@@ -7,6 +7,8 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import com.google.appengine.datanucleus.annotations.Unowned;
+
 /**
  * 
  * @author aschneuw
@@ -19,9 +21,13 @@ public class ScrumPlayer {
     @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
 
-    @Persistent(defaultFetchGroup = "true")
+    @Persistent
     private ScrumUser user;
 
+    @Unowned
+    @Persistent
+    private ScrumProject project;
+    
     @Persistent
     private Role role;
 
@@ -33,6 +39,14 @@ public class ScrumPlayer {
 
     @Persistent
     private String lastModUser;
+    
+    public ScrumProject getProject() {
+        return this.project;
+    }
+    
+    public void setProject(ScrumProject project) {
+        this.project = project;
+    }
 
     public String getKey() {
         return key;

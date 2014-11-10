@@ -9,6 +9,7 @@
        <property name="javax.jdo.option.RetainValues" value="true"/>
        <property name="datanucleus.appengine.autoCreateDatastoreTxns" value="true"/>
        <property name="datanucleus.appengine.singletonPMFForName" value="true"/>
-       <property name="datanucleus.maxFetchDepth" value="2"/> 
+       <property name="datanucleus.maxFetchDepth" value="4"/> 
+       <property name="datanucleus.appengine.datastoreReadConsistency" value="STRONG" />
    </persistence-manager-factory>
 </jdoconfig>

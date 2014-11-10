@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -66,21 +67,33 @@ public class ScrumUserEndpoint {
      * @return
      * @throws OAuthRequestException
      */
-    @SuppressWarnings("unchecked")
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(
             @Named("id") String id, User user) throws OAuthRequestException {
         PersistenceManager mgr = null;
-        List<ScrumProject> execute = null;
+        List<ScrumProject> projects = null;        
+        
 
         try {
             mgr = getPersistenceManager();
-            Query query = mgr.newQuery(ScrumProject.class);
-            execute = (List<ScrumProject>) query.execute();
+            
+            ScrumUser sU = mgr.getObjectById(ScrumUser.class, id);
+            projects = new ArrayList<ScrumProject>();
+            for (ScrumPlayer p: sU.getPlayers()) {
+                ScrumProject pr = p.getProject();
+                //Load all properties
+                pr.getDescription();
+                pr.getName();
+                pr.getLastModDate();
+                pr.getLastModUser();
+                
+                projects.add(pr);
+            }
+            
         } finally {
             mgr.close();
         }
-        return CollectionResponse.<ScrumProject>builder().setItems(execute)
+        return CollectionResponse.<ScrumProject>builder().setItems(projects)
                 .build();
     }
 
@@ -175,8 +188,9 @@ public class ScrumUserEndpoint {
     @ApiMethod(name = "loginUser")
     public ScrumUser loginUser(@Named("eMail") String eMail) {
         PersistenceManager mgr = getPersistenceManager();
+        ScrumUser user = null;
         try {
-            return mgr.getObjectById(ScrumUser.class, eMail);
+            user = mgr.getObjectById(ScrumUser.class, eMail);
 
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             ScrumUser newUser = new ScrumUser();
@@ -187,8 +201,11 @@ public class ScrumUserEndpoint {
             newUser.setName(eMail);
             insertScrumUser(newUser);
 
-            return mgr.getObjectById(ScrumUser.class, eMail);
+            user = mgr.getObjectById(ScrumUser.class, eMail);
+        } finally {
+            mgr.close();
         }
+        return user;
     }
 
     private static PersistenceManager getPersistenceManager() {
