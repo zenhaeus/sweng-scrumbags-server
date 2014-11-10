@@ -75,25 +75,23 @@ public class ScrumProjectEndpoint {
             scrumPlayer.setLastModUser(scrumproject.getLastModUser());
             scrumPlayer.setUser(scrumUser);
 
-            Set<ScrumPlayer> scrumPlayers = new HashSet<ScrumPlayer>();
-            scrumPlayers.add(scrumPlayer);
-            scrumproject.setPlayers(scrumPlayers);
+            scrumproject.addPlayerKey(scrumPlayer.getKey());
+
+            scrumPlayer.setProjectKey(scrumproject.getKey());
 
             scrumproject.setSprints(new HashSet<ScrumSprint>());
 
             scrumproject.setBacklog(new HashSet<ScrumMainTask>());
             log.info("start transactions");
             tx.begin();
+            mgr.makePersistent(scrumPlayer);
+//            mgr.makePersistent(scrumUser);
+            tx.commit();
+            tx.begin();
             mgr.makePersistent(scrumproject);
             tx.commit();
-            scrumPlayer.setProjectKey(scrumproject.getKey());
-            tx.begin();
-            mgr.makePersistent(scrumPlayer);
-            tx.commit();
             scrumUser.addPlayer(scrumPlayer);
-            tx.begin();
-            mgr.makePersistent(scrumUser);
-            tx.commit();
+
             if (scrumproject.getKey() == null) {
                 log.info("scrumproject.getKey");
             } else {
@@ -214,6 +212,7 @@ public class ScrumProjectEndpoint {
             for (ScrumPlayer s : sUser.getPlayers()) {
                 projects.add(mgr.getObjectById(ScrumProject.class,
                         s.getProjectKey()));
+
             }
             // if (projects == null) {
             // throw new NullPointerException("projects");

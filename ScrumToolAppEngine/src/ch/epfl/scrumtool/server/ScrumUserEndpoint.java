@@ -2,6 +2,7 @@ package ch.epfl.scrumtool.server;
 
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
@@ -39,6 +40,7 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD},
         audiences = {Constants.ANDROID_AUDIENCE}
         )
+
 public class ScrumUserEndpoint {
 
     /**
@@ -61,7 +63,6 @@ public class ScrumUserEndpoint {
         }
         return scrumuser;
     }
-
 
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -154,20 +155,31 @@ public class ScrumUserEndpoint {
     @ApiMethod(name = "loginUser")
     public ScrumUser loginUser(@Named("eMail") String eMail) {
         PersistenceManager mgr = getPersistenceManager();
+        ScrumUser user = null;
         try {
-            return mgr.getObjectById(ScrumUser.class, eMail);
+            Logger log = Logger.getLogger("STUF");
+            log.severe("SHUT THE FUCK UP");
+            user = mgr.getObjectById(ScrumUser.class, eMail);
+            log.severe("bal bal bal " + user.getEmail() + " , "
+                    + user.getName());
+            return user;
 
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
+            Logger log = Logger.getLogger("STUF");
+            log.severe("SHUT THE FUCK UP 2");
             ScrumUser newUser = new ScrumUser();
             newUser.setEmail(eMail);
             Date date = new Date();
             newUser.setLastModDate(date.getTime());
             newUser.setLastModUser(eMail);
-            newUser.setName(eMail.substring(0, eMail.indexOf('@')-1));
+            newUser.setName(eMail.substring(0, eMail.indexOf('@')));
             insertScrumUser(newUser);
 
-            return mgr.getObjectById(ScrumUser.class, eMail);
+            user = mgr.getObjectById(ScrumUser.class, eMail);
+        } finally {
+            mgr.close();
         }
+        return user;
     }
 
     private static PersistenceManager getPersistenceManager() {

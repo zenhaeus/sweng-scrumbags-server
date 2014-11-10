@@ -19,7 +19,7 @@ public class ScrumPlayer {
     @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
 
-    @Persistent(defaultFetchGroup = "true")
+    @Persistent
     private ScrumUser user;
 
     @Persistent
