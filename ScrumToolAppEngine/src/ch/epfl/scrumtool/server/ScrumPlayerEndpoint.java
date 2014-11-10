@@ -78,6 +78,20 @@ public class ScrumPlayerEndpoint {
     }
     
     
+    @ApiMethod(name = "getScrumPlayer")
+    public ScrumPlayer getScrumIssue(@Named("id") String id, User user)
+            throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager mgr = getPersistenceManager();
+        ScrumPlayer scrumplayer = null;
+        try {
+            scrumplayer = mgr.getObjectById(ScrumPlayer.class, id);
+        } finally {
+            mgr.close();
+        }
+        return scrumplayer;
+    }
+    
 
     @ApiMethod(name = "updateScrumPlayer")
     public OperationStatus updateScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
