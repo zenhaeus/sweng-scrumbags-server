@@ -55,13 +55,13 @@ public class ScrumUserEndpoint {
     public ScrumUser getScrumUser(@Named("id") String id, User user)
             throws OAuthRequestException {
         PersistenceManager mgr = getPersistenceManager();
-        ScrumUser scrumuser = null;
+        ScrumUser scrumUser = null;
         try {
-            scrumuser = mgr.getObjectById(ScrumUser.class, id);
+            scrumUser = mgr.getObjectById(ScrumUser.class, id);
         } finally {
             mgr.close();
         }
-        return scrumuser;
+        return scrumUser;
     }
 
     /**
@@ -69,23 +69,23 @@ public class ScrumUserEndpoint {
      * already exists in the datastore, an exception is thrown. It uses HTTP
      * POST method.
      * 
-     * @param scrumuser
+     * @param scrumUser
      *            the entity to be inserted.
      * @return The inserted entity.
      */
-    private ScrumUser insertScrumUser(ScrumUser scrumuser) {
-        PersistenceManager mgr = getPersistenceManager();
+    private ScrumUser insertScrumUser(ScrumUser scrumUser) {
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            if (scrumuser != null) {
-                if (containsScrumUser(scrumuser)) {
+            if (scrumUser != null) {
+                if (containsScrumUser(scrumUser)) {
                     throw new EntityExistsException("Object already exists");
                 }
             }
-            mgr.makePersistent(scrumuser);
+            persistenceManager.makePersistent(scrumUser);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumuser;
+        return scrumUser;
     }
 
     /**
@@ -93,23 +93,23 @@ public class ScrumUserEndpoint {
      * not exist in the datastore, an exception is thrown. It uses HTTP PUT
      * method.
      * 
-     * @param scrumuser
+     * @param scrumUser
      *            the entity to be updated.
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser")
-    public ScrumUser updateScrumUser(ScrumUser scrumuser, User user)
+    public ScrumUser updateScrumUser(ScrumUser scrumUser, User user)
             throws OAuthRequestException {
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            if (!containsScrumUser(scrumuser)) {
+            if (!containsScrumUser(scrumUser)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
-            mgr.makePersistent(scrumuser);
+            persistenceManager.makePersistent(scrumUser);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumuser;
+        return scrumUser;
     }
 
     /**
@@ -121,24 +121,24 @@ public class ScrumUserEndpoint {
      */
     @ApiMethod(name = "removeScrumUser")
     public void removeScrumUser(@Named("id") String id) {
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            ScrumUser scrumuser = mgr.getObjectById(ScrumUser.class, id);
-            mgr.deletePersistent(scrumuser);
+            ScrumUser scrumuser = persistenceManager.getObjectById(ScrumUser.class, id);
+            persistenceManager.deletePersistent(scrumuser);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
     }
 
-    private boolean containsScrumUser(ScrumUser scrumuser) {
-        PersistenceManager mgr = getPersistenceManager();
+    private boolean containsScrumUser(ScrumUser scrumUser) {
+        PersistenceManager persistenceManager = getPersistenceManager();
         boolean contains = true;
         try {
-            mgr.getObjectById(ScrumUser.class, scrumuser.getEmail());
+            persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             contains = false;
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
         return contains;
     }
@@ -154,19 +154,13 @@ public class ScrumUserEndpoint {
 
     @ApiMethod(name = "loginUser")
     public ScrumUser loginUser(@Named("eMail") String eMail) {
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         ScrumUser user = null;
         try {
-            Logger log = Logger.getLogger("STUF");
-            log.severe("SHUT THE FUCK UP");
-            user = mgr.getObjectById(ScrumUser.class, eMail);
-            log.severe("bal bal bal " + user.getEmail() + " , "
-                    + user.getName());
+            user = persistenceManager.getObjectById(ScrumUser.class, eMail);
             return user;
 
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            Logger log = Logger.getLogger("STUF");
-            log.severe("SHUT THE FUCK UP 2");
             ScrumUser newUser = new ScrumUser();
             newUser.setEmail(eMail);
             Date date = new Date();
@@ -175,9 +169,9 @@ public class ScrumUserEndpoint {
             newUser.setName(eMail.substring(0, eMail.indexOf('@')));
             insertScrumUser(newUser);
 
-            user = mgr.getObjectById(ScrumUser.class, eMail);
+            user = persistenceManager.getObjectById(ScrumUser.class, eMail);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
         return user;
     }

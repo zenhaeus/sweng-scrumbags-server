@@ -40,27 +40,25 @@ import com.google.appengine.api.users.User;
         Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumProjectEndpoint {
 
-    private static final Logger log = Logger.getLogger("ScrumProjectEndpoint");
-
     /**
      * This inserts a new entity into App Engine datastore. If the entity
      * already exists in the datastore, an exception is thrown. It uses HTTP
      * POST method.
      * 
-     * @param scrumproject
+     * @param scrumProject
      *            the entity to be inserted.
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumProject", path = "operationstatus/insertProject")
-    public OperationStatus insertScrumProject(ScrumProject scrumproject,
+    public OperationStatus insertScrumProject(ScrumProject scrumProject,
             User user) throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus;
-        PersistenceManager mgr = getPersistenceManager();
-        Transaction tx = mgr.currentTransaction();
+        PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction tx = persistenceManager.currentTransaction();
         try {
-            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class,
-                    scrumproject.getLastModUser());
+            ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class,
+                    scrumProject.getLastModUser());
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
@@ -71,39 +69,39 @@ public class ScrumProjectEndpoint {
              * corresponding to the user inserting the project. Therefore the
              * timestamp and lastermoduser tags are the same
              */
-            scrumPlayer.setLastModDate(scrumproject.getLastModDate());
-            scrumPlayer.setLastModUser(scrumproject.getLastModUser());
+            scrumPlayer.setLastModDate(scrumProject.getLastModDate());
+            scrumPlayer.setLastModUser(scrumProject.getLastModUser());
             scrumPlayer.setUser(scrumUser);
 
-            scrumproject.setSprints(new HashSet<ScrumSprint>());
-            scrumproject.setBacklog(new HashSet<ScrumMainTask>());
+            scrumProject.setSprints(new HashSet<ScrumSprint>());
+            scrumProject.setBacklog(new HashSet<ScrumMainTask>());
             scrumUser.addPlayer(scrumPlayer);
 
             tx.begin();
-            mgr.makePersistent(scrumPlayer);
+            persistenceManager.makePersistent(scrumPlayer);
             tx.commit();
-            
-            scrumproject.addPlayerKey(scrumPlayer.getKey());
+
+            scrumProject.addPlayerKey(scrumPlayer.getKey());
 
             tx.begin();
-            mgr.makePersistent(scrumproject);
+            persistenceManager.makePersistent(scrumProject);
             tx.commit();
-            
-            scrumPlayer.setProjectKey(scrumproject.getKey());
-            
+
+            scrumPlayer.setProjectKey(scrumProject.getKey());
+
             tx.begin();
-            mgr.makePersistent(scrumPlayer);
+            persistenceManager.makePersistent(scrumPlayer);
             tx.commit();
 
             opStatus = new OperationStatus();
-            opStatus.setKey(scrumproject.getKey());
+            opStatus.setKey(scrumProject.getKey());
             opStatus.setSuccess(true);
 
         } finally {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            mgr.close();
+            persistenceManager.close();
         }
         return opStatus;
     }
@@ -122,18 +120,18 @@ public class ScrumProjectEndpoint {
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = null;
-        PersistenceManager mgr = getPersistenceManager();
-        Transaction tx = mgr.currentTransaction();
+        PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
         try {
             if (!containsScrumProject(update)) {
                 throw new EntityNotFoundException(
                         "This project does not exist in the Database");
             }
-            tx.begin();
-            mgr.makePersistent(update);
-            tx.commit();
+            transaction.begin();
+            persistenceManager.makePersistent(update);
+            transaction.commit();
 
-            ScrumProject project = mgr.getObjectById(ScrumProject.class,
+            ScrumProject project = persistenceManager.getObjectById(ScrumProject.class,
                     update.getKey());
             project.setDescription(update.getDescription());
             project.setLastModDate(update.getLastModDate());
@@ -144,12 +142,12 @@ public class ScrumProjectEndpoint {
             opStatus.setSuccess(true);
             opStatus.setKey(update.getKey());
         } finally {
-            if (tx.isActive()) {
-                tx.rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
                 opStatus = new OperationStatus();
                 opStatus.setSuccess(true);
             }
-            mgr.close();
+            persistenceManager.close();
         }
         return opStatus;
     }
@@ -166,17 +164,17 @@ public class ScrumProjectEndpoint {
             @Named("projectKey") String projectKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         OperationStatus opStatus = null;
         try {
-            ScrumProject scrumproject = mgr.getObjectById(ScrumProject.class,
+            ScrumProject scrumproject = persistenceManager.getObjectById(ScrumProject.class,
                     projectKey);
-            mgr.deletePersistent(scrumproject);
+            persistenceManager.deletePersistent(scrumproject);
             opStatus = new OperationStatus();
             opStatus.setSuccess(true);
             opStatus.setKey(projectKey);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
         return opStatus;
     }
@@ -190,19 +188,18 @@ public class ScrumProjectEndpoint {
             @Named("id") String userKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         Set<ScrumProject> projects = new HashSet<ScrumProject>();
         try {
-            ScrumUser sUser = mgr.getObjectById(ScrumUser.class,
+            ScrumUser sUser = persistenceManager.getObjectById(ScrumUser.class,
                     user.getEmail());
             for (ScrumPlayer s : sUser.getPlayers()) {
-                
-                projects.add(mgr.getObjectById(ScrumProject.class,
-                        s.getProjectKey()));
 
+                projects.add(persistenceManager.getObjectById(ScrumProject.class,
+                        s.getProjectKey()));
             }
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
         return CollectionResponse.<ScrumProject> builder().setItems(projects)
                 .build();
@@ -213,14 +210,14 @@ public class ScrumProjectEndpoint {
     }
 
     private boolean containsScrumProject(ScrumProject scrumProject) {
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         boolean contains = true;
         try {
-            mgr.getObjectById(ScrumProject.class, scrumProject.getKey());
+            persistenceManager.getObjectById(ScrumProject.class, scrumProject.getKey());
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             contains = false;
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
         return contains;
     }
