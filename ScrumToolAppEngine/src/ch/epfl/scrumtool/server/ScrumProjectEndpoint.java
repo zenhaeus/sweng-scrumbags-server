@@ -3,6 +3,7 @@ package ch.epfl.scrumtool.server;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
@@ -38,6 +39,9 @@ import com.google.appengine.api.users.User;
         Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
         Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumProjectEndpoint {
+
+    private static final Logger log = Logger.getLogger("ScrumProjectEndpoint");
+
     /**
      * This inserts a new entity into App Engine datastore. If the entity
      * already exists in the datastore, an exception is thrown. It uses HTTP
@@ -55,7 +59,8 @@ public class ScrumProjectEndpoint {
         PersistenceManager mgr = getPersistenceManager();
         Transaction tx = mgr.currentTransaction();
         try {
-            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class, scrumproject.getLastModUser());
+            ScrumUser scrumUser = mgr.getObjectById(ScrumUser.class,
+                    scrumproject.getLastModUser());
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
@@ -77,12 +82,23 @@ public class ScrumProjectEndpoint {
             scrumproject.setSprints(new HashSet<ScrumSprint>());
 
             scrumproject.setBacklog(new HashSet<ScrumMainTask>());
-
+            log.info("start transactions");
             tx.begin();
             mgr.makePersistent(scrumproject);
+            tx.commit();
             scrumPlayer.setProjectKey(scrumproject.getKey());
+            tx.begin();
             mgr.makePersistent(scrumPlayer);
             tx.commit();
+            scrumUser.addPlayer(scrumPlayer);
+            tx.begin();
+            mgr.makePersistent(scrumUser);
+            tx.commit();
+            if (scrumproject.getKey() == null) {
+                log.info("scrumproject.getKey");
+            } else {
+                log.info(scrumproject.getKey());
+            }
             opStatus = new OperationStatus();
             opStatus.setKey(scrumproject.getKey());
             opStatus.setSuccess(true);
@@ -183,10 +199,25 @@ public class ScrumProjectEndpoint {
         try {
             ScrumUser sUser = mgr.getObjectById(ScrumUser.class,
                     user.getEmail());
+            // if (sUser == null) {
+            // throw new NullPointerException("sUser");
+            //
+            // }
+            // if (sUser.getPlayers() == null) {
+            // throw new NullPointerException("players");
+            //
+            // }
+            // if (sUser.getPlayers().isEmpty()) {
+            // throw new NullPointerException("empty players list");
+            //
+            // }
             for (ScrumPlayer s : sUser.getPlayers()) {
                 projects.add(mgr.getObjectById(ScrumProject.class,
                         s.getProjectKey()));
             }
+            // if (projects == null) {
+            // throw new NullPointerException("projects");
+            // }
         } finally {
             mgr.close();
         }

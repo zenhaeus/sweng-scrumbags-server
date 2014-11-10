@@ -75,6 +75,7 @@ public class ScrumUser {
             players.add(player);
         } else {
             this.players = new ArrayList<ScrumPlayer>();
+            this.players.add(player);
 
         }
     }
