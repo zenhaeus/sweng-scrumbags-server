@@ -7,7 +7,7 @@ import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
 /**
- * @author Arno
+ * @author aschneuw
  * 
  */
 public class AppEngineUtils {
