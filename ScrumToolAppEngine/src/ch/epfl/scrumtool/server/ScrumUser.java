@@ -1,13 +1,13 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.jdo.annotations.IdentityType;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
-
 
 /**
  * @author sylb, aschneuw
@@ -21,9 +21,9 @@ public class ScrumUser {
 
     @Persistent
     private String name;
-    
-    @Persistent(mappedBy="user")
-    private List<ScrumPlayer> players;
+
+    @Persistent(mappedBy = "user")
+    private Set<ScrumPlayer> players;
 
     @Persistent
     private long lastModDate;
@@ -47,11 +47,11 @@ public class ScrumUser {
         this.email = email;
     }
 
-    public List<ScrumPlayer> getPlayers() {
+    public Set<ScrumPlayer> getPlayers() {
         return players;
     }
 
-    public void setProjects(List<ScrumPlayer> players) {
+    public void setProjects(Set<ScrumPlayer> players) {
         this.players = players;
     }
 
@@ -72,11 +72,13 @@ public class ScrumUser {
     }
 
     public void addPlayer(ScrumPlayer player) {
-        if (players != null) {
-            players.add(player);
-        } else {
-            this.players = new ArrayList<ScrumPlayer>();
-
+        if (players == null) {
+            this.players = new HashSet<ScrumPlayer>();
         }
+        players.add(player);
+    }
+
+    public void removePlayer(ScrumPlayer player) {
+        this.players.remove(player);
     }
 }

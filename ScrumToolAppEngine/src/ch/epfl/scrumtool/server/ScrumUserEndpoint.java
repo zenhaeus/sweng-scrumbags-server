@@ -23,42 +23,39 @@ import com.google.appengine.api.users.User;
  * @author aschneuw
  * 
  */
-@Api(
-        name = "scrumtool",
-        version = "v1",
-        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
-            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
-            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD},
-        audiences = {Constants.ANDROID_AUDIENCE}
-        )
+@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
+        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumUserEndpoint {
 
     /**
      * This method gets the entity having primary key id. It uses HTTP GET
      * method.
      * 
-     * @param id
+     * @param userKey
      *            the primary key of the java bean.
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumUser")
-    public ScrumUser getScrumUser(@Named("id") String id, User user) throws OAuthRequestException {
-        PersistenceManager mgr = getPersistenceManager();
-        ScrumUser scrumuser = null;
+    public ScrumUser getScrumUser(@Named("id") String userKey, User user)
+            throws OAuthRequestException {
+        PersistenceManager persistenceManager = getPersistenceManager();
+        ScrumUser scrumUser = null;
         try {
-            scrumuser = mgr.getObjectById(ScrumUser.class, id);
+            scrumUser = persistenceManager.getObjectById(ScrumUser.class,
+                    userKey);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumuser;
+        return scrumUser;
     }
 
     /**
@@ -67,31 +64,33 @@ public class ScrumUserEndpoint {
      */
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(
-            @Named("id") String id, User user) throws OAuthRequestException {
-        PersistenceManager mgr = null;
-        List<ScrumProject> projects = null;        
-        
+            @Named("id") String userKey, User user)
+            throws OAuthRequestException {
+        PersistenceManager persistenceManager = null;
+        List<ScrumProject> projects = null;
 
         try {
-            mgr = getPersistenceManager();
-            
-            ScrumUser sU = mgr.getObjectById(ScrumUser.class, id);
+            persistenceManager = getPersistenceManager();
+
+            ScrumUser scrumUser = persistenceManager.getObjectById(
+                    ScrumUser.class, userKey);
             projects = new ArrayList<ScrumProject>();
-            for (ScrumPlayer p: sU.getPlayers()) {
-                ScrumProject pr = p.getProject();
-                //Load all properties
-//                pr.getDescription();
-//                pr.getName();
-//                pr.getLastModDate();
-//                pr.getLastModUser();
-//                
-                projects.add(pr);
+            for (ScrumPlayer p : scrumUser.getPlayers()) {
+                ScrumProject scrumProject = p.getProject();
+                // Load all properties
+                // scrumProject.getDescription();
+                // scrumProject.getName();
+                // scrumProject.getLastModDate();
+                // scrumProject.getLastModUser();
+                //
+                projects.add(scrumProject);
+
             }
-            
+
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return CollectionResponse.<ScrumProject>builder().setItems(projects)
+        return CollectionResponse.<ScrumProject> builder().setItems(projects)
                 .build();
     }
 
@@ -100,23 +99,23 @@ public class ScrumUserEndpoint {
      * already exists in the datastore, an exception is thrown. It uses HTTP
      * POST method.
      * 
-     * @param scrumuser
+     * @param scrumUser
      *            the entity to be inserted.
      * @return The inserted entity.
      */
-    private ScrumUser insertScrumUser(ScrumUser scrumuser) {
-        PersistenceManager mgr = getPersistenceManager();
+    private ScrumUser insertScrumUser(ScrumUser scrumUser) {
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            if (scrumuser != null) {
-                if (containsScrumUser(scrumuser)) {
+            if (scrumUser != null) {
+                if (containsScrumUser(scrumUser)) {
                     throw new EntityExistsException("Object already exists");
                 }
             }
-            mgr.makePersistent(scrumuser);
+            persistenceManager.makePersistent(scrumUser);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumuser;
+        return scrumUser;
     }
 
     /**
@@ -124,51 +123,60 @@ public class ScrumUserEndpoint {
      * not exist in the datastore, an exception is thrown. It uses HTTP PUT
      * method.
      * 
-     * @param scrumuser
+     * @param scrumUser
      *            the entity to be updated.
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser")
-    public ScrumUser updateScrumUser(ScrumUser scrumuser, User user) throws OAuthRequestException {
-        PersistenceManager mgr = getPersistenceManager();
+    public ScrumUser updateScrumUser(ScrumUser scrumUser, User user)
+            throws OAuthRequestException {
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            if (!containsScrumUser(scrumuser)) {
+            if (!containsScrumUser(scrumUser)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
-            mgr.makePersistent(scrumuser);
+            persistenceManager.makePersistent(scrumUser);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumuser;
+        return scrumUser;
     }
 
     /**
      * This method removes the entity with primary key id. It uses HTTP DELETE
      * method.
      * 
-     * @param id
+     * @param userKey
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumUser")
-    public void removeScrumUser(@Named("id") String id) {
-        PersistenceManager mgr = getPersistenceManager();
+    public void removeScrumUser(@Named("id") String userKey) {
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            ScrumUser scrumuser = mgr.getObjectById(ScrumUser.class, id);
-            mgr.deletePersistent(scrumuser);
+            ScrumUser scrumUser = persistenceManager.getObjectById(
+                    ScrumUser.class, userKey);
+            persistenceManager.deletePersistent(scrumUser);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
     }
 
-    private boolean containsScrumUser(ScrumUser scrumuser) {
-        PersistenceManager mgr = getPersistenceManager();
+    /**
+     * Returns true if the DS contains the User
+     * 
+     * @param scrumUser
+     * @return
+     */
+    private boolean containsScrumUser(ScrumUser scrumUser) {
+        PersistenceManager persistenceManager = getPersistenceManager();
         boolean contains = true;
         try {
-            mgr.getObjectById(ScrumUser.class, scrumuser.getEmail());
+            persistenceManager.getObjectById(ScrumUser.class,
+                    scrumUser.getEmail());
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             contains = false;
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
         return contains;
     }
@@ -184,10 +192,11 @@ public class ScrumUserEndpoint {
 
     @ApiMethod(name = "loginUser")
     public ScrumUser loginUser(@Named("eMail") String eMail) {
-        PersistenceManager mgr = getPersistenceManager();
-        ScrumUser user = null;
+        PersistenceManager persistenceManager = getPersistenceManager();
+        ScrumUser scrumUser = null;
         try {
-            user = mgr.getObjectById(ScrumUser.class, eMail);
+            scrumUser = persistenceManager
+                    .getObjectById(ScrumUser.class, eMail);
 
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             ScrumUser newUser = new ScrumUser();
@@ -198,11 +207,12 @@ public class ScrumUserEndpoint {
             newUser.setName(eMail);
             insertScrumUser(newUser);
 
-            user = mgr.getObjectById(ScrumUser.class, eMail);
+            scrumUser = persistenceManager
+                    .getObjectById(ScrumUser.class, eMail);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return user;
+        return scrumUser;
     }
 
     private static PersistenceManager getPersistenceManager() {

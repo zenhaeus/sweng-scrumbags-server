@@ -1,6 +1,7 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.jdo.annotations.Extension;
@@ -56,6 +57,17 @@ public class ScrumSprint {
         this.issues = issues;
     }
 
+    public void addIssue(ScrumIssue issue) {
+        if (this.issues == null) {
+            this.issues = new HashSet<ScrumIssue>();
+        }
+        this.issues.add(issue);
+    }
+
+    public void removeIssue(ScrumIssue issue) {
+        this.removeIssue(issue);
+    }
+
     public long getLastModDate() {
         return this.lastModDate;
     }
@@ -79,5 +91,5 @@ public class ScrumSprint {
     public ScrumProject getProject() {
         return this.project;
     }
-    
+
 }

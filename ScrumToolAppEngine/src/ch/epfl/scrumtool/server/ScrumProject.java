@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.jdo.annotations.Extension;
@@ -72,6 +73,17 @@ public class ScrumProject {
     public Set<ScrumPlayer> getPlayers() {
         return players;
     }
+    
+    public void addPlayer(ScrumPlayer player) {
+        if (players == null) {
+            players = new HashSet<ScrumPlayer>();
+        }
+        this.players.add(player);
+    }
+    
+    public void removePlayer(ScrumPlayer player) {
+        this.players.remove(player);
+    }
 
     public void setPlayers(Set<ScrumPlayer> players) {
         this.players = players;
@@ -79,6 +91,17 @@ public class ScrumProject {
 
     public Set<ScrumMainTask> getBacklog() {
         return backlog;
+    }
+    
+    public void addMaintask(ScrumMainTask maintask) {
+        if (backlog == null) {
+            backlog = new HashSet<ScrumMainTask>();
+        }
+        this.backlog.add(maintask);
+    }
+    
+    public void removeMaintask(ScrumMainTask maintask) {
+        this.backlog.remove(maintask);
     }
 
     public void setBacklog(Set<ScrumMainTask> backlog) {
@@ -91,6 +114,17 @@ public class ScrumProject {
 
     public void setSprints(Set<ScrumSprint> sprints) {
         this.sprints = sprints;
+    }
+    
+    public void addSprint(ScrumSprint sprint) {
+        if (sprints == null) {
+            sprints = new HashSet<ScrumSprint>();
+        }
+        this.sprints.add(sprint);
+    }
+    
+    public void removeSprint(ScrumSprint sprint) {
+        this.sprints.remove(sprint);
     }
 
     public long getLastModDate() {

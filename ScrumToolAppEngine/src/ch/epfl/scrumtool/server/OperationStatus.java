@@ -8,9 +8,11 @@ import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
 /**
-* @author aschneuw
-* 
-*/
+ * Used to return the result of a DS operation to the client
+ * 
+ * @author aschneuw
+ * 
+ */
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class OperationStatus {
 
@@ -30,7 +32,8 @@ public class OperationStatus {
     }
 
     /**
-     * @param key the key to set
+     * @param key
+     *            the key to set
      */
     public void setKey(String key) {
         this.key = key;
@@ -44,10 +47,10 @@ public class OperationStatus {
     }
 
     /**
-     * @param success the success to set
+     * @param success
+     *            the success to set
      */
     public void setSuccess(boolean success) {
         this.success = success;
     }
 }
-

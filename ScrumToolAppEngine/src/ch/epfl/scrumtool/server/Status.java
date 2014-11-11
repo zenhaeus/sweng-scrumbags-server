@@ -1,6 +1,8 @@
 package ch.epfl.scrumtool.server;
 
 /**
+ * Reprensents the state of an issue or a task
+ * 
  * @author ketsio, aschneuw, zenhaeus
  */
 public enum Status {

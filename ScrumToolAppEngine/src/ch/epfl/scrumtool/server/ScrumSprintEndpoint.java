@@ -18,143 +18,157 @@ import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
-
 /**
  * 
  * @author aschneuw
- *
+ * 
  */
 
-@Api(
-        name = "scrumtool",
-        version = "v1",
-        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-                clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
-            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
-            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD},
-        audiences = {Constants.ANDROID_AUDIENCE}
-        )
+@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
+        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumSprintEndpoint {
     /**
-     * This method gets the entity having primary key id. It uses HTTP GET method.
-     *
-     * @param id the primary key of the java bean.
+     * This method gets the entity having primary key id. It uses HTTP GET
+     * method.
+     * 
+     * @param key
+     *            the primary key of the java bean.
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumSprint")
-    public ScrumSprint getScrumSprint(@Named("id") String id, User user) throws OAuthRequestException {
+    public ScrumSprint getScrumSprint(@Named("id") String key, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
-        ScrumSprint scrumsprint = null;
+        PersistenceManager persistenceManager = getPersistenceManager();
+        ScrumSprint scrumSprint = null;
         try {
-            scrumsprint = mgr.getObjectById(ScrumSprint.class, id);
+            scrumSprint = persistenceManager.getObjectById(ScrumSprint.class,
+                    key);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumsprint;
+        return scrumSprint;
     }
 
     /**
-     * This inserts a new entity into App Engine datastore. If the entity already
-     * exists in the datastore, an exception is thrown.
-     * It uses HTTP POST method.
-     *
-     * @param scrumsprint the entity to be inserted.
+     * This inserts a new entity into App Engine datastore. If the entity
+     * already exists in the datastore, an exception is thrown. It uses HTTP
+     * POST method.
+     * 
+     * @param scrumSprint
+     *            the entity to be inserted.
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumSprint")
-    public ScrumSprint insertScrumSprint(ScrumSprint scrumsprint, User user) throws OAuthRequestException {
+    public ScrumSprint insertScrumSprint(ScrumSprint scrumSprint, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            if (containsScrumSprint(scrumsprint)) {
+            if (containsScrumSprint(scrumSprint)) {
                 throw new EntityExistsException("Object already exists");
             }
-            mgr.makePersistent(scrumsprint);
+            persistenceManager.makePersistent(scrumSprint);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumsprint;
+        return scrumSprint;
     }
 
     /**
-     * This method is used for updating an existing entity. If the entity does not
-     * exist in the datastore, an exception is thrown.
-     * It uses HTTP PUT method.
-     *
-     * @param scrumsprint the entity to be updated.
+     * This method is used for updating an existing entity. If the entity does
+     * not exist in the datastore, an exception is thrown. It uses HTTP PUT
+     * method.
+     * 
+     * @param scrumSprint
+     *            the entity to be updated.
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumSprint")
-    public ScrumSprint updateScrumSprint(ScrumSprint scrumsprint, User user) throws OAuthRequestException {
+    public ScrumSprint updateScrumSprint(ScrumSprint scrumSprint, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            if (!containsScrumSprint(scrumsprint)) {
+            if (!containsScrumSprint(scrumSprint)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
-            mgr.makePersistent(scrumsprint);
+            persistenceManager.makePersistent(scrumSprint);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return scrumsprint;
+        return scrumSprint;
     }
 
     /**
-     * This method removes the entity with primary key id.
-     * It uses HTTP DELETE method.
-     *
-     * @param id the primary key of the entity to be deleted.
+     * This method removes the entity with primary key id. It uses HTTP DELETE
+     * method.
+     * 
+     * @param sprintKey
+     *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumSprint")
-    public void removeScrumSprint(@Named("id") String id, User user) throws OAuthRequestException {
+    public void removeScrumSprint(@Named("id") String sprintKey, User user)
+            throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager mgr = getPersistenceManager();
+        PersistenceManager persistenceManager = getPersistenceManager();
         try {
-            ScrumSprint scrumsprint = mgr.getObjectById(ScrumSprint.class, id);
-            mgr.deletePersistent(scrumsprint);
+            ScrumSprint scrumSprint = persistenceManager.getObjectById(
+                    ScrumSprint.class, sprintKey);
+            persistenceManager.deletePersistent(scrumSprint);
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
     }
 
-    private boolean containsScrumSprint(ScrumSprint scrumsprint) {
-        PersistenceManager mgr = getPersistenceManager();
+    /**
+     * Returns true if the DS containts the Sprint
+     * 
+     * @param scrumSprint
+     * @return
+     */
+    private boolean containsScrumSprint(ScrumSprint scrumSprint) {
+        PersistenceManager persistenceManager = getPersistenceManager();
         boolean contains = true;
         try {
-            mgr.getObjectById(ScrumSprint.class, scrumsprint.getKey());
+            persistenceManager.getObjectById(ScrumSprint.class,
+                    scrumSprint.getKey());
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             contains = false;
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
         return contains;
     }
-    
+
     @ApiMethod(name = "loadSprints")
-    public CollectionResponse<ScrumSprint> loadSprints(@Named("projectKey") String projectKey,
-            User user) throws OAuthRequestException {
-        PersistenceManager mgr = null;
+    public CollectionResponse<ScrumSprint> loadSprints(
+            @Named("projectKey") String projectKey, User user)
+            throws OAuthRequestException {
+        PersistenceManager persistenceManager = null;
         List<ScrumSprint> sprints = null;
 
         try {
-            mgr = getPersistenceManager();
-            ScrumProject project = mgr.getObjectById(ScrumProject.class, projectKey);
+            persistenceManager = getPersistenceManager();
+            ScrumProject project = persistenceManager.getObjectById(
+                    ScrumProject.class, projectKey);
             sprints = new ArrayList<ScrumSprint>();
-            for (ScrumSprint s: project.getSprint()) {
+            for (ScrumSprint s : project.getSprint()) {
                 sprints.add(s);
             }
         } finally {
-            mgr.close();
+            persistenceManager.close();
         }
-        return CollectionResponse.<ScrumSprint>builder().setItems(sprints)
+        return CollectionResponse.<ScrumSprint> builder().setItems(sprints)
                 .build();
     }
 

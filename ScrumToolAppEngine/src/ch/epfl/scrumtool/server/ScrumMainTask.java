@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.jdo.annotations.Extension;
@@ -77,6 +78,17 @@ public class ScrumMainTask {
         return issues;
     }
 
+    public void addIssue(ScrumIssue issue) {
+        if (issues == null) {
+            this.issues = new HashSet<ScrumIssue>();
+        }
+        this.issues.add(issue);
+    }
+
+    public void removeIssue(ScrumIssue issue) {
+        this.issues.remove(issue);
+    }
+
     public void setIssues(Set<ScrumIssue> issues) {
         this.issues = issues;
     }
@@ -96,5 +108,5 @@ public class ScrumMainTask {
     public void setLastModUser(String user) {
         this.lastModUser = user;
     }
-    
+
 }
