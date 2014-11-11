@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 
@@ -51,8 +50,7 @@ public class ScrumUserEndpoint {
      * @return The entity with primary key id.
      */
     @ApiMethod(name = "getScrumUser")
-    public ScrumUser getScrumUser(@Named("id") String id, User user)
-            throws OAuthRequestException {
+    public ScrumUser getScrumUser(@Named("id") String id, User user) throws OAuthRequestException {
         PersistenceManager mgr = getPersistenceManager();
         ScrumUser scrumuser = null;
         try {
@@ -131,8 +129,7 @@ public class ScrumUserEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser")
-    public ScrumUser updateScrumUser(ScrumUser scrumuser, User user)
-            throws OAuthRequestException {
+    public ScrumUser updateScrumUser(ScrumUser scrumuser, User user) throws OAuthRequestException {
         PersistenceManager mgr = getPersistenceManager();
         try {
             if (!containsScrumUser(scrumuser)) {
