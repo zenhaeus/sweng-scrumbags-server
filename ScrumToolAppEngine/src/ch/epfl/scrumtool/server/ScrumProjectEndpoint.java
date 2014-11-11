@@ -80,10 +80,6 @@ public class ScrumProjectEndpoint {
             scrumproject.setSprints(scrumSprints);
 
             scrumproject.setBacklog(new HashSet<ScrumMainTask>());
-            
-            
-            
-            
 
             scrumUser.addPlayer(scrumPlayer);
             tx.begin();
@@ -95,7 +91,7 @@ public class ScrumProjectEndpoint {
             tx.commit();
             scrumPlayer.setProject(scrumproject);
             tx.begin();
-            mgr.makePersistent(scrumproject);
+            mgr.makePersistent(scrumPlayer);
             tx.commit();
             opStatus = new OperationStatus();
             opStatus.setKey(scrumproject.getKey());
@@ -155,9 +151,11 @@ public class ScrumProjectEndpoint {
         try {
             ScrumProject scrumproject = mgr.getObjectById(ScrumProject.class,
                     projectKey);
-            for(ScrumPlayer p: scrumproject.getPlayers()) {
+            for (ScrumPlayer p: scrumproject.getPlayers()) {
                 mgr.deletePersistent(p);
             }
+            
+            // Tasks and sprints are deleted automatically (owned relationship)
             mgr.deletePersistent(scrumproject);
 
             opStatus = new OperationStatus();

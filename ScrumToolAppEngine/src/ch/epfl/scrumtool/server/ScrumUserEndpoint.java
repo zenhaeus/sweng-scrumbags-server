@@ -80,11 +80,11 @@ public class ScrumUserEndpoint {
             for (ScrumPlayer p: sU.getPlayers()) {
                 ScrumProject pr = p.getProject();
                 //Load all properties
-                pr.getDescription();
-                pr.getName();
-                pr.getLastModDate();
-                pr.getLastModUser();
-                
+//                pr.getDescription();
+//                pr.getName();
+//                pr.getLastModDate();
+//                pr.getLastModUser();
+//                
                 projects.add(pr);
             }
             
