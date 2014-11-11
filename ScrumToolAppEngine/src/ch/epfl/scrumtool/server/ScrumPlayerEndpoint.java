@@ -29,7 +29,7 @@ import com.google.appengine.api.users.User;
         name = "scrumtool",
         version = "v1",
         namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-                clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
+        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
             Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
             Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
@@ -50,10 +50,14 @@ public class ScrumPlayerEndpoint {
             @Named("projectKey") String projectKey,
             @Named("userKey") String userKey,
             User user) throws OAuthRequestException {
-        OperationStatus opStatus = null;
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
+        
         try {
             if (containsScrumPlayer(scrumPlayer)) {
                 throw new EntityExistsException("Object already exists");
@@ -68,44 +72,39 @@ public class ScrumPlayerEndpoint {
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
             
-            opStatus = new OperationStatus();
             opStatus.setKey(scrumPlayer.getKey());
             opStatus.setSuccess(true);
             
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return opStatus;
     }
-    
-    
-    @ApiMethod(name = "getScrumPlayer")
-    public ScrumPlayer getScrumIssue(@Named("id") String key, User user) throws OAuthRequestException {
-        AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
-        ScrumPlayer scrumPlayer = null;
-        try {
-            scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class, key);
-        } finally {
-            persistenceManager.close();
-        }
-        return scrumPlayer;
-    }
-    
 
     @ApiMethod(name = "updateScrumPlayer")
     public OperationStatus updateScrumPlayer(ScrumPlayer scrumplayer, User user) throws OAuthRequestException {
-        OperationStatus opStatus = null;
+        OperationStatus opStatus = new OperationStatus();
         AppEngineUtils.basicAuthentication(user);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        
         try {
             if (!containsScrumPlayer(scrumplayer)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
+            
+            transaction.begin();
             persistenceManager.makePersistent(scrumplayer);
-            opStatus = new OperationStatus();
+            transaction.commit();
             opStatus.setSuccess(true);
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return opStatus;
@@ -117,18 +116,27 @@ public class ScrumPlayerEndpoint {
      *
      * @param id the primary key of the entity to be deleted.
      */
-    @ApiMethod(name = "removeScrumPlayer")
+    @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
     public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, 
             User user) throws OAuthRequestException {
+        OperationStatus opStatus = new OperationStatus();
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = null;
+        
         PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        
         try {
             ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class, playerKey);
+            
+            transaction.begin();
             persistenceManager.deletePersistent(scrumPlayer);
-            opStatus = new OperationStatus();
+            transaction.commit();
+            
             opStatus.setSuccess(true);
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return opStatus;
@@ -160,16 +168,13 @@ public class ScrumPlayerEndpoint {
             for (ScrumPlayer p: scrumProject.getPlayers()) {
                 players.add(p);
             }
-            
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumPlayer>builder().setItems(players)
-                .build();
+        return CollectionResponse.<ScrumPlayer>builder().setItems(players).build();
     }
 
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
     }
-
 }

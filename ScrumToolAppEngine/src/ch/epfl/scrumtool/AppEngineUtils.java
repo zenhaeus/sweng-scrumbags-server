@@ -1,6 +1,3 @@
-/**
- * 
- */
 package ch.epfl.scrumtool;
 
 import com.google.appengine.api.oauth.OAuthRequestException;

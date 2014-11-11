@@ -7,6 +7,8 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import com.google.appengine.datanucleus.annotations.Unowned;
+
 /**
  * @author sylb, aschneuw, zenhaeus
  */
@@ -26,18 +28,34 @@ public class ScrumIssue {
 
     @Persistent
     private float estimation;
+    
+    @Persistent
+    private ScrumMainTask maintask;
 
+    @Unowned
     @Persistent
     private ScrumPlayer player;
 
     @Persistent
     private Status status;
+    
+    @Unowned
+    @Persistent
+    private ScrumSprint sprint;
 
     @Persistent
     private long lastModDate;
 
     @Persistent
     private String lastModUser;
+    
+    public void setSprint(ScrumSprint sprint) {
+        this.sprint = sprint;
+    }
+    
+    public ScrumSprint getSprint() {
+        return this.sprint;
+    }
 
     public String getKey() {
         return key;
@@ -101,5 +119,13 @@ public class ScrumIssue {
 
     public void setLastModUser(String user) {
         this.lastModUser = user;
+    }
+    
+    public ScrumMainTask getMainTask() {
+        return this.maintask;
+    }
+    
+    public void setMainTask(ScrumMainTask maintask) {
+        this.maintask = maintask;
     }
 }

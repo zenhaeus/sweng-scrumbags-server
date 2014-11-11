@@ -1,5 +1,7 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Set;
+
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -39,6 +41,18 @@ public class ScrumPlayer {
 
     @Persistent
     private String lastModUser;
+    
+    @Unowned
+    @Persistent
+    private Set<ScrumIssue> issues;
+    
+    public void setIssues(Set<ScrumIssue> issues) {
+        this.issues = issues;
+    }
+    
+    public Set<ScrumIssue> getIssues() {
+        return this.issues;
+    }
     
     public ScrumProject getProject() {
         return this.project;

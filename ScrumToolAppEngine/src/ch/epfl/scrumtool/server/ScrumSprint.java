@@ -11,6 +11,8 @@ import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
 
+import com.google.appengine.datanucleus.annotations.Unowned;
+
 /**
  * @author sylb
  * 
@@ -24,7 +26,8 @@ public class ScrumSprint {
 
     @Persistent
     private Date date;
-
+    
+    @Unowned
     @Persistent
     private Set<ScrumIssue> issues;
 

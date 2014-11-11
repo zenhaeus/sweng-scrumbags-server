@@ -1,12 +1,9 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
 import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
 
@@ -26,18 +23,23 @@ import com.google.appengine.api.users.User;
  * 
  */
 
-@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP},
+        audiences = {Constants.ANDROID_AUDIENCE}
+        )
 public class ScrumMainTaskEndpoint {
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -86,22 +88,19 @@ public class ScrumMainTaskEndpoint {
     public CollectionResponse<ScrumMainTask> loadMainTasks(
             @Named("projectKey") String projectKey, User user)
             throws OAuthRequestException {
-
+        
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
 
         Set<ScrumMainTask> tasks = null;
         try {
             ScrumProject scrumProject = null;
-            scrumProject = persistenceManager.getObjectById(ScrumProject.class,
-                    projectKey);
+            scrumProject = persistenceManager.getObjectById(ScrumProject.class, projectKey);
             tasks = scrumProject.getBacklog();
-
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumMainTask> builder().setItems(tasks)
-                .build();
+        return CollectionResponse.<ScrumMainTask>builder().setItems(tasks).build();
     }
 
     /**
@@ -116,8 +115,11 @@ public class ScrumMainTaskEndpoint {
     @ApiMethod(name = "updateScrumMainTask", path = "operationstatus/taskupdate")
     public OperationStatus updateScrumMainTask(ScrumMainTask scrumMaintask,
             User user) throws OAuthRequestException {
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = null;
+
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
@@ -128,14 +130,11 @@ public class ScrumMainTaskEndpoint {
             persistenceManager.makePersistent(scrumMaintask);
             transaction.commit();
 
-            opStatus = new OperationStatus();
             opStatus.setSuccess(true);
             opStatus.setKey(scrumMaintask.getKey());
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
-                opStatus = new OperationStatus();
-                opStatus.setSuccess(true);
             }
             persistenceManager.close();
         }
@@ -146,23 +145,33 @@ public class ScrumMainTaskEndpoint {
      * This method removes the entity with primary key id. It uses HTTP DELETE
      * method.
      * 
-     * @param key
+     * @param mainTaskKey
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumMainTask", path = "operationstatus/removeTask")
-    public OperationStatus removeScrumMainTask(@Named("id") String key,
+    public OperationStatus removeScrumMainTask(@Named("mainTaskKey") String mainTaskKey,
             User user) throws OAuthRequestException {
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = null;
+        
         PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        
+        
         try {
-            ScrumMainTask scrumMaintask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, key);
+            ScrumMainTask scrumMaintask = persistenceManager.getObjectById(ScrumMainTask.class, mainTaskKey);
+            transaction.begin();
             persistenceManager.deletePersistent(scrumMaintask);
-            opStatus = new OperationStatus();
-            opStatus.setKey(key);
+            transaction.commit();
+            
+            opStatus.setKey(mainTaskKey);
             opStatus.setSuccess(true);
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return opStatus;
@@ -190,36 +199,6 @@ public class ScrumMainTaskEndpoint {
 
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
-    }
-
-    /**
-     * This method lists all the ScrumIssues inserted in datastore. It uses HTTP
-     * GET method and paging support.
-     * 
-     * @return A CollectionResponse class containing the list of all entities
-     *         persisted and a cursor to the next page.
-     */
-    @SuppressWarnings({ "unchecked" })
-    @ApiMethod(name = "loadScrumIssues")
-    public CollectionResponse<ScrumIssue> loadAllScrumIssue(
-            @Named("id") String key, @Nullable @Named("limit") Integer limit,
-            User user) throws OAuthRequestException {
-        AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = null;
-        List<ScrumIssue> issues = null;
-
-        try {
-            persistenceManager = getPersistenceManager();
-            Query query = persistenceManager.newQuery(ScrumIssue.class);
-            if (limit != null) {
-                query.setRange(0, limit);
-            }
-            issues = (List<ScrumIssue>) query.execute();
-        } finally {
-            persistenceManager.close();
-        }
-        return CollectionResponse.<ScrumIssue> builder().setItems(issues)
-                .build();
     }
 
 }

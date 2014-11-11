@@ -27,7 +27,7 @@ public class ScrumMainTask {
     @Persistent
     private String description;
 
-    @Persistent
+    @Persistent(mappedBy="maintask")
     private Set<ScrumIssue> issues;
 
     @Persistent

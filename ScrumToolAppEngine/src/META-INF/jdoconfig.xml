@@ -11,5 +11,6 @@
        <property name="datanucleus.appengine.singletonPMFForName" value="true"/>
        <property name="datanucleus.maxFetchDepth" value="4"/> 
        <property name="datanucleus.appengine.datastoreReadConsistency" value="STRONG" />
+       <property name="datanucleus.appengine.datastoreEnableXGTransactions" value="true"/>
    </persistence-manager-factory>
 </jdoconfig>

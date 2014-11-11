@@ -22,42 +22,24 @@ import com.google.appengine.api.users.User;
  * @author aschneuw, sylb
  * 
  */
-@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ARNO_HP}, audiences = { Constants.ANDROID_AUDIENCE })
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP},
+        audiences = {Constants.ANDROID_AUDIENCE}
+        )
 public class ScrumIssueEndpoint {
-
-    /**
-     * This method gets the entity having primary key id. It uses HTTP GET
-     * method.
-     * 
-     * @param key
-     *            the primary key of the java bean.
-     * @return The entity with primary key id.
-     */
-    @ApiMethod(name = "getScrumIssue")
-    public ScrumIssue getScrumIssue(@Named("id") String key, User user)
-            throws OAuthRequestException {
-        AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
-        ScrumIssue scrumIssue = null;
-        try {
-            scrumIssue = persistenceManager
-                    .getObjectById(ScrumIssue.class, key);
-        } finally {
-            persistenceManager.close();
-        }
-        return scrumIssue;
-    }
 
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -72,18 +54,20 @@ public class ScrumIssueEndpoint {
     public OperationStatus insertScrumIssue(ScrumIssue scrumIssue,
             @Named("mainTaskKey") String maintaskKey, User user)
             throws OAuthRequestException {
-        AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
+        AppEngineUtils.basicAuthentication(user);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-        ScrumMainTask mainTask = persistenceManager.getObjectById(
-                ScrumMainTask.class, maintaskKey);
-        mainTask.getIssues().add(scrumIssue);
+
         try {
+            ScrumMainTask mainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
+            mainTask.getIssues().add(scrumIssue);
             transaction.begin();
             persistenceManager.makePersistent(mainTask);
             transaction.commit();
+
             opStatus.setKey(scrumIssue.getKey());
             opStatus.setSuccess(true);
         } finally {
@@ -92,12 +76,11 @@ public class ScrumIssueEndpoint {
             }
             persistenceManager.close();
         }
-
         return opStatus;
     }
 
-    @ApiMethod(name = "loadIssues")
-    public CollectionResponse<ScrumIssue> loadIssues(
+    @ApiMethod(name = "loadIssuesByMainTask")
+    public CollectionResponse<ScrumIssue> loadIssuesByMainTask(
             @Named("mainTaskKey") String maintaskKey, User user)
             throws OAuthRequestException {
 
@@ -107,15 +90,31 @@ public class ScrumIssueEndpoint {
         Set<ScrumIssue> issues = null;
         try {
             ScrumMainTask scrumMaintask = null;
-            scrumMaintask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, maintaskKey);
+            scrumMaintask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
             issues = scrumMaintask.getIssues();
-
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumIssue> builder().setItems(issues)
-                .build();
+        return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
+    }
+    
+    @ApiMethod(name = "loadIssuesBySprint")
+    public CollectionResponse<ScrumIssue> loadIssuesBySprint(
+            @Named("sprintKey") String sprintKey, User user)
+            throws OAuthRequestException {
+
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager persistenceManager = getPersistenceManager();
+
+        Set<ScrumIssue> issues = null;
+        try {
+            ScrumSprint scrumSprint = null;
+            scrumSprint = persistenceManager.getObjectById(ScrumSprint.class, sprintKey);
+            issues = scrumSprint.getIssues();
+        } finally {
+            persistenceManager.close();
+        }
+        return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
     }
 
     /**
@@ -128,10 +127,12 @@ public class ScrumIssueEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumIssue", path = "operationstatus/issueupdate")
-    public OperationStatus updateScrumMainTask(ScrumIssue scrumIssue, User user)
+    public OperationStatus updateScrumIssue(ScrumIssue scrumIssue, User user)
             throws OAuthRequestException {
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = null;
+        
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
@@ -142,14 +143,11 @@ public class ScrumIssueEndpoint {
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
 
-            opStatus = new OperationStatus();
-            opStatus.setSuccess(true);
             opStatus.setKey(scrumIssue.getKey());
+            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
-                opStatus = new OperationStatus();
-                opStatus.setSuccess(true);
             }
             persistenceManager.close();
         }
@@ -158,24 +156,28 @@ public class ScrumIssueEndpoint {
 
     @ApiMethod(name = "insertIssueInSprint", path = "operationstatus/insertIssueInSprint")
     public OperationStatus insertScrumIssueInSprint(
-            @Named("issueId") String issueKey,
-            @Named("sprintId") String sprintKey, User user)
+            @Named("issueKey") String issueKey,
+            @Named("sprintKey") String sprintKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-        ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                ScrumSprint.class, sprintKey);
-        ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                ScrumIssue.class, issueKey);
-        scrumSprint.getIssues().add(scrumIssue);
+        
+
         try {
+            ScrumSprint scrumSprint = persistenceManager.getObjectById(ScrumSprint.class, sprintKey);
+            ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
+            scrumIssue.setSprint(scrumSprint);
+            scrumSprint.getIssues().add(scrumIssue);
+            
             transaction.begin();
+            persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
-            opStatus.setKey(scrumIssue.getKey());
+            
             opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
@@ -196,23 +198,27 @@ public class ScrumIssueEndpoint {
      */
     @ApiMethod(name = "removeScrumIssueFromSprint", path = "operationstatus/removeIssueFromSprint")
     public OperationStatus removeScrumIssueFromSprint(
-            @Named("issueId") String issueKey,
-            @Named("sprintId") String sprintKey, User user)
+            @Named("issueKey") String issueKey,
+            @Named("sprintKey") String sprintKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-        ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                ScrumSprint.class, sprintKey);
-        ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                ScrumIssue.class, issueKey);
-        scrumSprint.getIssues().remove(scrumIssue);
+
         try {
+            ScrumSprint scrumSprint = persistenceManager.getObjectById(ScrumSprint.class, sprintKey);
+            ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
+            scrumIssue.setSprint(null);
+            scrumSprint.getIssues().remove(scrumIssue);
+            
             transaction.begin();
+            persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
+            
             opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
@@ -225,20 +231,26 @@ public class ScrumIssueEndpoint {
     }
 
     @ApiMethod(name = "removeScrumIssue", path = "operationstatus/removeIssue")
-    public OperationStatus removeScrumIssue(@Named("id") String key, User user)
+    public OperationStatus removeScrumIssue(@Named("issueKey") String issueKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = null;
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        
         try {
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, key);
+            transaction.begin();
+            ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
             persistenceManager.deletePersistent(scrumIssue);
-            opStatus = new OperationStatus();
-            opStatus.setKey(key);
+            transaction.commit();
+            opStatus.setKey(issueKey);
             opStatus.setSuccess(true);
         } finally {
-
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return opStatus;

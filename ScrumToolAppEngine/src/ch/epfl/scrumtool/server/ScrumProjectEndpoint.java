@@ -22,18 +22,23 @@ import com.google.appengine.api.users.User;
  * 
  */
 
-@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ARNO_HP}, audiences = { Constants.ANDROID_AUDIENCE })
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP},
+        audiences = {Constants.ANDROID_AUDIENCE}
+        )
 public class ScrumProjectEndpoint {
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -47,14 +52,17 @@ public class ScrumProjectEndpoint {
     @ApiMethod(name = "insertScrumProject", path = "operationstatus/insertProject")
     public OperationStatus insertScrumProject(ScrumProject scrumProject,
             User user) throws OAuthRequestException {
+        
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus;
+
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             String userKey = scrumProject.getLastModUser();
-            ScrumUser scrumUser = persistenceManager.getObjectById(
-                    ScrumUser.class, userKey);
+            ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
@@ -67,6 +75,9 @@ public class ScrumProjectEndpoint {
              */
             scrumPlayer.setLastModDate(scrumProject.getLastModDate());
             scrumPlayer.setLastModUser(scrumProject.getLastModUser());
+            
+            Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
+            scrumPlayer.setIssues(issues);
 
             Set<ScrumPlayer> scrumPlayers = new HashSet<ScrumPlayer>();
             scrumPlayers.add(scrumPlayer);
@@ -79,17 +90,10 @@ public class ScrumProjectEndpoint {
             scrumUser.addPlayer(scrumPlayer);
             transaction.begin();
             persistenceManager.makePersistent(scrumUser);
-            transaction.commit();
             scrumProject.setPlayers(scrumPlayers);
-            transaction.begin();
             persistenceManager.makePersistent(scrumProject);
-            transaction.commit();
             scrumPlayer.setProject(scrumProject);
-            transaction.begin();
-            persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
-
-            opStatus = new OperationStatus();
             opStatus.setKey(scrumProject.getKey());
             opStatus.setSuccess(true);
 
@@ -114,19 +118,30 @@ public class ScrumProjectEndpoint {
     @ApiMethod(name = "updateScrumProject", path = "operationstatus/updateProject")
     public OperationStatus updateScrumProject(ScrumProject update, User user)
             throws OAuthRequestException {
-        OperationStatus opStatus = null;
+        OperationStatus opStatus =  new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        
         try {
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, update.getKey());
+            ScrumProject scrumProject = persistenceManager.getObjectById(ScrumProject.class, update.getKey());
             scrumProject.setDescription(update.getDescription());
             scrumProject.setLastModDate(update.getLastModDate());
             scrumProject.setLastModUser(update.getLastModUser());
             scrumProject.setName(update.getName());
-            opStatus = new OperationStatus();
+            
+            transaction.begin();
+            persistenceManager.makePersistent(scrumProject);
+            transaction.commit();
+
             opStatus.setSuccess(true);
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return opStatus;
@@ -143,22 +158,32 @@ public class ScrumProjectEndpoint {
     public OperationStatus removeScrumProject(
             @Named("projectKey") String projectKey, User user)
             throws OAuthRequestException {
+        
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
-        OperationStatus opStatus = null;
+        Transaction transaction = persistenceManager.currentTransaction();
+
         try {
-            ScrumProject scrumproject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            ScrumProject scrumproject = persistenceManager.getObjectById(ScrumProject.class, projectKey);
             for (ScrumPlayer p : scrumproject.getPlayers()) {
                 persistenceManager.deletePersistent(p);
             }
-
+            
+            transaction.begin();
             // Tasks and sprints are deleted automatically (owned relationship)
             persistenceManager.deletePersistent(scrumproject);
+            transaction.commit();
 
             opStatus = new OperationStatus();
             opStatus.setSuccess(true);
+            
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return opStatus;
