@@ -173,12 +173,12 @@ public class ScrumProjectEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            transaction.begin();
             ScrumProject scrumproject = persistenceManager.getObjectById(ScrumProject.class, projectKey);
             for (ScrumPlayer p : scrumproject.getPlayers()) {
                 persistenceManager.deletePersistent(p);
             }
-            
-            transaction.begin();
+    
             // Tasks and sprints are deleted automatically (owned relationship)
             persistenceManager.deletePersistent(scrumproject);
             transaction.commit();

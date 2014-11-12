@@ -56,6 +56,7 @@ public class ScrumPlayerEndpoint {
             if (containsScrumPlayer(scrumPlayer)) {
                 throw new EntityExistsException("Object already exists");
             }
+            transaction.begin();
             ScrumUser scrumUser = persistenceManager.getObjectById(
                     ScrumUser.class, userKey);
             scrumPlayer.setUser(scrumUser);
@@ -64,7 +65,6 @@ public class ScrumPlayerEndpoint {
                     ScrumProject.class, projectKey);
             scrumProject.getPlayers().add(scrumPlayer);
 
-            transaction.begin();
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
 
@@ -133,10 +133,10 @@ public class ScrumPlayerEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            transaction.begin();
             ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
                     ScrumPlayer.class, playerKey);
 
-            transaction.begin();
             persistenceManager.deletePersistent(scrumPlayer);
             transaction.commit();
 

@@ -62,9 +62,9 @@ public class ScrumIssueEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            transaction.begin();
             ScrumMainTask mainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
             mainTask.getIssues().add(scrumIssue);
-            transaction.begin();
             persistenceManager.makePersistent(mainTask);
             transaction.commit();
 
@@ -168,12 +168,12 @@ public class ScrumIssueEndpoint {
         
 
         try {
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(ScrumSprint.class, sprintKey);
+            transaction.begin();
+ScrumSprint scrumSprint = persistenceManager.getObjectById(ScrumSprint.class, sprintKey);
             ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
             scrumIssue.setSprint(scrumSprint);
             scrumSprint.getIssues().add(scrumIssue);
             
-            transaction.begin();
             persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();

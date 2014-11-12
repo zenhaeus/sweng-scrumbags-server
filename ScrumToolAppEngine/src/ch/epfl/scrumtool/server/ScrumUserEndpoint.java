@@ -170,9 +170,9 @@ public class ScrumUserEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
+            transaction.begin();
             ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
             
-            transaction.begin();
             persistenceManager.deletePersistent(scrumUser);
             transaction.commit();
             
