@@ -1,6 +1,8 @@
 package ch.epfl.scrumtool.server;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.inject.Named;
@@ -39,6 +41,7 @@ import com.google.appengine.api.users.User;
         Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumPlayerEndpoint {
 
+    // Is it really used?
     @ApiMethod(name = "insertScrumPlayer", path = "operationstatus/insertplayer")
     public OperationStatus insertScrumPlayer(ScrumPlayer scrumPlayer,
             @Named("projectKey") String projectKey,
@@ -56,14 +59,20 @@ public class ScrumPlayerEndpoint {
             if (containsScrumPlayer(scrumPlayer)) {
                 throw new EntityExistsException("Object already exists");
             }
-            transaction.begin();
             ScrumUser scrumUser = persistenceManager.getObjectById(
                     ScrumUser.class, userKey);
             scrumPlayer.setUser(scrumUser);
-
+            scrumPlayer.setAdminFlag(false);
+            scrumPlayer.setIssues(new HashSet<ScrumIssue>());
+            scrumPlayer.setRole(Role.DEVELOPER);
+            scrumPlayer.setLastModDate((new Date()).getTime());
+            scrumPlayer.setLastModUser(user.getEmail());
+            
+            transaction.begin();
             ScrumProject scrumProject = persistenceManager.getObjectById(
                     ScrumProject.class, projectKey);
             scrumProject.getPlayers().add(scrumPlayer);
+            scrumPlayer.setProject(scrumProject);
 
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
@@ -185,6 +194,68 @@ public class ScrumPlayerEndpoint {
         }
         return CollectionResponse.<ScrumPlayer> builder().setItems(players)
                 .build();
+    }
+
+    @ApiMethod(name = "addPlayerToProject")
+    public OperationStatus addPlayerToProject(ScrumProject project,
+            @Named("userKey") String userEmail, @Named("role") String role, User user)
+            throws OAuthRequestException {
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+
+        AppEngineUtils.basicAuthentication(user);
+
+        PersistenceManager persistenceManager = getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+
+        try {
+            for (ScrumPlayer player : project.getPlayers()) {
+                if (player.getUser().getEmail().equals(userEmail)) {
+                    throw new EntityExistsException("Object already exists");
+                }
+            }
+            transaction.begin();
+            ScrumPlayer scrumPlayer = new ScrumPlayer();
+            ScrumUser scrumUser = null;
+            try {
+                scrumUser = persistenceManager.getObjectById(ScrumUser.class,
+                        userEmail);
+            } catch (javax.jdo.JDOObjectNotFoundException ex) {
+                scrumUser = new ScrumUser();
+                scrumUser.setEmail(userEmail);
+                scrumUser.setLastModDate((new Date()).getTime());
+                scrumUser.setName(userEmail);
+                scrumUser.setProjects(new HashSet<ScrumPlayer>());
+                scrumUser.setLastModUser(userEmail);
+                persistenceManager.makePersistent(scrumUser);
+            }
+
+            scrumPlayer.setUser(scrumUser);
+            scrumPlayer.setAdminFlag(false);
+            scrumPlayer.setIssues(new HashSet<ScrumIssue>());
+            scrumPlayer.setRole(Role.valueOf(role)); // FIXME
+            scrumPlayer.setLastModDate((new Date()).getTime());
+            scrumPlayer.setLastModUser(user.getEmail());
+
+            ScrumProject scrumProject = persistenceManager.getObjectById(
+                    ScrumProject.class, project.getKey());
+            scrumProject.getPlayers().add(scrumPlayer);
+            scrumPlayer.setProject(scrumProject);
+
+            persistenceManager.makePersistent(scrumProject);
+            persistenceManager.makePersistent(scrumPlayer);
+            transaction.commit();
+
+            opStatus.setKey(scrumPlayer.getKey());
+            opStatus.setSuccess(true);
+
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            persistenceManager.close();
+        }
+        return opStatus;
     }
 
     private static PersistenceManager getPersistenceManager() {
