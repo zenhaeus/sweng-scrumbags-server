@@ -123,6 +123,9 @@ public class ScrumMainTaskEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
+            if (!containsScrumMainTask(update)) {
+                throw new EntityNotFoundException("Object does not exist");
+            }
             transaction.begin();
             ScrumMainTask scrumMainTask = persistenceManager.getObjectById(ScrumMainTask.class, update.getKey());
             scrumMainTask.setDescription(update.getDescription());
