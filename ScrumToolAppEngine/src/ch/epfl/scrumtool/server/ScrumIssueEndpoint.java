@@ -139,6 +139,7 @@ public class ScrumIssueEndpoint {
             if (!containsScrumIssue(scrumIssue)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
+            
             transaction.begin();
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
@@ -169,7 +170,7 @@ public class ScrumIssueEndpoint {
 
         try {
             transaction.begin();
-ScrumSprint scrumSprint = persistenceManager.getObjectById(ScrumSprint.class, sprintKey);
+            ScrumSprint scrumSprint = persistenceManager.getObjectById(ScrumSprint.class, sprintKey);
             ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
             scrumIssue.setSprint(scrumSprint);
             scrumSprint.getIssues().add(scrumIssue);

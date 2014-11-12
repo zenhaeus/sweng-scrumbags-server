@@ -23,18 +23,23 @@ import com.google.appengine.api.users.User;
  * 
  */
 
-@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP},
+        audiences = {Constants.ANDROID_AUDIENCE}
+        )
 public class ScrumMainTaskEndpoint {
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -97,8 +102,7 @@ public class ScrumMainTaskEndpoint {
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumMainTask> builder().setItems(tasks)
-                .build();
+        return CollectionResponse.<ScrumMainTask>builder().setItems(tasks).build();
     }
 
     /**
@@ -133,6 +137,7 @@ public class ScrumMainTaskEndpoint {
             scrumMainTask.setLastModUser(update.getLastModUser());
             scrumMainTask.setName(update.getName());
             scrumMainTask.setStatus(update.getStatus());
+            scrumMainTask.setPriority(update.getPriority());
 
             ScrumProject scrumProject = persistenceManager.getObjectById(
                     ScrumProject.class, projectKey);

@@ -35,6 +35,9 @@ public class ScrumMainTask {
 
     @Persistent
     private Status status;
+    
+    @Persistent
+    private Priority priority;
 
     @Persistent
     private long lastModDate;
@@ -42,6 +45,14 @@ public class ScrumMainTask {
     @Persistent
     private String lastModUser;
 
+    public Priority getPriority() {
+        return this.priority;
+    }
+    
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+    
     public String getKey() {
         return key;
     }

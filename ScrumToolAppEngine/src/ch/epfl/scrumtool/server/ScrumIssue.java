@@ -39,6 +39,9 @@ public class ScrumIssue {
     @Persistent
     private Status status;
     
+    @Persistent
+    private Priority priority;
+    
     @Unowned
     @Persistent
     private ScrumSprint sprint;
@@ -48,6 +51,14 @@ public class ScrumIssue {
 
     @Persistent
     private String lastModUser;
+    
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+    
+    public Priority getPriority() {
+        return this.priority;
+    }
     
     public void setSprint(ScrumSprint sprint) {
         this.sprint = sprint;

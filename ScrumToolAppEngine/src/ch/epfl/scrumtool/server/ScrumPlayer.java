@@ -55,7 +55,7 @@ public class ScrumPlayer {
         return this.issues;
     }
     
-    public void addIssue(ScrumIssue issue){
+    public void addIssue(ScrumIssue issue) {
         if (this.issues == null) {
             this.issues = new HashSet<ScrumIssue>();
         }
