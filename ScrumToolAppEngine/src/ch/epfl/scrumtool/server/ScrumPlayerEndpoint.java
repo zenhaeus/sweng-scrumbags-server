@@ -151,6 +151,7 @@ public class ScrumPlayerEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            project = persistenceManager.getObjectById(ScrumProject.class, project.getKey());
             for (ScrumPlayer player : project.getPlayers()) {
                 if (player.getUser().getEmail().equals(userEmail)) {
                     throw new EntityExistsException("Object already exists");
