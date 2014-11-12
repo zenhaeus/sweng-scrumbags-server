@@ -46,54 +46,6 @@ import com.google.appengine.api.users.User;
         )
 public class ScrumPlayerEndpoint {
 
-    // Is it really used?
-    @ApiMethod(name = "insertScrumPlayer", path = "operationstatus/insertplayer")
-    public OperationStatus insertScrumPlayer(ScrumPlayer scrumPlayer,
-            @Named("projectKey") String projectKey,
-            @Named("userKey") String userKey, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-
-        AppEngineUtils.basicAuthentication(user);
-
-        PersistenceManager persistenceManager = getPersistenceManager();
-        Transaction transaction = persistenceManager.currentTransaction();
-
-        try {
-            if (containsScrumPlayer(scrumPlayer)) {
-                throw new EntityExistsException("Object already exists");
-            }
-            ScrumUser scrumUser = persistenceManager.getObjectById(
-                    ScrumUser.class, userKey);
-            scrumPlayer.setUser(scrumUser);
-            scrumPlayer.setAdminFlag(false);
-            scrumPlayer.setIssues(new HashSet<ScrumIssue>());
-            scrumPlayer.setRole(Role.DEVELOPER);
-            scrumPlayer.setLastModDate((new Date()).getTime());
-            scrumPlayer.setLastModUser(user.getEmail());
-            
-            transaction.begin();
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
-            scrumProject.getPlayers().add(scrumPlayer);
-            scrumPlayer.setProject(scrumProject);
-
-            persistenceManager.makePersistent(scrumPlayer);
-            transaction.commit();
-
-            opStatus.setKey(scrumPlayer.getKey());
-            opStatus.setSuccess(true);
-
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            persistenceManager.close();
-        }
-        return opStatus;
-    }
-
     @ApiMethod(name = "updateScrumPlayer")
     public OperationStatus updateScrumPlayer(ScrumPlayer update, User user)
             throws OAuthRequestException {
@@ -164,20 +116,6 @@ public class ScrumPlayerEndpoint {
         return opStatus;
     }
 
-    private boolean containsScrumPlayer(ScrumPlayer scrumPlayer) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumPlayer.class,
-                    scrumPlayer.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
-    }
-
     @ApiMethod(name = "loadPlayers")
     public CollectionResponse<ScrumPlayer> loadPlayers(
             @Named("projectKey") String projectKey, User user)
@@ -202,8 +140,8 @@ public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "addPlayerToProject")
     public OperationStatus addPlayerToProject(ScrumProject project,
-            @Named("userKey") String userEmail, @Named("role") String role, User user)
-            throws OAuthRequestException {
+            @Named("userKey") String userEmail, @Named("role") String role,
+            User user) throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
 
@@ -260,6 +198,20 @@ public class ScrumPlayerEndpoint {
             persistenceManager.close();
         }
         return opStatus;
+    }
+
+    private boolean containsScrumPlayer(ScrumPlayer scrumPlayer) {
+        PersistenceManager persistenceManager = getPersistenceManager();
+        boolean contains = true;
+        try {
+            persistenceManager.getObjectById(ScrumPlayer.class,
+                    scrumPlayer.getKey());
+        } catch (javax.jdo.JDOObjectNotFoundException ex) {
+            contains = false;
+        } finally {
+            persistenceManager.close();
+        }
+        return contains;
     }
 
     private static PersistenceManager getPersistenceManager() {
