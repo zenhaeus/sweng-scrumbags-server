@@ -61,6 +61,7 @@ public class ScrumProjectEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
+            transaction.begin();
             String userKey = scrumProject.getLastModUser();
             ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
 
@@ -89,11 +90,12 @@ public class ScrumProjectEndpoint {
             scrumProject.setBacklog(new HashSet<ScrumMainTask>());
 
             scrumUser.addPlayer(scrumPlayer);
-            transaction.begin();
+            
             persistenceManager.makePersistent(scrumUser);
             scrumProject.setPlayers(scrumPlayers);
             persistenceManager.makePersistent(scrumProject);
             scrumPlayer.setProject(scrumProject);
+            persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
             opStatus.setKey(scrumProject.getKey());
             opStatus.setSuccess(true);
@@ -128,13 +130,12 @@ public class ScrumProjectEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
+            transaction.begin();
             ScrumProject scrumProject = persistenceManager.getObjectById(ScrumProject.class, update.getKey());
             scrumProject.setDescription(update.getDescription());
             scrumProject.setLastModDate(update.getLastModDate());
             scrumProject.setLastModUser(update.getLastModUser());
             scrumProject.setName(update.getName());
-            
-            transaction.begin();
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
 
