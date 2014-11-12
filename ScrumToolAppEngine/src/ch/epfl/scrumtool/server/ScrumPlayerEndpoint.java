@@ -166,6 +166,7 @@ public class ScrumPlayerEndpoint {
             ScrumProject scrumProject = persistenceManager.getObjectById(ScrumProject.class, projectKey);
             players = new ArrayList<ScrumPlayer>();
             for (ScrumPlayer p: scrumProject.getPlayers()) {
+                p.getUser(); // lazy fetch
                 players.add(p);
             }
         } finally {

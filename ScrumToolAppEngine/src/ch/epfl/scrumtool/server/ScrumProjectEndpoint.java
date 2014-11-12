@@ -67,6 +67,7 @@ public class ScrumProjectEndpoint {
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
             scrumPlayer.setRole(Role.PRODUCT_OWNER);
+            scrumPlayer.setUser(scrumUser);
 
             /**
              * An project insertion implies always an insertion of a new Player
