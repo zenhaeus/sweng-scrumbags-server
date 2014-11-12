@@ -62,9 +62,9 @@ public class ScrumIssueEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            transaction.begin();
             ScrumMainTask mainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
             mainTask.getIssues().add(scrumIssue);
+            transaction.begin();
             persistenceManager.makePersistent(mainTask);
             transaction.commit();
 

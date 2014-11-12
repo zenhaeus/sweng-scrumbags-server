@@ -62,7 +62,6 @@ public class ScrumProjectEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            transaction.begin();
             String userKey = scrumProject.getLastModUser();
             ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
 
@@ -92,6 +91,8 @@ public class ScrumProjectEndpoint {
 
             scrumUser.addPlayer(scrumPlayer);
             
+            transaction.begin();
+
             persistenceManager.makePersistent(scrumUser);
             scrumProject.setPlayers(scrumPlayers);
             persistenceManager.makePersistent(scrumProject);
