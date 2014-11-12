@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.jdo.annotations.Extension;
@@ -54,6 +55,17 @@ public class ScrumPlayer {
         return this.issues;
     }
     
+    public void addIssue(ScrumIssue issue){
+        if (this.issues == null) {
+            this.issues = new HashSet<ScrumIssue>();
+        }
+        this.issues.add(issue);
+    }
+    
+    public void removeIssue(ScrumIssue issue) {
+        this.issues.remove(issue);
+    }
+    
     public ScrumProject getProject() {
         return this.project;
     }
@@ -66,8 +78,8 @@ public class ScrumPlayer {
         return key;
     }
 
-    public String setKey() {
-        return key;
+    public void setKey(String newKey) {
+        this.key = newKey;
     }
 
     public ScrumUser getUser() {
