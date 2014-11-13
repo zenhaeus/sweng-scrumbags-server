@@ -175,7 +175,6 @@ public class ScrumPlayerEndpoint {
             scrumPlayer.setLastModUser(user.getEmail());
 
             scrumUser.addPlayer(scrumPlayer);
-            scrumPlayer.setUser(scrumUser);
 
             transaction.begin();
             persistenceManager.makePersistent(scrumUser);
