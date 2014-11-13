@@ -27,23 +27,18 @@ import com.google.appengine.api.users.User;
  * 
  */
 
-@Api(
-        name = "scrumtool",
-        version = "v1",
-        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-        clientIds = {   Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK, 
-            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP, 
-            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP},
-        audiences = {Constants.ANDROID_AUDIENCE}
-        )
+@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
+        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "updateScrumPlayer")
@@ -135,7 +130,8 @@ public class ScrumPlayerEndpoint {
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumPlayer>builder().setItems(players).build();
+        return CollectionResponse.<ScrumPlayer> builder().setItems(players)
+                .build();
     }
 
     @ApiMethod(name = "addPlayerToProject")
@@ -147,16 +143,17 @@ public class ScrumPlayerEndpoint {
 
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-        ScrumPlayer scrumPlayer = new ScrumPlayer();
+        ScrumPlayer scrumPlayer = null;
 
         try {
-            project = persistenceManager.getObjectById(ScrumProject.class, project.getKey());
+            project = persistenceManager.getObjectById(ScrumProject.class,
+                    project.getKey());
             for (ScrumPlayer player : project.getPlayers()) {
                 if (player.getUser().getEmail().equals(userEmail)) {
                     throw new EntityExistsException("Object already exists");
                 }
             }
-            transaction.begin();
+            scrumPlayer = new ScrumPlayer();
             ScrumUser scrumUser = null;
             try {
                 scrumUser = persistenceManager.getObjectById(ScrumUser.class,
@@ -165,31 +162,31 @@ public class ScrumPlayerEndpoint {
                 scrumUser = new ScrumUser();
                 scrumUser.setEmail(userEmail);
                 scrumUser.setLastModDate((new Date()).getTime());
-                scrumUser.setName(userEmail);
+                scrumUser
+                        .setName(userEmail.substring(0, userEmail.indexOf('@')));
                 scrumUser.setPlayers(new HashSet<ScrumPlayer>());
                 scrumUser.setLastModUser(userEmail);
             }
 
-            
             scrumPlayer.setAdminFlag(false);
             scrumPlayer.setIssues(new HashSet<ScrumIssue>());
             scrumPlayer.setRole(Role.valueOf(role));
             scrumPlayer.setLastModDate((new Date()).getTime());
             scrumPlayer.setLastModUser(user.getEmail());
 
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, project.getKey());
-            scrumProject.addPlayer(scrumPlayer);
-            scrumPlayer.setProject(scrumProject);
-
-            scrumPlayer.setUser(scrumUser);
             scrumUser.addPlayer(scrumPlayer);
-            
+            scrumPlayer.setUser(scrumUser);
+
+            transaction.begin();
             persistenceManager.makePersistent(scrumUser);
-            persistenceManager.makePersistent(scrumProject);
+            project.addPlayer(scrumPlayer);
+            persistenceManager.makePersistent(project);
+            scrumPlayer.setProject(project);
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
 
+            scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
+                    scrumPlayer.getKey());
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
