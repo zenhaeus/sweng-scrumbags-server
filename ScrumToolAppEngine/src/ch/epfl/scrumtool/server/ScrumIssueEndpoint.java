@@ -53,19 +53,25 @@ public class ScrumIssueEndpoint {
     @ApiMethod(name = "insertScrumIssue", path = "operationstatus/issueinsert")
     public OperationStatus insertScrumIssue(ScrumIssue scrumIssue,
             @Named("mainTaskKey") String maintaskKey, User user)
-            throws OAuthRequestException {
+                    throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
         AppEngineUtils.basicAuthentication(user);
         
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-
+//        TODO uncomment these lines when the gui will be working
+//        ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
+//                scrumIssue.getAssignedPlayer());
+        
         try {
-            ScrumMainTask mainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
-            mainTask.getIssues().add(scrumIssue);
+            ScrumMainTask scrumMainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
             transaction.begin();
-            persistenceManager.makePersistent(mainTask);
+            scrumMainTask.getIssues().add(scrumIssue);
+//          TODO uncomment these lines when the gui will be working
+//            scrumPlayer.addIssue(scrumIssue);
+//            persistenceManager.makePersistent(scrumPlayer);
+            persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();
 
             opStatus.setKey(scrumIssue.getKey());

@@ -34,7 +34,7 @@ public class ScrumIssue {
 
     @Unowned
     @Persistent
-    private ScrumPlayer player;
+    private String playerKey;
 
     @Persistent
     private Status status;
@@ -100,12 +100,12 @@ public class ScrumIssue {
         this.estimation = estimation;
     }
 
-    public ScrumPlayer getAssignedPlayer() {
-        return player;
+    public String getAssignedPlayer() {
+        return playerKey;
     }
 
-    public void setAssignedPlayer(ScrumPlayer player) {
-        this.player = player;
+    public void setAssignedPlayer(String playerKey) {
+        this.playerKey = playerKey;
     }
 
     public Status getStatus() {

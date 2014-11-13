@@ -119,5 +119,13 @@ public class ScrumMainTask {
     public void setLastModUser(String user) {
         this.lastModUser = user;
     }
+    
+    public ScrumProject getProject() {
+        return this.project;
+    }
+    
+    public void setProject(ScrumProject project) {
+        this.project = project;
+    }
 
 }
