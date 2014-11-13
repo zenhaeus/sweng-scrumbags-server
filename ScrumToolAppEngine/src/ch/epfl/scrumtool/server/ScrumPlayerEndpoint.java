@@ -139,16 +139,15 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "addPlayerToProject")
-    public OperationStatus addPlayerToProject(ScrumProject project,
+    public ScrumPlayer addPlayerToProject(ScrumProject project,
             @Named("userKey") String userEmail, @Named("role") String role,
             User user) throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
 
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
+        ScrumPlayer scrumPlayer = new ScrumPlayer();
 
         try {
             project = persistenceManager.getObjectById(ScrumProject.class, project.getKey());
@@ -158,7 +157,6 @@ public class ScrumPlayerEndpoint {
                 }
             }
             transaction.begin();
-            ScrumPlayer scrumPlayer = new ScrumPlayer();
             ScrumUser scrumUser = null;
             try {
                 scrumUser = persistenceManager.getObjectById(ScrumUser.class,
@@ -168,29 +166,29 @@ public class ScrumPlayerEndpoint {
                 scrumUser.setEmail(userEmail);
                 scrumUser.setLastModDate((new Date()).getTime());
                 scrumUser.setName(userEmail);
-                scrumUser.setProjects(new HashSet<ScrumPlayer>());
+                scrumUser.setPlayers(new HashSet<ScrumPlayer>());
                 scrumUser.setLastModUser(userEmail);
-                persistenceManager.makePersistent(scrumUser);
             }
 
-            scrumPlayer.setUser(scrumUser);
+            
             scrumPlayer.setAdminFlag(false);
             scrumPlayer.setIssues(new HashSet<ScrumIssue>());
-            scrumPlayer.setRole(Role.valueOf(role)); // FIXME
+            scrumPlayer.setRole(Role.valueOf(role));
             scrumPlayer.setLastModDate((new Date()).getTime());
             scrumPlayer.setLastModUser(user.getEmail());
 
             ScrumProject scrumProject = persistenceManager.getObjectById(
                     ScrumProject.class, project.getKey());
-            scrumProject.getPlayers().add(scrumPlayer);
+            scrumProject.addPlayer(scrumPlayer);
             scrumPlayer.setProject(scrumProject);
 
+            scrumPlayer.setUser(scrumUser);
+            scrumUser.addPlayer(scrumPlayer);
+            
+            persistenceManager.makePersistent(scrumUser);
             persistenceManager.makePersistent(scrumProject);
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
-
-            opStatus.setKey(scrumPlayer.getKey());
-            opStatus.setSuccess(true);
 
         } finally {
             if (transaction.isActive()) {
@@ -198,7 +196,7 @@ public class ScrumPlayerEndpoint {
             }
             persistenceManager.close();
         }
-        return opStatus;
+        return scrumPlayer;
     }
 
     private boolean containsScrumPlayer(ScrumPlayer scrumPlayer) {
