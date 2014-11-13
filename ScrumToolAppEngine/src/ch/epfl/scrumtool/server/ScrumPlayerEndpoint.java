@@ -130,7 +130,7 @@ public class ScrumPlayerEndpoint {
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumPlayer> builder().setItems(players)
+        return CollectionResponse.<ScrumPlayer>builder().setItems(players)
                 .build();
     }
 
@@ -144,6 +144,7 @@ public class ScrumPlayerEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         ScrumPlayer scrumPlayer = null;
+        ScrumUser scrumUser = null;
 
         try {
             project = persistenceManager.getObjectById(ScrumProject.class,
@@ -154,7 +155,7 @@ public class ScrumPlayerEndpoint {
                 }
             }
             scrumPlayer = new ScrumPlayer();
-            ScrumUser scrumUser = null;
+
             try {
                 scrumUser = persistenceManager.getObjectById(ScrumUser.class,
                         userEmail);
@@ -164,7 +165,6 @@ public class ScrumPlayerEndpoint {
                 scrumUser.setLastModDate((new Date()).getTime());
                 scrumUser
                         .setName(userEmail.substring(0, userEmail.indexOf('@')));
-                scrumUser.setPlayers(new HashSet<ScrumPlayer>());
                 scrumUser.setLastModUser(userEmail);
             }
 
@@ -184,14 +184,22 @@ public class ScrumPlayerEndpoint {
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
 
-            scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
-                    scrumPlayer.getKey());
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
+            
+            if (scrumPlayer != null) {
+                scrumPlayer.setProject(null);
+            }
+            
+            if (scrumUser != null) {
+                scrumUser.setPlayers(null);
+                
+            }
         }
+        
         return scrumPlayer;
     }
 
