@@ -37,7 +37,7 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
             Constants.ANDROID_CLIENT_ID_ARNO_HP},
-        audiences = {Constants.ANDROID_AUDIENCE}
+            audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumIssueEndpoint {
 
@@ -57,20 +57,20 @@ public class ScrumIssueEndpoint {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
         AppEngineUtils.basicAuthentication(user);
-        
+
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-//        TODO uncomment these lines when the gui will be working
-//        ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
-//                scrumIssue.getAssignedPlayer());
-        
+        //        TODO uncomment these lines when the gui will be working
+        //        ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
+        //                scrumIssue.getAssignedPlayer());
+
         try {
             ScrumMainTask scrumMainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
             transaction.begin();
             scrumMainTask.getIssues().add(scrumIssue);
-//          TODO uncomment these lines when the gui will be working
-//            scrumPlayer.addIssue(scrumIssue);
-//            persistenceManager.makePersistent(scrumPlayer);
+            //          TODO uncomment these lines when the gui will be working
+            //            scrumPlayer.addIssue(scrumIssue);
+            //            persistenceManager.makePersistent(scrumPlayer);
             persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();
 
@@ -88,7 +88,7 @@ public class ScrumIssueEndpoint {
     @ApiMethod(name = "loadIssuesByMainTask")
     public CollectionResponse<ScrumIssue> loadIssuesByMainTask(
             @Named("mainTaskKey") String maintaskKey, User user)
-            throws OAuthRequestException {
+                    throws OAuthRequestException {
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -103,11 +103,11 @@ public class ScrumIssueEndpoint {
         }
         return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
     }
-    
+
     @ApiMethod(name = "loadIssuesBySprint")
     public CollectionResponse<ScrumIssue> loadIssuesBySprint(
             @Named("sprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
+                    throws OAuthRequestException {
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -133,24 +133,38 @@ public class ScrumIssueEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumIssue", path = "operationstatus/issueupdate")
-    public OperationStatus updateScrumIssue(ScrumIssue scrumIssue, User user)
+    public OperationStatus updateScrumIssue(ScrumIssue update,
+            @Named("mainTaskKey") String mainTaskKey, User user)
             throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
+
         AppEngineUtils.basicAuthentication(user);
-        
+
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            if (!containsScrumIssue(scrumIssue)) {
+            if (!containsScrumIssue(update)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
-            
             transaction.begin();
+            ScrumIssue scrumIssue = persistenceManager.getObjectById(
+                    ScrumIssue.class, update.getKey());
+            scrumIssue.setName(update.getName());
+            scrumIssue.setDescription(update.getDescription());
+            scrumIssue.setEstimation(update.getEstimation());
+            scrumIssue.setLastModDate(update.getLastModDate());
+            scrumIssue.setLastModUser(update.getLastModUser());
+            scrumIssue.setStatus(update.getStatus());
+            scrumIssue.setPriority(update.getPriority());
+
+            ScrumMainTask scrumMainTask = persistenceManager.getObjectById(
+                    ScrumMainTask.class, mainTaskKey);
+            scrumMainTask.getIssues().add(scrumIssue);
+
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
 
-            opStatus.setKey(scrumIssue.getKey());
             opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
@@ -165,14 +179,14 @@ public class ScrumIssueEndpoint {
     public OperationStatus insertScrumIssueInSprint(
             @Named("issueKey") String issueKey,
             @Named("sprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
+                    throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
-        
+
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-        
+
 
         try {
             transaction.begin();
@@ -180,11 +194,11 @@ public class ScrumIssueEndpoint {
             ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
             scrumIssue.setSprint(scrumSprint);
             scrumSprint.getIssues().add(scrumIssue);
-            
+
             persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
-            
+
             opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
@@ -207,11 +221,11 @@ public class ScrumIssueEndpoint {
     public OperationStatus removeScrumIssueFromSprint(
             @Named("issueKey") String issueKey,
             @Named("sprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
+                    throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
-        
+
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
@@ -220,12 +234,12 @@ public class ScrumIssueEndpoint {
             ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
             scrumIssue.setSprint(null);
             scrumSprint.getIssues().remove(scrumIssue);
-            
+
             transaction.begin();
             persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
-            
+
             opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
@@ -243,10 +257,10 @@ public class ScrumIssueEndpoint {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
-        
+
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-        
+
         try {
             transaction.begin();
             ScrumIssue scrumIssue = persistenceManager.getObjectById(ScrumIssue.class, issueKey);
