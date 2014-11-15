@@ -1,6 +1,5 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,10 +24,10 @@ public class ScrumSprint {
     private String key;
     
     @Persistent
-    private String name;
+    private String title;
 
     @Persistent
-    private Date date;
+    private long dueDate;
     
     @Unowned
     @Persistent
@@ -44,23 +43,23 @@ public class ScrumSprint {
     private ScrumProject project;
 
     public String getName() {
-        return name;
+        return title;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.title = name;
     }
     
     public String getKey() {
         return key;
     }
 
-    public Date getDate() {
-        return date;
+    public long getDate() {
+        return dueDate;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDate(long date) {
+        this.dueDate = date;
     }
 
     public Set<ScrumIssue> getIssues() {
