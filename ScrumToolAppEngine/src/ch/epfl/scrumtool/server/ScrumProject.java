@@ -108,7 +108,7 @@ public class ScrumProject {
         this.backlog = backlog;
     }
 
-    public Set<ScrumSprint> getSprint() {
+    public Set<ScrumSprint> getSprints() {
         return sprints;
     }
 

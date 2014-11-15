@@ -42,7 +42,37 @@ import com.google.appengine.api.users.User;
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumUserEndpoint {
-
+    /**
+     * Checks a user for the current eMail-Address already exists. In this case
+     * it returns the corresponding Database object. Otherwise it creates a new
+     * entry in the database and return the new record
+     * 
+     * @param eMail
+     * @return
+     */
+    
+    @ApiMethod(name = "loginUser")
+    public ScrumUser loginUser(@Named("eMail") String eMail) {
+        PersistenceManager persistenceManager = getPersistenceManager();
+        ScrumUser scrumUser = null;
+        try {
+            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
+    
+        } catch (javax.jdo.JDOObjectNotFoundException ex) {
+            ScrumUser newUser = new ScrumUser();
+            newUser.setEmail(eMail);
+            Date date = new Date();
+            newUser.setLastModDate(date.getTime());
+            newUser.setLastModUser(eMail);
+            newUser.setName(eMail);
+            insertScrumUser(newUser);
+    
+            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
+        } finally {
+            persistenceManager.close();
+        }
+        return scrumUser;
+    }
 
     /**
      * @return
@@ -54,46 +84,17 @@ public class ScrumUserEndpoint {
             throws OAuthRequestException {
         PersistenceManager persistenceManager = getPersistenceManager();
         Set<ScrumProject> projects = new HashSet<ScrumProject>();
-
+    
         try {
             ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
             for (ScrumPlayer p : scrumUser.getPlayers()) {
                 projects.add(p.getProject());
             }
-
+    
         } finally {
             persistenceManager.close();
         }
         return CollectionResponse.<ScrumProject>builder().setItems(projects).build();
-    }
-
-    /**
-     * This inserts a new entity into App Engine datastore. If the entity
-     * already exists in the datastore, an exception is thrown. It uses HTTP
-     * POST method.
-     * 
-     * @param scrumUser
-     *            the entity to be inserted.
-     * @return The inserted entity.
-     */
-    private ScrumUser insertScrumUser(ScrumUser scrumUser) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        Transaction transaction = persistenceManager.currentTransaction();
-        try {
-            if (scrumUser != null) {
-            
-                transaction.begin();
-                persistenceManager.makePersistent(scrumUser);
-                transaction.commit();
-            }
-            
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            persistenceManager.close();
-        }
-        return scrumUser;
     }
 
     /**
@@ -197,32 +198,29 @@ public class ScrumUserEndpoint {
     }
 
     /**
-     * Checks a user for the current eMail-Address already exists. In this case
-     * it returns the corresponding Database object. Otherwise it creates a new
-     * entry in the database and return the new record
+     * This inserts a new entity into App Engine datastore. If the entity
+     * already exists in the datastore, an exception is thrown. It uses HTTP
+     * POST method.
      * 
-     * @param eMail
-     * @return
+     * @param scrumUser
+     *            the entity to be inserted.
+     * @return The inserted entity.
      */
-
-    @ApiMethod(name = "loginUser")
-    public ScrumUser loginUser(@Named("eMail") String eMail) {
+    private ScrumUser insertScrumUser(ScrumUser scrumUser) {
         PersistenceManager persistenceManager = getPersistenceManager();
-        ScrumUser scrumUser = null;
+        Transaction transaction = persistenceManager.currentTransaction();
         try {
-            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
-
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            ScrumUser newUser = new ScrumUser();
-            newUser.setEmail(eMail);
-            Date date = new Date();
-            newUser.setLastModDate(date.getTime());
-            newUser.setLastModUser(eMail);
-            newUser.setName(eMail);
-            insertScrumUser(newUser);
-
-            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
+            if (scrumUser != null) {
+            
+                transaction.begin();
+                persistenceManager.makePersistent(scrumUser);
+                transaction.commit();
+            }
+            
         } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
             persistenceManager.close();
         }
         return scrumUser;

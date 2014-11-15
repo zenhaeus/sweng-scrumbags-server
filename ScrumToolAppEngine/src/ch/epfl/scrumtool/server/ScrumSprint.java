@@ -23,6 +23,9 @@ public class ScrumSprint {
     @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     @Extension(vendorName = "datanucleus", key = "gae.encoded-pk", value = "true")
     private String key;
+    
+    @Persistent
+    private String name;
 
     @Persistent
     private Date date;
@@ -40,6 +43,14 @@ public class ScrumSprint {
     @Persistent
     private ScrumProject project;
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+    
     public String getKey() {
         return key;
     }
