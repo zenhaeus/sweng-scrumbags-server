@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -21,6 +22,16 @@ import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
+import java.util.Properties;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+
 /**
  * 
  * @author aschneuw
@@ -28,17 +39,17 @@ import com.google.appengine.api.users.User;
  */
 
 @Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
+    Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+    Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+    Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+    Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+    Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+    Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+    Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+    Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+    Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+    Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+    Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "updateScrumPlayer")
@@ -86,7 +97,7 @@ public class ScrumPlayerEndpoint {
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
     public OperationStatus removeScrumPlayer(
             @Named("playerKey") String playerKey, User user)
-            throws OAuthRequestException {
+                    throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         AppEngineUtils.basicAuthentication(user);
 
@@ -114,7 +125,7 @@ public class ScrumPlayerEndpoint {
     @ApiMethod(name = "loadPlayers")
     public CollectionResponse<ScrumPlayer> loadPlayers(
             @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+                    throws OAuthRequestException {
         PersistenceManager persistenceManager = null;
         List<ScrumPlayer> players = null;
 
@@ -164,7 +175,7 @@ public class ScrumPlayerEndpoint {
                 scrumUser.setEmail(userEmail);
                 scrumUser.setLastModDate((new Date()).getTime());
                 scrumUser
-                        .setName(userEmail.substring(0, userEmail.indexOf('@')));
+                .setName(userEmail.substring(0, userEmail.indexOf('@')));
                 scrumUser.setLastModUser(userEmail);
             }
 
@@ -189,17 +200,17 @@ public class ScrumPlayerEndpoint {
                 transaction.rollback();
             }
             persistenceManager.close();
-            
+
             if (scrumPlayer != null) {
                 scrumPlayer.setProject(null);
             }
-            
+
             if (scrumUser != null) {
                 scrumUser.setPlayers(null);
-                
+                sendNotificationEMail(scrumUser.getEmail(), project.getName());
             }
         }
-        
+
         return scrumPlayer;
     }
 
@@ -220,4 +231,34 @@ public class ScrumPlayerEndpoint {
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
     }
+
+
+    private static void sendNotificationEMail(String address, String projectName) {
+        Properties props = new Properties();
+        Session session = Session.getDefaultInstance(props, null);
+
+        String msgBody = "Install the Android application. " +
+                    "Login with the Google Account associated with this E-Mail-Address.";
+
+        try {
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress("scrumtoolapp@gmail.com", "ScrumToolAapp"));
+            msg.addRecipient(Message.RecipientType.TO,
+                    new InternetAddress(address, address));
+            msg.setSubject("Scrumtool: You have been added to the project: "+projectName+"");
+            msg.setText(msgBody);
+            Transport.send(msg);
+
+        } catch (AddressException e) {
+            // ...
+        } catch (MessagingException e) {
+            // ...
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+
+
 }
