@@ -9,6 +9,7 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
 
+import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.config.Api;
@@ -42,27 +43,6 @@ import com.google.appengine.api.users.User;
         )
 public class ScrumUserEndpoint {
 
-    /**
-     * This method gets the entity having primary key id. It uses HTTP GET
-     * method.
-     * 
-     * @param userKey
-     *            the primary key of the java bean.
-     * @return The entity with primary key id.
-     */
-    @ApiMethod(name = "getScrumUser")
-    public ScrumUser getScrumUser(@Named("userKey") String userKey, User user)
-            throws OAuthRequestException {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        
-        ScrumUser scrumUser = null;
-        try {
-            scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
-        } finally {
-            persistenceManager.close();
-        }
-        return scrumUser;
-    }
 
     /**
      * @return
@@ -130,7 +110,7 @@ public class ScrumUserEndpoint {
             throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
-        
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
@@ -138,6 +118,17 @@ public class ScrumUserEndpoint {
             if (!containsScrumUser(scrumUser)) {
                 throw new EntityNotFoundException("Object does not exist");
             }
+            
+            //Create valid JDO object
+            ScrumUser update = persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
+            update.setCompanyName(scrumUser.getCompanyName());
+            update.setDateOfBirth(scrumUser.getDateOfBirth());
+            update.setEmail(scrumUser.getEmail());
+            update.setJobTitle(scrumUser.getJobTitle());
+            update.setLastModDate(scrumUser.getLastModDate());
+            update.setLastModUser(scrumUser.getLastModUser());
+            update.setLastName(scrumUser.getLastName());
+            update.setName(scrumUser.getName());
             
             transaction.begin();
             persistenceManager.makePersistent(scrumUser);

@@ -20,6 +20,9 @@ public class ScrumUser {
 
     @Persistent
     private String name;
+    
+    @Persistent
+    private String lastName;
 
     @Persistent(mappedBy = "user")
     private Set<ScrumPlayer> players;
@@ -29,7 +32,48 @@ public class ScrumUser {
 
     @Persistent
     private String lastModUser;
-
+    
+    @Persistent
+    private long dateOfBirth;
+    
+    @Persistent
+    private String companyName;
+    
+    @Persistent
+    private String jobTitle;
+    
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    
+    public String getLastName() {
+        return this.lastName;
+    }
+    
+    public void setDateOfBirth(long dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+    
+    public long getDateOfBirth() {
+        return this.dateOfBirth;
+    }
+    
+    public String getCompanyName() {
+        return this.companyName;
+    }
+    
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+    
+    public void setJobTitle(String jobTitle) {
+        this.jobTitle = jobTitle;
+    }
+    
+    public String getJobTitle() {
+        return jobTitle;
+    }
+    
     public String getName() {
         return name;
     }
