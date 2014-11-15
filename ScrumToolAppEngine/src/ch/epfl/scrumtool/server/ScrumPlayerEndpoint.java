@@ -146,7 +146,7 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "addPlayerToProject")
-    public ScrumPlayer addPlayerToProject(ScrumProject project,
+    public ScrumPlayer addPlayerToProject(@Named("projectKey") String projectKey,
             @Named("userKey") String userEmail, @Named("role") String role,
             User user) throws OAuthRequestException {
 
@@ -156,11 +156,12 @@ public class ScrumPlayerEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
         ScrumPlayer scrumPlayer = null;
         ScrumUser scrumUser = null;
+        ScrumProject scrumProject = null;
 
         try {
-            project = persistenceManager.getObjectById(ScrumProject.class,
-                    project.getKey());
-            for (ScrumPlayer player : project.getPlayers()) {
+            scrumProject = persistenceManager.getObjectById(ScrumProject.class,
+                    projectKey);
+            for (ScrumPlayer player : scrumProject.getPlayers()) {
                 if (player.getUser().getEmail().equals(userEmail)) {
                     throw new EntityExistsException("Object already exists");
                 }
@@ -189,9 +190,9 @@ public class ScrumPlayerEndpoint {
 
             transaction.begin();
             persistenceManager.makePersistent(scrumUser);
-            project.addPlayer(scrumPlayer);
-            persistenceManager.makePersistent(project);
-            scrumPlayer.setProject(project);
+            scrumProject.addPlayer(scrumPlayer);
+            persistenceManager.makePersistent(scrumProject);
+            scrumPlayer.setProject(scrumProject);
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
 
@@ -207,7 +208,7 @@ public class ScrumPlayerEndpoint {
 
             if (scrumUser != null) {
                 scrumUser.setPlayers(null);
-                sendNotificationEMail(scrumUser.getEmail(), project.getName());
+                sendNotificationEMail(scrumUser.getEmail(), scrumProject.getName());
             }
         }
 
