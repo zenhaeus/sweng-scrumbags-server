@@ -44,7 +44,7 @@ public class ScrumPlayer {
     private String lastModUser;
     
     @Unowned
-    @Persistent
+    @Persistent(mappedBy = "player")
     private Set<ScrumIssue> issues;
     
     public void setIssues(Set<ScrumIssue> issues) {
