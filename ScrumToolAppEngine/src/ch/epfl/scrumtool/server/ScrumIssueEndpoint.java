@@ -60,17 +60,15 @@ public class ScrumIssueEndpoint {
 
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-        //        TODO uncomment these lines when the gui will be working
-        //        ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
-        //                scrumIssue.getAssignedPlayer());
+                ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
+                        scrumIssue.getAssignedPlayer());
 
         try {
             ScrumMainTask scrumMainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
             transaction.begin();
             scrumMainTask.getIssues().add(scrumIssue);
-            //          TODO uncomment these lines when the gui will be working
-            //            scrumPlayer.addIssue(scrumIssue);
-            //            persistenceManager.makePersistent(scrumPlayer);
+                        scrumPlayer.addIssue(scrumIssue);
+                        persistenceManager.makePersistent(scrumPlayer);
             persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();
 
