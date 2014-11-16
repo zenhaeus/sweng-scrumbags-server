@@ -115,8 +115,7 @@ public class ScrumMainTaskEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumMainTask", path = "operationstatus/taskupdate")
-    public OperationStatus updateScrumMainTask(ScrumMainTask update,
-            @Named("projectKey") String projectKey, User user)
+    public OperationStatus updateScrumMainTask(ScrumMainTask update, User user)
             throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
@@ -138,10 +137,6 @@ public class ScrumMainTaskEndpoint {
             scrumMainTask.setName(update.getName());
             scrumMainTask.setStatus(update.getStatus());
             scrumMainTask.setPriority(update.getPriority());
-
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
-            scrumProject.getBacklog().add(scrumMainTask);
 
             persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();

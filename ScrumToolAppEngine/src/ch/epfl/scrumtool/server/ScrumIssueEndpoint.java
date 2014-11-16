@@ -60,15 +60,15 @@ public class ScrumIssueEndpoint {
 
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
-                ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
-                        scrumIssue.getAssignedPlayer());
+        ScrumPlayer scrumPlayer = persistenceManager.getObjectById(ScrumPlayer.class,
+                scrumIssue.getAssignedPlayer());
 
         try {
             ScrumMainTask scrumMainTask = persistenceManager.getObjectById(ScrumMainTask.class, maintaskKey);
             transaction.begin();
             scrumMainTask.getIssues().add(scrumIssue);
-                        scrumPlayer.addIssue(scrumIssue);
-                        persistenceManager.makePersistent(scrumPlayer);
+            scrumPlayer.addIssue(scrumIssue);
+            persistenceManager.makePersistent(scrumPlayer);
             persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();
 
@@ -131,8 +131,7 @@ public class ScrumIssueEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumIssue", path = "operationstatus/issueupdate")
-    public OperationStatus updateScrumIssue(ScrumIssue update,
-            @Named("mainTaskKey") String mainTaskKey, User user)
+    public OperationStatus updateScrumIssue(ScrumIssue update, User user)
             throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
@@ -155,10 +154,6 @@ public class ScrumIssueEndpoint {
             scrumIssue.setLastModUser(update.getLastModUser());
             scrumIssue.setStatus(update.getStatus());
             scrumIssue.setPriority(update.getPriority());
-
-            ScrumMainTask scrumMainTask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, mainTaskKey);
-            scrumMainTask.getIssues().add(scrumIssue);
 
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
