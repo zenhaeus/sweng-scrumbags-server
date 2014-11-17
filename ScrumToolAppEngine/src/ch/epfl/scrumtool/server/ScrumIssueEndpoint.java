@@ -49,8 +49,7 @@ public class ScrumIssueEndpoint {
     public OperationStatus insertScrumIssue(ScrumIssue scrumIssue,
             @Named("mainTaskKey") String maintaskKey,
             @Named("playerKey") String playerKey,
-            @Named("SprintKey") String sprintKey,
-            User user)
+            @Named("SprintKey") String sprintKey, User user)
             throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
@@ -72,7 +71,7 @@ public class ScrumIssueEndpoint {
                 scrumPlayer.addIssue(scrumIssue);
                 persistenceManager.makePersistent(scrumPlayer);
             }
-            
+
             if (sprintKey != null) {
                 ScrumSprint scrumSprint = persistenceManager.getObjectById(
                         ScrumSprint.class, sprintKey);
@@ -80,7 +79,7 @@ public class ScrumIssueEndpoint {
                 scrumSprint.addIssue(scrumIssue);
                 persistenceManager.makePersistent(scrumSprint);
             }
-            
+
             transaction.commit();
 
             opStatus.setKey(scrumIssue.getKey());
@@ -108,8 +107,8 @@ public class ScrumIssueEndpoint {
             scrumMaintask = persistenceManager.getObjectById(
                     ScrumMainTask.class, maintaskKey);
             issues = scrumMaintask.getIssues();
-            
-            //Lazy Fetch
+
+            // Lazy Fetch
             for (ScrumIssue i : issues) {
                 i.getAssignedPlayer();
                 i.getSprint();
@@ -135,8 +134,8 @@ public class ScrumIssueEndpoint {
             scrumSprint = persistenceManager.getObjectById(ScrumSprint.class,
                     sprintKey);
             issues = scrumSprint.getIssues();
-            
-          //Lazy Fetch
+
+            // Lazy Fetch
             for (ScrumIssue i : issues) {
                 i.getAssignedPlayer();
                 i.getSprint();
@@ -181,29 +180,45 @@ public class ScrumIssueEndpoint {
             scrumIssue.setLastModUser(update.getLastModUser());
             scrumIssue.setStatus(update.getStatus());
             scrumIssue.setPriority(update.getPriority());
-            if (!scrumIssue.getAssignedPlayer().getKey()
-                    .equals(update.getAssignedPlayer().getKey())) {
-                scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
-                ScrumPlayer scrumPlayer = persistenceManager
-                        .getObjectById(ScrumPlayer.class, update.getAssignedPlayer().getKey());
-                scrumPlayer.addIssue(scrumIssue);
-                scrumIssue.setAssignedPlayer(scrumPlayer);
-                persistenceManager.makePersistent(scrumPlayer);
+
+            // update the player only if necessary
+            if (update.getAssignedPlayer() != null) {
+                if (scrumIssue.getAssignedPlayer() == null) {
+                    ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
+                            ScrumPlayer.class, update.getAssignedPlayer()
+                                    .getKey());
+                    scrumPlayer.addIssue(scrumIssue);
+                    scrumIssue.setAssignedPlayer(scrumPlayer);
+                    persistenceManager.makePersistent(scrumPlayer);
+                } else if (!scrumIssue.getAssignedPlayer().getKey()
+                        .equals(update.getAssignedPlayer().getKey())) {
+                    scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
+                    ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
+                            ScrumPlayer.class, update.getAssignedPlayer()
+                                    .getKey());
+                    scrumPlayer.addIssue(scrumIssue);
+                    scrumIssue.setAssignedPlayer(scrumPlayer);
+                    persistenceManager.makePersistent(scrumPlayer);
+                }
             }
-            if(scrumIssue.getSprint() == null) {
-                ScrumSprint scrumSprint = persistenceManager
-                        .getObjectById(ScrumSprint.class, update.getSprint().getKey());
-                scrumSprint.addIssue(scrumIssue);
-                scrumIssue.setSprint(scrumSprint);
-                persistenceManager.makePersistent(scrumSprint);
-            } else if (!scrumIssue.getSprint().getKey()
-                    .equals(update.getSprint().getKey())) {
-                scrumIssue.getSprint().removeIssue(scrumIssue);
-                ScrumSprint scrumSprint = persistenceManager
-                        .getObjectById(ScrumSprint.class, update.getSprint().getKey());
-                scrumSprint.addIssue(scrumIssue);
-                scrumIssue.setSprint(scrumSprint);
-                persistenceManager.makePersistent(scrumSprint);
+
+            // update the sprint only if necessary
+            if (update.getSprint() != null) {
+                if (scrumIssue.getSprint() == null) {
+                    ScrumSprint scrumSprint = persistenceManager.getObjectById(
+                            ScrumSprint.class, update.getSprint().getKey());
+                    scrumSprint.addIssue(scrumIssue);
+                    scrumIssue.setSprint(scrumSprint);
+                    persistenceManager.makePersistent(scrumSprint);
+                } else if (!scrumIssue.getSprint().getKey()
+                        .equals(update.getSprint().getKey())) {
+                    scrumIssue.getSprint().removeIssue(scrumIssue);
+                    ScrumSprint scrumSprint = persistenceManager.getObjectById(
+                            ScrumSprint.class, update.getSprint().getKey());
+                    scrumSprint.addIssue(scrumIssue);
+                    scrumIssue.setSprint(scrumSprint);
+                    persistenceManager.makePersistent(scrumSprint);
+                }
             }
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
@@ -311,10 +326,10 @@ public class ScrumIssueEndpoint {
             transaction.begin();
             ScrumIssue scrumIssue = persistenceManager.getObjectById(
                     ScrumIssue.class, issueKey);
-            if (scrumIssue.getSprint() != null){
+            if (scrumIssue.getSprint() != null) {
                 scrumIssue.getSprint().removeIssue(scrumIssue);
             }
-            if (scrumIssue.getAssignedPlayer() != null){
+            if (scrumIssue.getAssignedPlayer() != null) {
                 scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
             }
             if (scrumIssue.getSprint() != null) {

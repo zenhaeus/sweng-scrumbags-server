@@ -177,6 +177,13 @@ public class ScrumSprintEndpoint {
             ScrumProject scrumProject = persistenceManager.getObjectById(
                     ScrumProject.class, projectKey);
             sprints = scrumProject.getSprints();
+            for (ScrumSprint s : sprints) {
+                s.getIssues();
+                for (ScrumIssue i : s.getIssues()) {
+                    i.getAssignedPlayer();
+                    i.getMainTask();
+                }
+            }
         } finally {
             persistenceManager.close();
         }
