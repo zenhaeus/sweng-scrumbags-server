@@ -1,8 +1,6 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -62,10 +60,6 @@ public class ScrumSprintEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            if (containsScrumSprint(scrumSprint)) {
-                throw new EntityExistsException("Object already exists");
-            }
-
             transaction.begin();
             ScrumProject scrumProject = persistenceManager.getObjectById(
                     ScrumProject.class, projectKey);
