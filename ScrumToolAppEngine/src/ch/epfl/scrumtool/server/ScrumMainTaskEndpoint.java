@@ -99,6 +99,14 @@ public class ScrumMainTaskEndpoint {
             scrumProject = persistenceManager.getObjectById(ScrumProject.class,
                     projectKey);
             tasks = scrumProject.getBacklog();
+            
+            //Lazy Fetch
+            for (ScrumMainTask t : tasks) {
+                for (ScrumIssue i : t.getIssues()){
+                    i.getAssignedPlayer();
+                    i.getSprint();
+                }
+            }
         } finally {
             persistenceManager.close();
         }

@@ -98,6 +98,12 @@ public class ScrumIssueEndpoint {
             scrumMaintask = persistenceManager.getObjectById(
                     ScrumMainTask.class, maintaskKey);
             issues = scrumMaintask.getIssues();
+            
+            //Lazy Fetch
+            for (ScrumIssue i : issues) {
+                i.getAssignedPlayer();
+                i.getSprint();
+            }
         } finally {
             persistenceManager.close();
         }
@@ -119,6 +125,12 @@ public class ScrumIssueEndpoint {
             scrumSprint = persistenceManager.getObjectById(ScrumSprint.class,
                     sprintKey);
             issues = scrumSprint.getIssues();
+            
+          //Lazy Fetch
+            for (ScrumIssue i : issues) {
+                i.getAssignedPlayer();
+                i.getSprint();
+            }
         } finally {
             persistenceManager.close();
         }
