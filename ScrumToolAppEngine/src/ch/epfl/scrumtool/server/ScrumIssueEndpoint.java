@@ -138,7 +138,7 @@ public class ScrumIssueEndpoint {
             // Lazy Fetch
             for (ScrumIssue i : issues) {
                 i.getAssignedPlayer();
-                i.getSprint();
+                i.getMainTask();
             }
         } finally {
             persistenceManager.close();
