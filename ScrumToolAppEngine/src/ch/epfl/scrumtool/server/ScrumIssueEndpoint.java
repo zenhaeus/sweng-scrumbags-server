@@ -184,7 +184,6 @@ public class ScrumIssueEndpoint {
             scrumIssue.setStatus(update.getStatus());
             scrumIssue.setPriority(update.getPriority());
 
-            // update the player only if necessary
             if (update.getAssignedPlayer() != null) {
                 if (scrumIssue.getAssignedPlayer() == null) {
                     ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
@@ -202,6 +201,10 @@ public class ScrumIssueEndpoint {
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
                     persistenceManager.makePersistent(scrumPlayer);
+                }
+            } else {
+                if (scrumIssue.getAssignedPlayer() != null) {
+                    scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
                 }
             }
 
@@ -222,10 +225,14 @@ public class ScrumIssueEndpoint {
                     scrumIssue.setSprint(scrumSprint);
                     persistenceManager.makePersistent(scrumSprint);
                 }
+            } else {
+                if (scrumIssue.getSprint() != null) {
+                    scrumIssue.getSprint().removeIssue(scrumIssue);
+                }
             }
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
-
+            opStatus.setKey(scrumIssue.getKey());
             opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {

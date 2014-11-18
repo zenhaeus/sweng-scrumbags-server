@@ -78,7 +78,7 @@ public class ScrumSprint {
     }
 
     public void removeIssue(ScrumIssue issue) {
-        this.removeIssue(issue);
+        this.issues.remove(issue);
     }
 
     public long getLastModDate() {
