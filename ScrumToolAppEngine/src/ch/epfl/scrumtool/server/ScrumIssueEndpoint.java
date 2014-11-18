@@ -2,6 +2,7 @@ package ch.epfl.scrumtool.server;
 
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
@@ -35,6 +36,7 @@ import com.google.appengine.api.users.User;
         Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
         Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumIssueEndpoint {
+    
 
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -48,8 +50,9 @@ public class ScrumIssueEndpoint {
     @ApiMethod(name = "insertScrumIssue", path = "operationstatus/issueinsert")
     public OperationStatus insertScrumIssue(ScrumIssue scrumIssue,
             @Named("mainTaskKey") String maintaskKey,
-            @Named("playerKey") String playerKey,
-            @Named("SprintKey") String sprintKey, User user)
+            @Nullable @Named("playerKey") String playerKey,
+            @Nullable @Named("SprintKey") String sprintKey,
+            User user)
             throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
@@ -116,7 +119,7 @@ public class ScrumIssueEndpoint {
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumIssue> builder().setItems(issues)
+        return CollectionResponse.<ScrumIssue>builder().setItems(issues)
                 .build();
     }
 
@@ -138,12 +141,12 @@ public class ScrumIssueEndpoint {
             // Lazy Fetch
             for (ScrumIssue i : issues) {
                 i.getAssignedPlayer();
-                i.getMainTask();
+                i.getSprint();
             }
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumIssue> builder().setItems(issues)
+        return CollectionResponse.<ScrumIssue>builder().setItems(issues)
                 .build();
     }
 
@@ -371,5 +374,6 @@ public class ScrumIssueEndpoint {
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
     }
+    
 
 }
