@@ -107,7 +107,7 @@ public class ScrumSprintEndpoint {
             transaction.begin();
             ScrumSprint scrumSprint = persistenceManager.getObjectById(
                     ScrumSprint.class, updated.getKey());
-            scrumSprint.setName(updated.getName());
+            scrumSprint.setTitle(updated.getTitle());
             scrumSprint.setDate(updated.getDate());
             scrumSprint.setLastModDate(updated.getLastModDate());
             scrumSprint.setLastModUser(updated.getLastModUser());
