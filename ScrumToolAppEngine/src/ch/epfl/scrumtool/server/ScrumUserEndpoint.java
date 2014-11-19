@@ -132,7 +132,7 @@ public class ScrumUserEndpoint {
             update.setName(scrumUser.getName());
             
             transaction.begin();
-            persistenceManager.makePersistent(scrumUser);
+            persistenceManager.makePersistent(update);
             transaction.commit();
             
             opStatus.setSuccess(true);
