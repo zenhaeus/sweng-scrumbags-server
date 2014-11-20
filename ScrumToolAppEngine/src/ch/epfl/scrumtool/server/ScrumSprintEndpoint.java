@@ -66,7 +66,7 @@ public class ScrumSprintEndpoint {
             scrumProject.addSprint(scrumSprint);
             scrumSprint.setProject(scrumProject);
             scrumSprint.setIssues(new HashSet<ScrumIssue>());
-            persistenceManager.makePersistent(scrumSprint);
+            persistenceManager.makePersistent(scrumProject);
             transaction.commit();
             opStatus.setKey(scrumProject.getKey());
             opStatus.setSuccess(true);
