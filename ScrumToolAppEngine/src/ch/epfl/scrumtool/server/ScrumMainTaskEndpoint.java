@@ -102,7 +102,7 @@ public class ScrumMainTaskEndpoint {
             
             //Lazy Fetch
             for (ScrumMainTask t : tasks) {
-                for (ScrumIssue i : t.getIssues()){
+                for (ScrumIssue i : t.getIssues()) {
                     i.getAssignedPlayer();
                     i.getSprint();
                 }

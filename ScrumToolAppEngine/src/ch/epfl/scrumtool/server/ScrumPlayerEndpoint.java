@@ -38,18 +38,25 @@ import javax.mail.internet.MimeMessage;
  * 
  */
 
-@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-    Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-    Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-    Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-    Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-    Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-    Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-    Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-    Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-    Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-    Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-    Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {
+            Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP },
+        audiences = { 
+            Constants.ANDROID_AUDIENCE }
+        )
 public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "updateScrumPlayer")
@@ -238,8 +245,8 @@ public class ScrumPlayerEndpoint {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
 
-        String msgBody = "Install the Android application. " +
-                    "Login with the Google Account associated with this E-Mail-Address.";
+        String msgBody = "Install the Android application. " 
+                + "Login with the Google Account associated with this E-Mail-Address.";
 
         try {
             Message msg = new MimeMessage(session);
