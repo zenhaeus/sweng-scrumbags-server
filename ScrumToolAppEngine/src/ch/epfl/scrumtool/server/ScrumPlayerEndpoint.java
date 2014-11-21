@@ -153,10 +153,12 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "addPlayerToProject")
-    public ScrumPlayer addPlayerToProject(@Named("projectKey") String projectKey,
+    public OperationStatus addPlayerToProject(@Named("projectKey") String projectKey,
             @Named("userKey") String userEmail, @Named("role") String role,
             User user) throws OAuthRequestException {
-
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -202,6 +204,8 @@ public class ScrumPlayerEndpoint {
             scrumPlayer.setProject(scrumProject);
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
+            opStatus.setKey(scrumPlayer.getKey());
+            opStatus.setSuccess(true);
 
         } finally {
             if (transaction.isActive()) {
@@ -219,7 +223,7 @@ public class ScrumPlayerEndpoint {
             }
         }
 
-        return scrumPlayer;
+        return opStatus;
     }
 
     private boolean containsScrumPlayer(ScrumPlayer scrumPlayer) {

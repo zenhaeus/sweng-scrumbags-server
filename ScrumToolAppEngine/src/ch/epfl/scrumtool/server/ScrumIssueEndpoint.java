@@ -147,7 +147,7 @@ public class ScrumIssueEndpoint {
 
             // Lazy Fetch
             for (ScrumIssue i : issues) {
-                i.getAssignedPlayer();
+                i.getAssignedPlayer().getUser();
                 i.getSprint();
             }
         } finally {
