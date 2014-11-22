@@ -130,6 +130,7 @@ public class ScrumUserEndpoint {
             update.setLastModUser(scrumUser.getLastModUser());
             update.setLastName(scrumUser.getLastName());
             update.setName(scrumUser.getName());
+            update.setGender(scrumUser.getGender());
             
             transaction.begin();
             persistenceManager.makePersistent(update);
