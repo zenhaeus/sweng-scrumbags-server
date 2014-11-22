@@ -23,27 +23,19 @@ import com.google.appengine.api.users.User;
  * @author aschneuw, sylb
  * 
  */
-@Api(
-        name = "scrumtool",
-        version = "v1",
-        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
-        clientIds = {
-            Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP },
-        audiences = { 
-            Constants.ANDROID_AUDIENCE }
-        )
+@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
+        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+        Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
 public class ScrumIssueEndpoint {
-    
 
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -58,8 +50,7 @@ public class ScrumIssueEndpoint {
     public OperationStatus insertScrumIssue(ScrumIssue scrumIssue,
             @Named("mainTaskKey") String maintaskKey,
             @Nullable @Named("playerKey") String playerKey,
-            @Nullable @Named("SprintKey") String sprintKey,
-            User user)
+            @Nullable @Named("SprintKey") String sprintKey, User user)
             throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
@@ -72,16 +63,24 @@ public class ScrumIssueEndpoint {
             ScrumMainTask scrumMainTask = persistenceManager.getObjectById(
                     ScrumMainTask.class, maintaskKey);
             transaction.begin();
+
+            // Add the issue
             scrumMainTask.getIssues().add(scrumIssue);
             persistenceManager.makePersistent(scrumMainTask);
+
+            // Assign the player if there is one
             if (playerKey != null) {
                 ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
                         ScrumPlayer.class, playerKey);
                 scrumIssue.setAssignedPlayer(scrumPlayer);
                 scrumPlayer.addIssue(scrumIssue);
+                scrumPlayer.getProject();
+                scrumPlayer.getAdminFlag();
+                scrumPlayer.getRole();
                 persistenceManager.makePersistent(scrumPlayer);
             }
 
+            // Assign a sprint if there is one
             if (sprintKey != null) {
                 ScrumSprint scrumSprint = persistenceManager.getObjectById(
                         ScrumSprint.class, sprintKey);
@@ -90,6 +89,7 @@ public class ScrumIssueEndpoint {
                 persistenceManager.makePersistent(scrumSprint);
             }
 
+            persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
 
             opStatus.setKey(scrumIssue.getKey());
@@ -120,7 +120,9 @@ public class ScrumIssueEndpoint {
 
             // Lazy Fetch
             for (ScrumIssue i : issues) {
-                i.getAssignedPlayer();
+                if (i.getAssignedPlayer() != null) {
+                    i.getAssignedPlayer().getUser();
+                }
                 i.getSprint();
             }
         } finally {
@@ -147,13 +149,16 @@ public class ScrumIssueEndpoint {
 
             // Lazy Fetch
             for (ScrumIssue i : issues) {
-                i.getAssignedPlayer().getUser();
+                if (i.getAssignedPlayer() != null) {
+                    i.getAssignedPlayer().getUser();
+                    i.getAssignedPlayer().getRole();
+                }
                 i.getSprint();
             }
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumIssue>builder().setItems(issues)
+        return CollectionResponse.<ScrumIssue> builder().setItems(issues)
                 .build();
     }
 
@@ -388,6 +393,5 @@ public class ScrumIssueEndpoint {
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
     }
-    
 
 }
