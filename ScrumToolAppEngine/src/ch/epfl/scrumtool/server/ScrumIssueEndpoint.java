@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
 
@@ -173,7 +174,7 @@ public class ScrumIssueEndpoint {
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
-
+        
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
             Set<ScrumPlayer> players = persistenceManager.getObjectById(ScrumUser.class, userKey).getPlayers();
@@ -182,14 +183,24 @@ public class ScrumIssueEndpoint {
                 for (ScrumIssue issue: is) {
                     if (issue.getStatus() != Status.FINISHED) {
                         issues.add(issue);
-                        //Lazy fetch
                         issue.getAssignedPlayer().getUser();
+                        issue.getPriority();
+                        persistenceManager.makeTransient(issue);
+                        persistenceManager.makeTransient(issue.getAssignedPlayer());
+                        persistenceManager.makeTransient(issue.getAssignedPlayer().getUser());
+                        issue.getAssignedPlayer().getUser().setPlayers(null);
+                        issue.getAssignedPlayer().setIssues(null);
+                        issue.getSprint();
                     }
                 }
             }
+            
         } finally {
             persistenceManager.close();
         }
+        
+        
+        
         return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
     }
     
