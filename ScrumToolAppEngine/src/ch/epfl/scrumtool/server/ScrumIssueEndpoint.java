@@ -1,10 +1,12 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
+import javax.jdo.Query;
 import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
 
@@ -162,10 +164,37 @@ public class ScrumIssueEndpoint {
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumIssue>builder().setItems(issues)
-                .build();
+        return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
     }
 
+    @ApiMethod(name = "loadIssuesForUser")
+    public CollectionResponse<ScrumIssue> loadIssuesForUser(
+            @Named("userKey") String userKey, User user)
+            throws OAuthRequestException {
+
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager persistenceManager = getPersistenceManager();
+
+        Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
+        try {
+            Set<ScrumPlayer> players = persistenceManager.getObjectById(ScrumUser.class, userKey).getPlayers();
+            for (ScrumPlayer p: players) {
+                Set<ScrumIssue> is = p.getIssues(); 
+                for (ScrumIssue issue: is) {
+                    if (issue.getStatus() != Status.FINISHED) {
+                        issues.add(issue);
+                        //Lazy fetch
+                        issue.getAssignedPlayer().getUser();
+                    }
+                }
+            }
+        } finally {
+            persistenceManager.close();
+        }
+        return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
+    }
+    
+    
     /**
      * This method is used for updating an existing entity. If the entity does
      * not exist in the datastore, an exception is thrown. It uses HTTP PUT
@@ -305,8 +334,7 @@ public class ScrumIssueEndpoint {
      */
     @ApiMethod(name = "removeScrumIssueFromSprint", path = "operationstatus/removeIssueFromSprint")
     public OperationStatus removeScrumIssueFromSprint(
-            @Named("issueKey") String issueKey,
-            @Named("sprintKey") String sprintKey, User user)
+            @Named("issueKey") String issueKey, User user)
             throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
@@ -316,10 +344,12 @@ public class ScrumIssueEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                    ScrumSprint.class, sprintKey);
+
             ScrumIssue scrumIssue = persistenceManager.getObjectById(
                     ScrumIssue.class, issueKey);
+            
+            ScrumSprint scrumSprint = scrumIssue.getSprint();
+            
             scrumIssue.setSprint(null);
             scrumSprint.getIssues().remove(scrumIssue);
 
