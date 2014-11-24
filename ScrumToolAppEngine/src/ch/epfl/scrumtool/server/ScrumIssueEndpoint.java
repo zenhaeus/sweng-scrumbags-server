@@ -6,7 +6,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
 import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
 
@@ -185,6 +184,41 @@ public class ScrumIssueEndpoint {
                         issues.add(issue);
                         //Lazy fetch
                         issue.getAssignedPlayer().getUser();
+                    }
+                }
+            }
+        } finally {
+            persistenceManager.close();
+        }
+        return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
+    }
+    
+    /**
+     * This methods returns all the issues of the given project that are not
+     * yet assigned to any sprint.
+     * 
+     * @param projectKey
+     * @param user
+     * @return
+     * @throws OAuthRequestException
+     */
+    @ApiMethod(name = "loadUnsprintedIssuesForProject")
+    public CollectionResponse<ScrumIssue> loadUnsprintedIssuesForProject(
+            @Named("projectKey") String projectKey, User user) throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager persistenceManager = getPersistenceManager();
+
+        Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
+        try {
+            ScrumProject project = persistenceManager.getObjectById(ScrumProject.class, projectKey);
+            for (ScrumMainTask m : project.getBacklog()) {
+                for (ScrumIssue i : m.getIssues()) {
+                    if (i.getSprint() == null) {
+                        if (i.getAssignedPlayer() != null) {
+                            i.getAssignedPlayer().getUser();
+                        }
+                        i.getMainTask();
+                        issues.add(i);
                     }
                 }
             }
