@@ -158,8 +158,20 @@ public class ScrumIssueEndpoint {
                 if (i.getAssignedPlayer() != null) {
                     i.getAssignedPlayer().getUser();
                     i.getAssignedPlayer().getRole();
+                    persistenceManager.makeTransient(i.getAssignedPlayer());
+                    persistenceManager.makeTransient(i.getAssignedPlayer().getUser());
+                    i.getAssignedPlayer().setIssues(null);
+                    i.getAssignedPlayer().getUser().setPlayers(null);
+                    
                 }
                 i.getSprint();
+                persistenceManager.makeTransient(i.getSprint());
+                i.getSprint().setIssues(null);
+                i.getSprint().setProject(null);
+                i.getStatus();
+                i.getPriority();
+                
+                
             }
         } finally {
             persistenceManager.close();
@@ -225,10 +237,21 @@ public class ScrumIssueEndpoint {
             for (ScrumMainTask m : project.getBacklog()) {
                 for (ScrumIssue i : m.getIssues()) {
                     if (i.getSprint() == null) {
+                        i.getAssignedPlayer();
+                        i.getMainTask();
+                        i.getPriority();
+                        i.getStatus();
+                        persistenceManager.makeTransient(i);
+                        
                         if (i.getAssignedPlayer() != null) {
                             i.getAssignedPlayer().getUser();
+                            persistenceManager.makeTransient(i.getAssignedPlayer());
+                            persistenceManager.makeTransient(i.getAssignedPlayer().getUser());
+                            i.getAssignedPlayer().getUser().setPlayers(null);
+                            i.getAssignedPlayer().setIssues(null);
                         }
-                        i.getMainTask();
+                        persistenceManager.makeTransient(i.getMainTask());
+                        i.getMainTask().setIssues(null);
                         issues.add(i);
                     }
                 }
