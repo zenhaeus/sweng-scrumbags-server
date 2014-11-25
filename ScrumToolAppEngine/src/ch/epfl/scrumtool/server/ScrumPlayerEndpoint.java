@@ -61,7 +61,7 @@ public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "updateScrumPlayer")
     public OperationStatus updateScrumPlayer(ScrumPlayer update, User user)
-            throws OAuthRequestException {
+        throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
 
@@ -102,9 +102,8 @@ public class ScrumPlayerEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
-    public OperationStatus removeScrumPlayer(
-            @Named("playerKey") String playerKey, User user)
-                    throws OAuthRequestException {
+    public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, User user)
+        throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         AppEngineUtils.basicAuthentication(user);
 
@@ -130,9 +129,8 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "loadPlayers")
-    public CollectionResponse<ScrumPlayer> loadPlayers(
-            @Named("projectKey") String projectKey, User user)
-                    throws OAuthRequestException {
+    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
+        throws OAuthRequestException {
         PersistenceManager persistenceManager = null;
         List<ScrumPlayer> players = null;
 
@@ -142,7 +140,16 @@ public class ScrumPlayerEndpoint {
                     ScrumProject.class, projectKey);
             players = new ArrayList<ScrumPlayer>();
             for (ScrumPlayer p : scrumProject.getPlayers()) {
-                p.getUser(); // lazy fetch
+                // lazy fetch
+                p.getUser();
+                p.getUser().getDateOfBirth();
+                p.getUser().getName();
+                p.getUser().getLastName();
+                p.getUser().getCompanyName();
+                p.getUser().getJobTitle();
+                p.getUser().getGender();
+                p.getRole();
+                p.getAdminFlag();
                 players.add(p);
             }
         } finally {
