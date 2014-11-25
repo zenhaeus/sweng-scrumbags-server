@@ -195,14 +195,27 @@ public class ScrumIssueEndpoint {
                 for (ScrumIssue issue: is) {
                     if (issue.getStatus() != Status.FINISHED) {
                         issues.add(issue);
+                        issue.getMainTask().getProject();
                         issue.getAssignedPlayer().getUser();
                         issue.getPriority();
+                        issue.getSprint();
                         persistenceManager.makeTransient(issue);
+                        persistenceManager.makeTransient(issue.getSprint());
                         persistenceManager.makeTransient(issue.getAssignedPlayer());
+                        persistenceManager.makeTransient(issue.getMainTask());
+                        persistenceManager.makeTransient(issue.getMainTask().getProject());
                         persistenceManager.makeTransient(issue.getAssignedPlayer().getUser());
                         issue.getAssignedPlayer().getUser().setPlayers(null);
                         issue.getAssignedPlayer().setIssues(null);
-                        issue.getSprint();
+                        issue.getMainTask().setIssues(null);
+                        issue.getMainTask().getProject().setBacklog(null);
+                        issue.getMainTask().getProject().setPlayers(null);
+                        issue.getMainTask().getProject().setSprints(null);
+                        if (issue.getSprint() != null) {
+                            issue.getSprint().setProject(null);
+                        }
+                        
+                        
                     }
                 }
             }
