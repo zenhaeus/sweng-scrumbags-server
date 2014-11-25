@@ -6,7 +6,6 @@ import java.util.Set;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
@@ -25,18 +24,25 @@ import com.google.appengine.api.users.User;
  * 
  */
 
-@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {
+            Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP },
+        audiences = { 
+            Constants.ANDROID_AUDIENCE }
+        )
 public class ScrumSprintEndpoint {
     /**
      * This inserts a new entity into App Engine datastore. If the entity
@@ -66,7 +72,7 @@ public class ScrumSprintEndpoint {
             scrumProject.addSprint(scrumSprint);
             scrumSprint.setProject(scrumProject);
             scrumSprint.setIssues(new HashSet<ScrumIssue>());
-            persistenceManager.makePersistent(scrumSprint);
+            persistenceManager.makePersistent(scrumProject);
             transaction.commit();
             opStatus.setKey(scrumProject.getKey());
             opStatus.setSuccess(true);
@@ -107,7 +113,7 @@ public class ScrumSprintEndpoint {
             transaction.begin();
             ScrumSprint scrumSprint = persistenceManager.getObjectById(
                     ScrumSprint.class, updated.getKey());
-            scrumSprint.setName(updated.getName());
+            scrumSprint.setTitle(updated.getTitle());
             scrumSprint.setDate(updated.getDate());
             scrumSprint.setLastModDate(updated.getLastModDate());
             scrumSprint.setLastModUser(updated.getLastModUser());
@@ -187,8 +193,7 @@ public class ScrumSprintEndpoint {
         } finally {
             persistenceManager.close();
         }
-        return CollectionResponse.<ScrumSprint> builder().setItems(sprints)
-                .build();
+        return CollectionResponse.<ScrumSprint>builder().setItems(sprints).build();
     }
 
     /**

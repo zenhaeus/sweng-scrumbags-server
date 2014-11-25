@@ -42,6 +42,17 @@ public class ScrumUser {
     @Persistent
     private String jobTitle;
     
+    @Persistent
+    private String gender;
+    
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+    
+    public String getGender() {
+        return this.gender;
+    }
+    
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }

@@ -38,23 +38,30 @@ import javax.mail.internet.MimeMessage;
  * 
  */
 
-@Api(name = "scrumtool", version = "v1", namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"), clientIds = {
-    Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-    Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-    Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-    Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-    Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-    Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-    Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-    Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-    Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-    Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-    Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
+@Api(
+        name = "scrumtool",
+        version = "v1",
+        namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
+        clientIds = {
+            Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP },
+        audiences = { 
+            Constants.ANDROID_AUDIENCE }
+        )
 public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "updateScrumPlayer")
     public OperationStatus updateScrumPlayer(ScrumPlayer update, User user)
-            throws OAuthRequestException {
+        throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
 
@@ -95,9 +102,8 @@ public class ScrumPlayerEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
-    public OperationStatus removeScrumPlayer(
-            @Named("playerKey") String playerKey, User user)
-                    throws OAuthRequestException {
+    public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, User user)
+        throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
         AppEngineUtils.basicAuthentication(user);
 
@@ -123,9 +129,8 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "loadPlayers")
-    public CollectionResponse<ScrumPlayer> loadPlayers(
-            @Named("projectKey") String projectKey, User user)
-                    throws OAuthRequestException {
+    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
+        throws OAuthRequestException {
         PersistenceManager persistenceManager = null;
         List<ScrumPlayer> players = null;
 
@@ -135,7 +140,16 @@ public class ScrumPlayerEndpoint {
                     ScrumProject.class, projectKey);
             players = new ArrayList<ScrumPlayer>();
             for (ScrumPlayer p : scrumProject.getPlayers()) {
-                p.getUser(); // lazy fetch
+                // lazy fetch
+                p.getUser();
+                p.getUser().getDateOfBirth();
+                p.getUser().getName();
+                p.getUser().getLastName();
+                p.getUser().getCompanyName();
+                p.getUser().getJobTitle();
+                p.getUser().getGender();
+                p.getRole();
+                p.getAdminFlag();
                 players.add(p);
             }
         } finally {
@@ -146,10 +160,12 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "addPlayerToProject")
-    public ScrumPlayer addPlayerToProject(@Named("projectKey") String projectKey,
+    public OperationStatus addPlayerToProject(@Named("projectKey") String projectKey,
             @Named("userKey") String userEmail, @Named("role") String role,
             User user) throws OAuthRequestException {
-
+        OperationStatus opStatus = new OperationStatus();
+        opStatus.setSuccess(false);
+        
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -195,6 +211,8 @@ public class ScrumPlayerEndpoint {
             scrumPlayer.setProject(scrumProject);
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
+            opStatus.setKey(scrumPlayer.getKey());
+            opStatus.setSuccess(true);
 
         } finally {
             if (transaction.isActive()) {
@@ -212,7 +230,7 @@ public class ScrumPlayerEndpoint {
             }
         }
 
-        return scrumPlayer;
+        return opStatus;
     }
 
     private boolean containsScrumPlayer(ScrumPlayer scrumPlayer) {
@@ -238,8 +256,8 @@ public class ScrumPlayerEndpoint {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
 
-        String msgBody = "Install the Android application. " +
-                    "Login with the Google Account associated with this E-Mail-Address.";
+        String msgBody = "Install the Android application. " 
+                + "Login with the Google Account associated with this E-Mail-Address.";
 
         try {
             Message msg = new MimeMessage(session);
