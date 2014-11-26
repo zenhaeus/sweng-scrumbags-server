@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
+import javax.jdo.annotations.NotPersistent;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
@@ -44,6 +45,76 @@ public class ScrumMainTask {
 
     @Persistent
     private String lastModUser;
+    
+    @NotPersistent
+    private int issuesFinished;
+    
+    @NotPersistent
+    private int totalIssues;
+    
+    @NotPersistent
+    private long totalTime;
+    
+    @NotPersistent
+    private long timeFinished;
+    
+    
+
+    /**
+     * @return the issuesFinished
+     */
+    public int getIssuesFinished() {
+        return issuesFinished;
+    }
+
+    /**
+     * @param issuesFinished the issuesFinished to set
+     */
+    public void setIssuesFinished(int issuesFinished) {
+        this.issuesFinished = issuesFinished;
+    }
+
+    /**
+     * @return the totalIssues
+     */
+    public int getTotalIssues() {
+        return totalIssues;
+    }
+
+    /**
+     * @param totalIssues the totalIssues to set
+     */
+    public void setTotalIssues(int totalIssues) {
+        this.totalIssues = totalIssues;
+    }
+
+    /**
+     * @return the totalTime
+     */
+    public long getTotalTime() {
+        return totalTime;
+    }
+
+    /**
+     * @param totalTime the totalTime to set
+     */
+    public void setTotalTime(long totalTime) {
+        this.totalTime = totalTime;
+    }
+
+    /**
+     * @return the timeFinished
+     */
+    public long getTimeFinished() {
+        return timeFinished;
+    }
+
+    /**
+     * @param timeFinished the timeFinished to set
+     */
+    public void setTimeFinished(long timeFinished) {
+        this.timeFinished = timeFinished;
+    }
 
     public Priority getPriority() {
         return this.priority;

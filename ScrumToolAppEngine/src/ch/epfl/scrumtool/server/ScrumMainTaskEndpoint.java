@@ -100,12 +100,26 @@ public class ScrumMainTaskEndpoint {
                     projectKey);
             tasks = scrumProject.getBacklog();
             
+            
             //Lazy Fetch
             for (ScrumMainTask t : tasks) {
-                for (ScrumIssue i : t.getIssues()) {
-                    i.getAssignedPlayer();
-                    i.getSprint();
+                long estimatedTime = 0;
+                long estimatedTimeFinished = 0;
+                int issuesFinished = 0;
+                
+                for (ScrumIssue i: t.getIssues()) {
+                    estimatedTime += i.getEstimation();
+                    if (i.getStatus() == Status.FINISHED) {
+                        issuesFinished++;
+                        estimatedTimeFinished += i.getEstimation();
+                    }
                 }
+                
+                t.setTimeFinished(estimatedTimeFinished);
+                t.setTotalIssues(t.getIssues().size());
+                t.setTotalTime(estimatedTime);
+                t.setIssuesFinished(issuesFinished);
+                
             }
         } finally {
             persistenceManager.close();
