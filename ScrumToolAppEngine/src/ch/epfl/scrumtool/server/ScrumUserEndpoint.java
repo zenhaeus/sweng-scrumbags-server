@@ -8,7 +8,6 @@ import javax.inject.Named;
 import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
@@ -54,6 +53,9 @@ public class ScrumUserEndpoint {
     
     @ApiMethod(name = "loginUser")
     public ScrumUser loginUser(@Named("eMail") String eMail) {
+        if (eMail == null) {
+            return null;
+        }
         PersistenceManager persistenceManager = getPersistenceManager();
         ScrumUser scrumUser = null;
         try {
@@ -83,6 +85,9 @@ public class ScrumUserEndpoint {
     public CollectionResponse<ScrumProject> loadProjects(@Named("userKey") String userKey, User user)
         throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
+        if (userKey == null) {
+            return null;
+        }
         PersistenceManager persistenceManager = getPersistenceManager();
         Set<ScrumProject> projects = new HashSet<ScrumProject>();
     
@@ -108,41 +113,42 @@ public class ScrumUserEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser", path = "operationstatus/updateuser")
-    public OperationStatus updateScrumUser(ScrumUser scrumUser, User user)
-            throws OAuthRequestException {
+    public OperationStatus updateScrumUser(ScrumUser scrumUser, User user) throws OAuthRequestException {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
+        if (scrumUser == null) {
+            return opStatus;
+        }
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
-            if (!containsScrumUser(scrumUser)) {
-                throw new EntityNotFoundException("Object does not exist");
+            if (containsScrumUser(scrumUser)) {
+                //Create valid JDO object
+                ScrumUser update = persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
+                update.setCompanyName(scrumUser.getCompanyName());
+                update.setDateOfBirth(scrumUser.getDateOfBirth());
+                update.setEmail(scrumUser.getEmail());
+                update.setJobTitle(scrumUser.getJobTitle());
+                update.setLastModDate(scrumUser.getLastModDate());
+                update.setLastModUser(scrumUser.getLastModUser());
+                update.setLastName(scrumUser.getLastName());
+                update.setName(scrumUser.getName());
+                update.setGender(scrumUser.getGender());
+                
+                transaction.begin();
+                persistenceManager.makePersistent(update);
+                transaction.commit();
+                opStatus.setSuccess(true);
             }
-            
-            //Create valid JDO object
-            ScrumUser update = persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
-            update.setCompanyName(scrumUser.getCompanyName());
-            update.setDateOfBirth(scrumUser.getDateOfBirth());
-            update.setEmail(scrumUser.getEmail());
-            update.setJobTitle(scrumUser.getJobTitle());
-            update.setLastModDate(scrumUser.getLastModDate());
-            update.setLastModUser(scrumUser.getLastModUser());
-            update.setLastName(scrumUser.getLastName());
-            update.setName(scrumUser.getName());
-            update.setGender(scrumUser.getGender());
-            
-            transaction.begin();
-            persistenceManager.makePersistent(update);
-            transaction.commit();
-            
-            opStatus.setSuccess(true);
             
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
+                opStatus.setSuccess(false);
             }
+            
             persistenceManager.close();
         }
         return opStatus;
@@ -161,7 +167,9 @@ public class ScrumUserEndpoint {
         AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
-        
+        if (userKey == null) {
+            return opStatus;
+        }
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
