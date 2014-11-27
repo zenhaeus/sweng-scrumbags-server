@@ -194,8 +194,7 @@ public class ScrumUserEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         boolean contains = true;
         try {
-            persistenceManager.getObjectById(ScrumUser.class,
-                    scrumUser.getEmail());
+            persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             contains = false;
         } finally {
