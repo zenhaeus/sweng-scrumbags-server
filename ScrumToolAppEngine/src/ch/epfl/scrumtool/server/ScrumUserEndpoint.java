@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Named;
+import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
@@ -66,7 +67,7 @@ public class ScrumUserEndpoint {
             newUser.setLastModUser(eMail);
             newUser.setName(eMail);
             insertScrumUser(newUser);
-    
+
             scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
         } finally {
             persistenceManager.close();
@@ -79,9 +80,9 @@ public class ScrumUserEndpoint {
      * @throws OAuthRequestException
      */
     @ApiMethod(name = "loadProjects")
-    public CollectionResponse<ScrumProject> loadProjects(
-            @Named("userKey") String userKey, User user)
-            throws OAuthRequestException {
+    public CollectionResponse<ScrumProject> loadProjects(@Named("userKey") String userKey, User user)
+        throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
         Set<ScrumProject> projects = new HashSet<ScrumProject>();
     
@@ -109,9 +110,9 @@ public class ScrumUserEndpoint {
     @ApiMethod(name = "updateScrumUser", path = "operationstatus/updateuser")
     public OperationStatus updateScrumUser(ScrumUser scrumUser, User user)
             throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
-        AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
@@ -153,9 +154,11 @@ public class ScrumUserEndpoint {
      * 
      * @param userKey
      *            the primary key of the entity to be deleted.
+     * @throws OAuthRequestException 
      */
     @ApiMethod(name = "removeScrumUser", path = "operationstatus/removeuser")
-    public OperationStatus removeScrumUser(@Named("userKey") String userKey) {
+    public OperationStatus removeScrumUser(@Named("userKey") String userKey, User user) throws OAuthRequestException {
+        AppEngineUtils.basicAuthentication(user);
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
         
@@ -169,6 +172,9 @@ public class ScrumUserEndpoint {
             persistenceManager.deletePersistent(scrumUser);
             transaction.commit();
             
+            opStatus.setSuccess(true);
+        } catch (JDOObjectNotFoundException e) {
+            opStatus.setSuccess(false);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
