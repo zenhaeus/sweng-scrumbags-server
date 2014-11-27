@@ -223,11 +223,10 @@ public class ScrumMainTaskEndpoint {
         int issuesFinished = 0;
 
         for (ScrumIssue i : t.getIssues()) {
+            estimatedTime += i.getEstimation();
             if (i.getStatus() == Status.FINISHED) {
                 issuesFinished++;
                 estimatedTimeFinished += i.getEstimation();
-            } else {
-                estimatedTime += i.getEstimation();
             }
         }
 
