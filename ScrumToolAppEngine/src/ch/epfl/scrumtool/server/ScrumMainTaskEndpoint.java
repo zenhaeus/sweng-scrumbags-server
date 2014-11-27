@@ -100,27 +100,10 @@ public class ScrumMainTaskEndpoint {
                     projectKey);
             tasks = scrumProject.getBacklog();
             
-            
-            //Lazy Fetch
-            for (ScrumMainTask t : tasks) {
-                long estimatedTime = 0;
-                long estimatedTimeFinished = 0;
-                int issuesFinished = 0;
-                
-                for (ScrumIssue i: t.getIssues()) {
-                    estimatedTime += i.getEstimation();
-                    if (i.getStatus() == Status.FINISHED) {
-                        issuesFinished++;
-                        estimatedTimeFinished += i.getEstimation();
-                    }
-                }
-                
-                t.setTimeFinished(estimatedTimeFinished);
-                t.setTotalIssues(t.getIssues().size());
-                t.setTotalTime(estimatedTime);
-                t.setIssuesFinished(issuesFinished);
-                
+            for (ScrumMainTask t: tasks) {
+                computeMainTaskIssueInfo(t);
             }
+            
         } finally {
             persistenceManager.close();
         }
@@ -232,6 +215,25 @@ public class ScrumMainTaskEndpoint {
 
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
-    }
+    };
+    
+    public static void computeMainTaskIssueInfo(ScrumMainTask t) {
+            long estimatedTime = 0;
+            long estimatedTimeFinished = 0;
+            int issuesFinished = 0;
+            
+            for (ScrumIssue i: t.getIssues()) {
+                estimatedTime += i.getEstimation();
+                if (i.getStatus() == Status.FINISHED) {
+                    issuesFinished++;
+                    estimatedTimeFinished += i.getEstimation();
+                }
+            }
+            
+            t.setTimeFinished(estimatedTimeFinished);
+            t.setTotalIssues(t.getIssues().size());
+            t.setTotalTime(estimatedTime);
+            t.setIssuesFinished(issuesFinished);
+        }
 
 }
