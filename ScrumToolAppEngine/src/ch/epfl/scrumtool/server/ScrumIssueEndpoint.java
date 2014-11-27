@@ -6,7 +6,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
 import javax.jdo.Transaction;
 import javax.persistence.EntityNotFoundException;
 
