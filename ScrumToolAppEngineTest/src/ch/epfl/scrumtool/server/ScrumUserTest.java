@@ -1,4 +1,4 @@
-package ch.epfl.scrumtool.server.test;
+package ch.epfl.scrumtool.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
