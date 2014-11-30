@@ -234,11 +234,11 @@ public class ScrumPlayerEndpointTest {
         project.setLastModUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
-        boolean removalResult = PLAYER_ENDPOINT.removeScrumPlayer(playerKey, userNotLoggedIn()).getSuccess();
-        assertFalse(removalResult);
+        PLAYER_ENDPOINT.removeScrumPlayer(playerKey, userNotLoggedIn()).getSuccess();
+        fail("removePlayer should throw an OAuthRequestException when the user is not logged in");
     }
 
-    @Test
+    @Test(expected = JDOObjectNotFoundException.class)
     public void testRemoveNonExistingPlayer() throws OAuthRequestException {
         loginUser(USER_KEY);
         boolean removalResult = PLAYER_ENDPOINT.removeScrumPlayer("non existing", userLoggedIn()).getSuccess();
@@ -254,12 +254,12 @@ public class ScrumPlayerEndpointTest {
         project.setName("Project");
         project.setLastModUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER_KEY, ROLE, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
         boolean removalResult = PLAYER_ENDPOINT.removeScrumPlayer(playerKey, userLoggedIn()).getSuccess();
-        assertFalse(removalResult);
+        assertTrue(removalResult);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testRemoveNullPlayer() throws OAuthRequestException {
         loginUser(USER_KEY);
         boolean removalResult = PLAYER_ENDPOINT.removeScrumPlayer(null, userLoggedIn()).getSuccess();

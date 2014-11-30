@@ -71,7 +71,7 @@ public class ScrumPlayerEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            if (!containsScrumPlayer(update)) {
+            if (!containsScrumPlayer(update.getKey())) {
                 throw new EntityNotFoundException("Object does not exist");
             }
             transaction.begin();
@@ -104,6 +104,9 @@ public class ScrumPlayerEndpoint {
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
     public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, User user)
         throws OAuthRequestException {
+        if (playerKey == null) {
+            throw new NullPointerException();
+        }
         OperationStatus opStatus = new OperationStatus();
         
         AppEngineUtils.basicAuthentication(user);
@@ -242,12 +245,12 @@ public class ScrumPlayerEndpoint {
         return opStatus;
     }
 
-    private boolean containsScrumPlayer(ScrumPlayer scrumPlayer) {
+    private boolean containsScrumPlayer(String playerKey) {
         PersistenceManager persistenceManager = getPersistenceManager();
         boolean contains = true;
         try {
             persistenceManager.getObjectById(ScrumPlayer.class,
-                    scrumPlayer.getKey());
+                    playerKey);
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             contains = false;
         } finally {
