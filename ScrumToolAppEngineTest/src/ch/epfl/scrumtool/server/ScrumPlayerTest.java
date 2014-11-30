@@ -4,13 +4,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Calendar;
+import java.util.HashSet;
+
 import org.junit.Test;
 
 public class ScrumPlayerTest {
     private static final String KEY = "ThisIsAKey";
     private static final Role ROLE = Role.SCRUM_MASTER;
     private static final boolean IS_ADMIN = true;
-    private static final long DATE = 1987246;
+    private static final long DATE = Calendar.getInstance().getTimeInMillis();
     private static final String LAST_USER = "example@mock.ch";
 
     private static ScrumPlayer player = new ScrumPlayer();
@@ -57,6 +60,13 @@ public class ScrumPlayerTest {
         ScrumUser user = new ScrumUser();
         player.setUser(user);
         assertEquals(user, player.getUser());
+    }
+    
+    @Test
+    public void testSetGetIssues() {
+        HashSet<ScrumIssue> issues = new HashSet<ScrumIssue>();
+        player.setIssues(issues);
+        assertEquals(issues, player.getIssues());
     }
 
     @Test
