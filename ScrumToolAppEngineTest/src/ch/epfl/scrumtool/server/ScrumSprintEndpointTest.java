@@ -210,22 +210,39 @@ public class ScrumSprintEndpointTest {
     //Remove Sprint tests
     @Test
     public void testRemoveExistingSprint() throws ServiceException{
-        fail("Not yet Implemented");
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        ScrumSprint sprint = new ScrumSprint();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        SPRINT_ENDPOINT.removeScrumSprint(sprintKey, userLoggedIn());
+        ArrayList<ScrumSprint> sprints = new ArrayList<ScrumSprint>((HashSet<ScrumSprint>) SPRINT_ENDPOINT.loadSprints(
+                projectKey, userLoggedIn()).getItems());
+        assertNotNull(sprints);
+        assertEquals(0, sprints.size());
     }
     
-    @Test
+    @Test(expected = NotFoundException.class)
     public void testRemoveNonExistingSprint() throws ServiceException{
-        fail("Not yet Implemented");
+        loginUser(USER_KEY);
+        SPRINT_ENDPOINT.removeScrumSprint("non-existing", userLoggedIn());
+        fail("should have thrown NotFoundException");
     }
     
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testRemoveNullSprintKey() throws ServiceException{
-        fail("Not yet Implemented");
+        loginUser(USER_KEY);
+        SPRINT_ENDPOINT.removeScrumSprint(null, userLoggedIn());
+        fail("should have thrown NullPointerException");
     }
     
-    @Test
+    @Test(expected = UnauthorizedException.class)
     public void testRemoveSprintNotLoggedIn() throws ServiceException{
-        fail("Not yet Implemented");
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        ScrumSprint sprint = new ScrumSprint();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        SPRINT_ENDPOINT.removeScrumSprint(sprintKey, userNotLoggedIn());
+        fail("should have thrown UnauthorizedException");
     }
     
     private ScrumUser loginUser(String email) throws ServiceException {

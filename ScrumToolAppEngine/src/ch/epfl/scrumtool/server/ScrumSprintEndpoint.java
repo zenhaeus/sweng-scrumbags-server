@@ -135,6 +135,9 @@ public class ScrumSprintEndpoint {
     public void removeScrumSprint(
             @Named("sprintKey") String sprintKey, User user)
             throws ServiceException {
+        if (sprintKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
 
