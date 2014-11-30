@@ -69,8 +69,8 @@ public class ScrumIssueEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            ScrumMainTask scrumMainTask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, maintaskKey);
+            ScrumMainTask scrumMainTask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, maintaskKey,
+                    persistenceManager);
             transaction.begin();
 
             // Add the issue
@@ -79,8 +79,8 @@ public class ScrumIssueEndpoint {
 
             // Assign the player if there is one
             if (playerKey != null) {
-                ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                        ScrumPlayer.class, playerKey);
+                ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                        persistenceManager);
                 scrumIssue.setAssignedPlayer(scrumPlayer);
                 scrumPlayer.addIssue(scrumIssue);
                 scrumPlayer.getProject();
@@ -91,8 +91,8 @@ public class ScrumIssueEndpoint {
 
             // Assign a sprint if there is one
             if (sprintKey != null) {
-                ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                        ScrumSprint.class, sprintKey);
+                ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                        persistenceManager);
                 scrumIssue.setSprint(scrumSprint);
                 scrumSprint.addIssue(scrumIssue);
                 persistenceManager.makePersistent(scrumSprint);
@@ -121,8 +121,7 @@ public class ScrumIssueEndpoint {
         Set<ScrumIssue> issues = null;
         try {
             ScrumMainTask scrumMaintask = null;
-            scrumMaintask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, maintaskKey);
+            scrumMaintask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, maintaskKey, persistenceManager);
             issues = scrumMaintask.getIssues();
 
             // Lazy Fetch
@@ -150,8 +149,7 @@ public class ScrumIssueEndpoint {
         Set<ScrumIssue> issues = null;
         try {
             ScrumSprint scrumSprint = null;
-            scrumSprint = persistenceManager.getObjectById(ScrumSprint.class,
-                    sprintKey);
+            scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey, persistenceManager);
             issues = scrumSprint.getIssues();
 
             // Lazy Fetch
@@ -190,7 +188,8 @@ public class ScrumIssueEndpoint {
         
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
-            Set<ScrumPlayer> players = persistenceManager.getObjectById(ScrumUser.class, userKey).getPlayers();
+            Set<ScrumPlayer> players = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey,
+                    persistenceManager).getPlayers();
             for (ScrumPlayer p: players) {
                 Set<ScrumIssue> is = p.getIssues(); 
                 for (ScrumIssue issue: is) {
@@ -247,7 +246,8 @@ public class ScrumIssueEndpoint {
 
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
-            ScrumProject project = persistenceManager.getObjectById(ScrumProject.class, projectKey);
+            ScrumProject project = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
+                    persistenceManager);
             for (ScrumMainTask m : project.getBacklog()) {
                 for (ScrumIssue i : m.getIssues()) {
                     if (i.getSprint() == null) {
@@ -302,8 +302,8 @@ public class ScrumIssueEndpoint {
                 throw new EntityNotFoundException("Object does not exist");
             }
             transaction.begin();
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, update.getKey());
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, update.getKey(),
+                    persistenceManager);
             scrumIssue.setName(update.getName());
             scrumIssue.setDescription(update.getDescription());
             scrumIssue.setEstimation(update.getEstimation());
@@ -314,16 +314,16 @@ public class ScrumIssueEndpoint {
 
             if (playerKey != null) {
                 if (scrumIssue.getAssignedPlayer() == null) {
-                    ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                            ScrumPlayer.class, playerKey);
+                    ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                            persistenceManager);
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
                     persistenceManager.makePersistent(scrumPlayer);
                 } else if (!scrumIssue.getAssignedPlayer().getKey()
                         .equals(playerKey)) {
                     scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
-                    ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                            ScrumPlayer.class, playerKey);
+                    ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                            persistenceManager);
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
                     persistenceManager.makePersistent(scrumPlayer);
@@ -337,16 +337,16 @@ public class ScrumIssueEndpoint {
             // update the sprint only if necessary
             if (sprintKey != null) {
                 if (scrumIssue.getSprint() == null) {
-                    ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                            ScrumSprint.class, sprintKey);
+                    ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                            persistenceManager);
                     scrumSprint.addIssue(scrumIssue);
                     scrumIssue.setSprint(scrumSprint);
                     persistenceManager.makePersistent(scrumSprint);
                 } else if (!scrumIssue.getSprint().getKey()
                         .equals(sprintKey)) {
                     scrumIssue.getSprint().removeIssue(scrumIssue);
-                    ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                            ScrumSprint.class, sprintKey);
+                    ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                            persistenceManager);
                     scrumSprint.addIssue(scrumIssue);
                     scrumIssue.setSprint(scrumSprint);
                     persistenceManager.makePersistent(scrumSprint);
@@ -378,10 +378,10 @@ public class ScrumIssueEndpoint {
 
         try {
             transaction.begin();
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                    ScrumSprint.class, sprintKey);
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, issueKey);
+            ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                    persistenceManager);
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey,
+                    persistenceManager);
             scrumIssue.setSprint(scrumSprint);
             scrumSprint.getIssues().add(scrumIssue);
 
@@ -415,8 +415,8 @@ public class ScrumIssueEndpoint {
 
         try {
 
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, issueKey);
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey,
+                    persistenceManager);
             
             ScrumSprint scrumSprint = scrumIssue.getSprint();
             
@@ -445,8 +445,8 @@ public class ScrumIssueEndpoint {
 
         try {
             transaction.begin();
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, issueKey);
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey, 
+                    persistenceManager);
             if (scrumIssue.getSprint() != null) {
                 scrumIssue.getSprint().removeIssue(scrumIssue);
             }

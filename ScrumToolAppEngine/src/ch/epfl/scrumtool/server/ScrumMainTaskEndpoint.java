@@ -97,8 +97,8 @@ public class ScrumMainTaskEndpoint {
         Set<ScrumMainTask> tasks = null;
         try {
             ScrumProject scrumProject = null;
-            scrumProject = persistenceManager.getObjectById(ScrumProject.class,
-                    projectKey);
+            scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class,
+                    projectKey, persistenceManager);
             tasks = scrumProject.getBacklog();
             
             for (ScrumMainTask t: tasks) {
@@ -132,8 +132,8 @@ public class ScrumMainTaskEndpoint {
                 throw new EntityNotFoundException("Object does not exist");
             }
             transaction.begin();
-            ScrumMainTask scrumMainTask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, update.getKey());
+            ScrumMainTask scrumMainTask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, update.getKey(),
+                    persistenceManager);
             scrumMainTask.setDescription(update.getDescription());
             scrumMainTask.setLastModDate(update.getLastModDate());
             scrumMainTask.setLastModUser(update.getLastModUser());
@@ -170,8 +170,8 @@ public class ScrumMainTaskEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            ScrumMainTask scrumMaintask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, mainTaskKey);
+            ScrumMainTask scrumMaintask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, mainTaskKey,
+                    persistenceManager);
             transaction.begin();
             persistenceManager.deletePersistent(scrumMaintask);
             transaction.commit();

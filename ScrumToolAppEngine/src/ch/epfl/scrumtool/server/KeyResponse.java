@@ -10,6 +10,8 @@ import java.io.Serializable;
  */
 public class KeyResponse implements Serializable {
     private static final long serialVersionUID = 5872067343145587448L;
+    private final String key;
+
     
     public KeyResponse(String key) {
         if (key == null) {
@@ -23,7 +25,6 @@ public class KeyResponse implements Serializable {
         this.key = key;
     }
     
-    private final String key;
     /**
      * @return the key
      */

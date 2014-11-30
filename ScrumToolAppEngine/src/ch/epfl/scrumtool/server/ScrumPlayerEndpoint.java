@@ -22,11 +22,11 @@ import javax.persistence.EntityExistsException;
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 
 
@@ -61,7 +61,7 @@ public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "updateScrumPlayer")
     public void updateScrumPlayer(ScrumPlayer update, User user)
-        throws UnauthorizedException {
+        throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -69,8 +69,8 @@ public class ScrumPlayerEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                    ScrumPlayer.class, update.getKey());
+            ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(
+                    ScrumPlayer.class, update.getKey(), persistenceManager);
             transaction.begin();
             scrumPlayer.setAdminFlag(update.getAdminFlag());
             scrumPlayer.setKey(update.getKey());
@@ -93,10 +93,11 @@ public class ScrumPlayerEndpoint {
      * 
      * @param id
      *            the primary key of the entity to be deleted.
+     * @throws ServiceException 
      */
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
     public void removeScrumPlayer(@Named("playerKey") String playerKey, User user)
-        throws UnauthorizedException {
+        throws ServiceException {
         if (playerKey == null) {
             throw new NullPointerException();
         }
@@ -108,8 +109,8 @@ public class ScrumPlayerEndpoint {
 
         try {
             transaction.begin();
-            ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                    ScrumPlayer.class, playerKey);
+            ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                    persistenceManager);
 
             persistenceManager.deletePersistent(scrumPlayer);
             transaction.commit();
@@ -124,7 +125,7 @@ public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "loadPlayers")
     public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
-        throws UnauthorizedException {
+        throws ServiceException {
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -136,7 +137,8 @@ public class ScrumPlayerEndpoint {
 
         try {
             persistenceManager = getPersistenceManager();
-            ScrumProject scrumProject = persistenceManager.getObjectById(ScrumProject.class, projectKey);
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, 
+                    persistenceManager);
             players = new ArrayList<ScrumPlayer>();
             for (ScrumPlayer p : scrumProject.getPlayers()) {
                 // lazy fetch
@@ -161,7 +163,7 @@ public class ScrumPlayerEndpoint {
     @ApiMethod(name = "addPlayerToProject")
     public KeyResponse addPlayerToProject(@Named("projectKey") String projectKey,
             @Named("userKey") String userEmail, @Named("role") String role,
-            User user) throws UnauthorizedException {
+            User user) throws ServiceException {
         if (projectKey == null || userEmail == null || role == null) {
             throw new NullPointerException();
         }
@@ -175,8 +177,7 @@ public class ScrumPlayerEndpoint {
         ScrumProject scrumProject = null;
 
         try {
-            scrumProject = persistenceManager.getObjectById(ScrumProject.class,
-                    projectKey);
+            scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class,projectKey, persistenceManager);
             for (ScrumPlayer player : scrumProject.getPlayers()) {
                 if (player.getUser().getEmail().equals(userEmail)) {
                     throw new EntityExistsException("Object already exists");
@@ -185,8 +186,7 @@ public class ScrumPlayerEndpoint {
             scrumPlayer = new ScrumPlayer();
 
             try {
-                scrumUser = persistenceManager.getObjectById(ScrumUser.class,
-                        userEmail);
+                scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userEmail, persistenceManager);
             } catch (javax.jdo.JDOObjectNotFoundException ex) {
                 scrumUser = new ScrumUser();
                 scrumUser.setEmail(userEmail);

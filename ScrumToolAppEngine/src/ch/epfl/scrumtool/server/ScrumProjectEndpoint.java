@@ -62,7 +62,7 @@ public class ScrumProjectEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             String userKey = scrumProject.getLastModUser();
-            ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
@@ -131,7 +131,8 @@ public class ScrumProjectEndpoint {
                 throw new EntityNotFoundException("Object does not exist");
             }
             transaction.begin();
-            ScrumProject scrumProject = persistenceManager.getObjectById(ScrumProject.class, update.getKey());
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, update.getKey(),
+                    persistenceManager);
             scrumProject.setDescription(update.getDescription());
             scrumProject.setLastModDate(update.getLastModDate());
             scrumProject.setLastModUser(update.getLastModUser());
@@ -165,7 +166,8 @@ public class ScrumProjectEndpoint {
 
         try {
             transaction.begin();
-            ScrumProject scrumproject = persistenceManager.getObjectById(ScrumProject.class, projectKey);
+            ScrumProject scrumproject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
+                    persistenceManager);
             for (ScrumPlayer p : scrumproject.getPlayers()) {
                 persistenceManager.deletePersistent(p);
             }

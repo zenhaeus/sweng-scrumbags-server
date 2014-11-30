@@ -67,8 +67,8 @@ public class ScrumSprintEndpoint {
 
         try {
             transaction.begin();
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
+                    persistenceManager);
             scrumProject.addSprint(scrumSprint);
             scrumSprint.setProject(scrumProject);
             scrumSprint.setIssues(new HashSet<ScrumIssue>());
@@ -107,8 +107,8 @@ public class ScrumSprintEndpoint {
                 throw new EntityNotFoundException("Object does not exist");
             }
             transaction.begin();
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                    ScrumSprint.class, updated.getKey());
+            ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, updated.getKey(),
+                    persistenceManager);
             scrumSprint.setTitle(updated.getTitle());
             scrumSprint.setDate(updated.getDate());
             scrumSprint.setLastModDate(updated.getLastModDate());
@@ -143,8 +143,8 @@ public class ScrumSprintEndpoint {
 
         try {
             transaction.begin();
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                    ScrumSprint.class, sprintKey);
+            ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey, 
+                    persistenceManager);
             for (ScrumIssue i : scrumSprint.getIssues()) {
                 i.setSprint(null);
             }
@@ -169,8 +169,8 @@ public class ScrumSprintEndpoint {
         Set<ScrumSprint> sprints = new HashSet<ScrumSprint>();
 
         try {
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
+                    persistenceManager);
             sprints = scrumProject.getSprints();
             for (ScrumSprint s : sprints) {
                 s.getIssues();

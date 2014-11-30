@@ -52,17 +52,18 @@ public class ScrumUserEndpoint {
      * 
      * @param eMail
      * @return
+     * @throws ServiceException 
      */
     
     @ApiMethod(name = "loginUser")
-    public ScrumUser loginUser(@Named("eMail") String eMail) {
+    public ScrumUser loginUser(@Named("eMail") String eMail) throws ServiceException {
         if (eMail == null) {
             return null;
         }
         PersistenceManager persistenceManager = getPersistenceManager();
         ScrumUser scrumUser = null;
         try {
-            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
+            scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail, persistenceManager);
     
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             ScrumUser newUser = new ScrumUser();
@@ -73,7 +74,7 @@ public class ScrumUserEndpoint {
             newUser.setName(eMail);
             insertScrumUser(newUser);
 
-            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
+            scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail,persistenceManager);
         } finally {
             persistenceManager.close();
         }
@@ -95,7 +96,7 @@ public class ScrumUserEndpoint {
         Set<ScrumProject> projects = new HashSet<ScrumProject>();
     
         try {
-            ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
             for (ScrumPlayer p : scrumUser.getPlayers()) {
                 projects.add(p.getProject());
             }
@@ -127,7 +128,8 @@ public class ScrumUserEndpoint {
         try {
             if (containsScrumUser(scrumUser)) {
                 //Create valid JDO object
-                ScrumUser update = persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
+                ScrumUser update = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, scrumUser.getEmail(),
+                        persistenceManager);
                 update.setCompanyName(scrumUser.getCompanyName());
                 update.setDateOfBirth(scrumUser.getDateOfBirth());
                 update.setEmail(scrumUser.getEmail());
@@ -168,7 +170,7 @@ public class ScrumUserEndpoint {
         
         try {
             transaction.begin();
-            ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
             
             persistenceManager.deletePersistent(scrumUser);
             transaction.commit();
