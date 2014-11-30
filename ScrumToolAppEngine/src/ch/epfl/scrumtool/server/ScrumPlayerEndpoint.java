@@ -71,12 +71,9 @@ public class ScrumPlayerEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            if (!containsScrumPlayer(update.getKey())) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
-            transaction.begin();
             ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
                     ScrumPlayer.class, update.getKey());
+            transaction.begin();
             scrumPlayer.setAdminFlag(update.getAdminFlag());
             scrumPlayer.setKey(update.getKey());
             scrumPlayer.setLastModDate(update.getLastModDate());
