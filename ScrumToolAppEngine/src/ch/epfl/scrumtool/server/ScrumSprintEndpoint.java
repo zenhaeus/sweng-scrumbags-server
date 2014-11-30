@@ -59,6 +59,9 @@ public class ScrumSprintEndpoint {
     public KeyResponse insertScrumSprint(
             @Named("projectKey") String projectKey, ScrumSprint scrumSprint,
             User user) throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -74,7 +77,7 @@ public class ScrumSprintEndpoint {
             scrumSprint.setIssues(new HashSet<ScrumIssue>());
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
-            return new KeyResponse(scrumProject.getKey());
+            return new KeyResponse(scrumSprint.getKey());
 
         } finally {
             if (transaction.isActive()) {
