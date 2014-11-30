@@ -187,7 +187,7 @@ public class ScrumPlayerEndpoint {
 
             try {
                 scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userEmail, persistenceManager);
-            } catch (javax.jdo.JDOObjectNotFoundException ex) {
+            } catch (ServiceException ex) {
                 scrumUser = new ScrumUser();
                 scrumUser.setEmail(userEmail);
                 scrumUser.setLastModDate((new Date()).getTime());

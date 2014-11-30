@@ -58,14 +58,14 @@ public class ScrumUserEndpoint {
     @ApiMethod(name = "loginUser")
     public ScrumUser loginUser(@Named("eMail") String eMail) throws ServiceException {
         if (eMail == null) {
-            return null;
+            throw new NullPointerException();
         }
         PersistenceManager persistenceManager = getPersistenceManager();
         ScrumUser scrumUser = null;
         try {
             scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail, persistenceManager);
     
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
+        } catch (ServiceException ex) {
             ScrumUser newUser = new ScrumUser();
             newUser.setEmail(eMail);
             Date date = new Date();
@@ -126,25 +126,22 @@ public class ScrumUserEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
-            if (containsScrumUser(scrumUser)) {
-                //Create valid JDO object
-                ScrumUser update = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, scrumUser.getEmail(),
-                        persistenceManager);
-                update.setCompanyName(scrumUser.getCompanyName());
-                update.setDateOfBirth(scrumUser.getDateOfBirth());
-                update.setEmail(scrumUser.getEmail());
-                update.setJobTitle(scrumUser.getJobTitle());
-                update.setLastModDate(scrumUser.getLastModDate());
-                update.setLastModUser(scrumUser.getLastModUser());
-                update.setLastName(scrumUser.getLastName());
-                update.setName(scrumUser.getName());
-                update.setGender(scrumUser.getGender());
-                
-                transaction.begin();
-                persistenceManager.makePersistent(update);
-                transaction.commit();
-            }
+            //Create valid JDO object
+            ScrumUser update = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, scrumUser.getEmail(),
+                    persistenceManager);
+            update.setCompanyName(scrumUser.getCompanyName());
+            update.setDateOfBirth(scrumUser.getDateOfBirth());
+            update.setEmail(scrumUser.getEmail());
+            update.setJobTitle(scrumUser.getJobTitle());
+            update.setLastModDate(scrumUser.getLastModDate());
+            update.setLastModUser(scrumUser.getLastModUser());
+            update.setLastName(scrumUser.getLastName());
+            update.setName(scrumUser.getName());
+            update.setGender(scrumUser.getGender());
             
+            transaction.begin();
+            persistenceManager.makePersistent(update);
+            transaction.commit();
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();

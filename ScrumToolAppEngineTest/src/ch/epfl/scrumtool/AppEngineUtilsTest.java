@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
@@ -33,13 +34,13 @@ public class AppEngineUtilsTest {
         helper.tearDown();
     }
 
-    @Test(expected = OAuthRequestException.class)
-    public void testBasicAuthenticationInvalid() throws OAuthRequestException {
+    @Test(expected = UnauthorizedException.class)
+    public void testBasicAuthenticationInvalid() throws UnauthorizedException {
         AppEngineUtils.basicAuthentication(null);
     }
 
     @Test
-    public void testBasicAuthenticationValid() throws OAuthRequestException {
+    public void testBasicAuthenticationValid() throws UnauthorizedException {
         AppEngineUtils.basicAuthentication(userLoggedIn());
     }
     

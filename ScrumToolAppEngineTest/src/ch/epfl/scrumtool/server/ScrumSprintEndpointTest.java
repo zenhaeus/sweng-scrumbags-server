@@ -9,6 +9,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
@@ -134,7 +135,7 @@ public class ScrumSprintEndpointTest {
         fail("Not yet Implemented");
     }
     
-    private ScrumUser loginUser(String email) {
+    private ScrumUser loginUser(String email) throws ServiceException {
         return USER_ENDPOINT.loginUser(email);
     }
 

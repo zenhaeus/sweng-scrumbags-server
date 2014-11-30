@@ -1,10 +1,9 @@
 package ch.epfl.scrumtool.server;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 import java.util.Set;
@@ -18,8 +17,10 @@ import ch.epfl.scrumtool.server.ScrumProject;
 import ch.epfl.scrumtool.server.ScrumUser;
 import ch.epfl.scrumtool.server.ScrumUserEndpoint;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
+import com.google.api.server.spi.response.NotFoundException;
+import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -72,38 +73,38 @@ public class ScrumUserEndpointTest {
      */
     
     @Test
-    public void testLoginUser() {
+    public void testLoginUser() throws ServiceException {
         ScrumUser user = loginUser(USER_KEY);
         assertEquals(USER_KEY, user.getEmail());
         assertEquals(USER_KEY, user.getName());
     }
 
-    @Test
-    public void testLoginUserNull() {
+    @Test(expected = NullPointerException.class)
+    public void testLoginUserNull() throws ServiceException {
         assertNull(loginUser(null));
+        fail("should have thrown a NullPointerException");
     }
 
     @Test
-    public void testRemoveExistingUser() throws OAuthRequestException {
+    public void testRemoveExistingUser() throws ServiceException {
         ScrumUser user = loginUser(USER_KEY);
-        boolean removalDone = ENDPOINT.removeScrumUser(user.getEmail(), userLoggedIn()).getSuccess();
-        assertTrue("Removing existing user should succeed", removalDone);
+        ENDPOINT.removeScrumUser(user.getEmail(), userLoggedIn());
+    }
+
+    @Test(expected = ServiceException.class)
+    public void testRemoveNonexistantUser() throws ServiceException {
+        ENDPOINT.removeScrumUser(USER_KEY, userLoggedIn());
+        fail("should have thrown a ServiceException");
+    }
+
+    @Test(expected = ServiceException.class)
+    public void testRemoveNullUser() throws ServiceException {
+        ENDPOINT.removeScrumUser(null, userLoggedIn());
+        fail("should have thrown a ServiceException");
     }
 
     @Test
-    public void testRemoveNonexistantUser() throws OAuthRequestException {
-        boolean removalDone = ENDPOINT.removeScrumUser(USER_KEY, userLoggedIn()).getSuccess();
-        assertFalse("Removing nonexistant user should fail", removalDone);
-    }
-
-    @Test
-    public void testRemoveNullUser() throws OAuthRequestException {
-        boolean removalDone = ENDPOINT.removeScrumUser(null, userLoggedIn()).getSuccess();
-        assertFalse(removalDone);
-    }
-
-    @Test
-    public void testUpdateExistingUser() throws OAuthRequestException {
+    public void testUpdateExistingUser() throws ServiceException {
         ScrumUser user = loginUser(USER_KEY);
         ScrumUser updatedUser = user;
         updatedUser.setCompanyName(COMPANY_NAME);
@@ -114,8 +115,7 @@ public class ScrumUserEndpointTest {
         updatedUser.setLastModDate(LAST_MOD_DATE);
         updatedUser.setLastModUser(LAST_MOD_USER);
         updatedUser.setGender(GENDER);
-        boolean updateSuccess = ENDPOINT.updateScrumUser(updatedUser, userLoggedIn()).getSuccess();
-        assertTrue("Updating user failed", updateSuccess);
+        ENDPOINT.updateScrumUser(updatedUser, userLoggedIn());
         updatedUser = PMF.get().getPersistenceManager().getObjectById(ScrumUser.class, USER_KEY);
         assertEquals(COMPANY_NAME, updatedUser.getCompanyName());
         assertEquals(DATE_OF_BIRTH, updatedUser.getDateOfBirth());
@@ -127,49 +127,41 @@ public class ScrumUserEndpointTest {
         assertEquals(GENDER, updatedUser.getGender());
     }
     
-    @Test
-    public void testUpdateNonExistantUser() throws OAuthRequestException {
+    @Test(expected = NotFoundException.class)
+    public void testUpdateNonExistantUser() throws ServiceException {
         ScrumUser notInDatastore = new ScrumUser();
         notInDatastore.setEmail(USER_KEY);
-        boolean updateSuccess = ENDPOINT.updateScrumUser(notInDatastore, userLoggedIn()).getSuccess();
-        assertFalse(updateSuccess);
+        ENDPOINT.updateScrumUser(notInDatastore, userLoggedIn());
+        fail("should have thrown a ServiceException");
     }
 
     @Test
-    public void testUpdateNullUser() throws OAuthRequestException {
-        boolean updateSuccess = ENDPOINT.updateScrumUser(null, userLoggedIn()).getSuccess();
-        assertFalse(updateSuccess);
-    }
-
-    @Test
-    public void testLoadProjectsForExistingUser() throws OAuthRequestException {
+    public void testLoadProjectsForExistingUser() throws ServiceException {
         loginUser(USER_KEY);
         Set<ScrumProject> projects = (Set<ScrumProject>) ENDPOINT.loadProjects(USER_KEY, userLoggedIn()).getItems();
         assertNotNull(projects);
     }
-
-    @Test
-    public void testLoadProjectsForNullUser() throws OAuthRequestException {
-        CollectionResponse<ScrumProject> projects = ENDPOINT.loadProjects(null, userLoggedIn());
-        assertNull(projects);
-    }
+    
     /*
      * Test authentification
      */
 
-    @Test(expected = OAuthRequestException.class)
-    public void testRemoveScrumUserIsProtected() throws OAuthRequestException {
+    @Test(expected = UnauthorizedException.class)
+    public void testRemoveScrumUserIsProtected() throws ServiceException {
         ENDPOINT.removeScrumUser(USER_KEY, userNotLoggedIn());
+        fail("should have thrown an UnauthorizedException");
     }
 
-    @Test(expected = OAuthRequestException.class)
-    public void testUpdateScrumUserIsProtected() throws OAuthRequestException {
+    @Test(expected = UnauthorizedException.class)
+    public void testUpdateScrumUserIsProtected() throws ServiceException {
         ENDPOINT.updateScrumUser(new ScrumUser(), userNotLoggedIn());
+        fail("should have thrown an UnauthorizedException");
     }
     
-    @Test(expected = OAuthRequestException.class)
-    public void testLoadProjectsIsProtected() throws OAuthRequestException {
+    @Test(expected = UnauthorizedException.class)
+    public void testLoadProjectsIsProtected() throws ServiceException {
         ENDPOINT.loadProjects(USER_KEY, userNotLoggedIn());
+        fail("should have thrown an UnauthorizedException");
     }
 
     
@@ -177,7 +169,7 @@ public class ScrumUserEndpointTest {
      * Helper Methods
      */
 
-    private ScrumUser loginUser(String email) {
+    private ScrumUser loginUser(String email) throws ServiceException {
         return ENDPOINT.loginUser(email);
     }
     
