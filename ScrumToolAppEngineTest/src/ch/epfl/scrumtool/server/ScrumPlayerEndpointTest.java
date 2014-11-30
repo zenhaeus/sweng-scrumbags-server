@@ -1,10 +1,13 @@
 package ch.epfl.scrumtool.server;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Set;
 
 import org.junit.After;
@@ -67,38 +70,48 @@ public class ScrumPlayerEndpointTest {
     }
 
     // Load Players tests
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testLoadPlayersNullProject() throws OAuthRequestException {
         loginUser(USER_KEY);
-        Set<ScrumPlayer> players = (Set<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(PROJECT_KEY, userLoggedIn())
-                .getItems();
-        assertNull(players);
+        PLAYER_ENDPOINT.loadPlayers(null, userLoggedIn()).getItems();
+        fail("loadPlayers should throw a NullPointerException when given a null projectKey");
     }
 
-    @Test
+    @Test(expected = javax.jdo.JDOObjectNotFoundException.class)
     public void testLoadPlayersNonExistingProject() throws OAuthRequestException {
         loginUser(USER_KEY);
-        Set<ScrumPlayer> players = (Set<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(PROJECT_KEY, userLoggedIn())
-                .getItems();
-        assertNull(players);
+        PLAYER_ENDPOINT.loadPlayers(PROJECT_KEY, userLoggedIn()).getItems();
+        fail("loadPlayers should throw a JDOObjectNotFoundException when given a non existing project");
     }
 
     @Test
     public void testLoadPlayersExistingProject() throws OAuthRequestException {
         loginUser(USER_KEY);
-        PROJECT_ENDPOINT.insertScrumProject(PROJECT, userLoggedIn());
-        Set<ScrumPlayer> players = (Set<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(PROJECT_KEY, userLoggedIn())
+        ScrumProject project = new ScrumProject();
+        project.setDescription("");
+        project.setLastModDate(Calendar.getInstance().getTimeInMillis());
+        project.setName("Project");
+        project.setLastModUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        
+        ArrayList<ScrumPlayer> players = (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
                 .getItems();
-        assertNull(players);
+        assertEquals(true, players.get(0).getAdminFlag());
+        assertEquals(USER_KEY,players.get(0).getUser().getEmail());
     }
 
-    @Test
+    @Test(expected = OAuthRequestException.class)
     public void testLoadPlayersNotLoggedIn() throws OAuthRequestException {
         loginUser(USER_KEY);
-        PROJECT_ENDPOINT.insertScrumProject(PROJECT, userLoggedIn());
-        Set<ScrumPlayer> players = (Set<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(PROJECT_KEY, userLoggedIn())
-                .getItems();
-        assertNull(players);
+        ScrumProject project = new ScrumProject();
+        project.setDescription("");
+        project.setLastModDate(Calendar.getInstance().getTimeInMillis());
+        project.setName("Project");
+        project.setLastModUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        
+        PLAYER_ENDPOINT.loadPlayers(projectKey, userNotLoggedIn());
+        fail("loadPlayers should throw a OAuthRequestException when user is not logged in");
     }
 
     //Add Players tests

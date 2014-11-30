@@ -131,13 +131,18 @@ public class ScrumPlayerEndpoint {
     @ApiMethod(name = "loadPlayers")
     public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
         throws OAuthRequestException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
+        
+        AppEngineUtils.basicAuthentication(user);
+
         PersistenceManager persistenceManager = null;
         List<ScrumPlayer> players = null;
 
         try {
             persistenceManager = getPersistenceManager();
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            ScrumProject scrumProject = persistenceManager.getObjectById(ScrumProject.class, projectKey);
             players = new ArrayList<ScrumPlayer>();
             for (ScrumPlayer p : scrumProject.getPlayers()) {
                 // lazy fetch
