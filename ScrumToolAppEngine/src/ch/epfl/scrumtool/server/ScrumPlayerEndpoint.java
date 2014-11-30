@@ -105,6 +105,7 @@ public class ScrumPlayerEndpoint {
     public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, User user)
         throws OAuthRequestException {
         OperationStatus opStatus = new OperationStatus();
+        
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -168,6 +169,9 @@ public class ScrumPlayerEndpoint {
     public OperationStatus addPlayerToProject(@Named("projectKey") String projectKey,
             @Named("userKey") String userEmail, @Named("role") String role,
             User user) throws OAuthRequestException {
+        if (projectKey == null || userEmail == null || role == null) {
+            throw new NullPointerException();
+        }
         OperationStatus opStatus = new OperationStatus();
         opStatus.setSuccess(false);
         
