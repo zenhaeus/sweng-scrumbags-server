@@ -106,12 +106,9 @@ public class ScrumSprintEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            if (!containsScrumSprint(updated)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
-            transaction.begin();
             ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, updated.getKey(),
                     persistenceManager);
+            transaction.begin();
             scrumSprint.setTitle(updated.getTitle());
             scrumSprint.setDate(updated.getDate());
             scrumSprint.setLastModDate(updated.getLastModDate());
