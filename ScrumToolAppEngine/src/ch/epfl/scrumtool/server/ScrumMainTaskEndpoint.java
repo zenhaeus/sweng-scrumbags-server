@@ -10,11 +10,11 @@ import javax.persistence.EntityNotFoundException;
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -37,8 +37,12 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP},
-        audiences = {Constants.ANDROID_AUDIENCE}
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+        },
+        audiences = {
+            Constants.ANDROID_AUDIENCE
+            }
         )
 public class ScrumMainTaskEndpoint {
     /**
@@ -51,44 +55,41 @@ public class ScrumMainTaskEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumMainTask", path = "operationstatus/taskinsert")
-    public OperationStatus insertScrumMainTask(ScrumMainTask scrumMaintask,
+    public KeyResponse insertScrumMainTask(ScrumMainTask scrumMaintask,
             @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+        
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            ScrumProject scrumProject =
+                    AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
+            
             transaction.begin();
-
+            
             scrumProject.getBacklog().add(scrumMaintask);
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
-            opStatus.setKey(scrumMaintask.getKey());
-            opStatus.setSuccess(true);
+            return new KeyResponse(scrumMaintask.getKey());
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-
-        return opStatus;
     }
 
     /**
      * @param projectKey
      * @param user
      * @return CollectionResponse<ScrumMainTask>
-     * @throws OAuthRequestException
+     * @throws ServiceException
      */
     @ApiMethod(name = "loadMainTasks")
     public CollectionResponse<ScrumMainTask> loadMainTasks(
             @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -120,11 +121,8 @@ public class ScrumMainTaskEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumMainTask", path = "operationstatus/taskupdate")
-    public OperationStatus updateScrumMainTask(ScrumMainTask update, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-
+    public void updateScrumMainTask(ScrumMainTask update, User user)
+            throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -146,14 +144,12 @@ public class ScrumMainTaskEndpoint {
             persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();
 
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -164,11 +160,9 @@ public class ScrumMainTaskEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumMainTask", path = "operationstatus/removeTask")
-    public OperationStatus removeScrumMainTask(
+    public void removeScrumMainTask(
             @Named("mainTaskKey") String mainTaskKey, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+            throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -182,15 +176,12 @@ public class ScrumMainTaskEndpoint {
             persistenceManager.deletePersistent(scrumMaintask);
             transaction.commit();
 
-            opStatus.setKey(mainTaskKey);
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**

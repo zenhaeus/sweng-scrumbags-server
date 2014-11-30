@@ -12,11 +12,12 @@ import javax.jdo.Transaction;
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
+import com.google.api.server.spi.response.InternalServerErrorException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -38,7 +39,9 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP},
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+            },
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumUserEndpoint {
@@ -79,11 +82,11 @@ public class ScrumUserEndpoint {
 
     /**
      * @return
-     * @throws OAuthRequestException
+     * @throws ServiceException
      */
     @ApiMethod(name = "loadProjects")
     public CollectionResponse<ScrumProject> loadProjects(@Named("userKey") String userKey, User user)
-        throws OAuthRequestException {
+        throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
         if (userKey == null) {
             return null;
@@ -113,12 +116,10 @@ public class ScrumUserEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser", path = "operationstatus/updateuser")
-    public OperationStatus updateScrumUser(ScrumUser scrumUser, User user) throws OAuthRequestException {
+    public void updateScrumUser(ScrumUser scrumUser, User user) throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
         if (scrumUser == null) {
-            return opStatus;
+            throw new InternalServerErrorException("Null");
         }
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
@@ -140,18 +141,15 @@ public class ScrumUserEndpoint {
                 transaction.begin();
                 persistenceManager.makePersistent(update);
                 transaction.commit();
-                opStatus.setSuccess(true);
             }
             
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
-                opStatus.setSuccess(false);
             }
             
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -160,16 +158,11 @@ public class ScrumUserEndpoint {
      * 
      * @param userKey
      *            the primary key of the entity to be deleted.
-     * @throws OAuthRequestException 
+     * @throws ServiceException 
      */
     @ApiMethod(name = "removeScrumUser", path = "operationstatus/removeuser")
-    public OperationStatus removeScrumUser(@Named("userKey") String userKey, User user) throws OAuthRequestException {
+    public void removeScrumUser(@Named("userKey") String userKey, User user) throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-        if (userKey == null) {
-            return opStatus;
-        }
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
@@ -180,16 +173,13 @@ public class ScrumUserEndpoint {
             persistenceManager.deletePersistent(scrumUser);
             transaction.commit();
             
-            opStatus.setSuccess(true);
         } catch (JDOObjectNotFoundException e) {
-            opStatus.setSuccess(false);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**

@@ -5,12 +5,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityExistsException;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
@@ -19,17 +26,8 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
+import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
-
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 
 /**
@@ -53,17 +51,17 @@ import javax.mail.internet.MimeMessage;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP },
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+            },
         audiences = { 
             Constants.ANDROID_AUDIENCE }
         )
 public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "updateScrumPlayer")
-    public OperationStatus updateScrumPlayer(ScrumPlayer update, User user)
-        throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+    public void updateScrumPlayer(ScrumPlayer update, User user)
+        throws UnauthorizedException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -81,14 +79,12 @@ public class ScrumPlayerEndpoint {
             scrumPlayer.setRole(update.getRole());
             transaction.commit();
 
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -99,12 +95,11 @@ public class ScrumPlayerEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
-    public OperationStatus removeScrumPlayer(@Named("playerKey") String playerKey, User user)
-        throws OAuthRequestException {
+    public void removeScrumPlayer(@Named("playerKey") String playerKey, User user)
+        throws UnauthorizedException {
         if (playerKey == null) {
             throw new NullPointerException();
         }
-        OperationStatus opStatus = new OperationStatus();
         
         AppEngineUtils.basicAuthentication(user);
 
@@ -119,19 +114,17 @@ public class ScrumPlayerEndpoint {
             persistenceManager.deletePersistent(scrumPlayer);
             transaction.commit();
 
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     @ApiMethod(name = "loadPlayers")
     public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
-        throws OAuthRequestException {
+        throws UnauthorizedException {
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -166,14 +159,12 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "addPlayerToProject")
-    public OperationStatus addPlayerToProject(@Named("projectKey") String projectKey,
+    public KeyResponse addPlayerToProject(@Named("projectKey") String projectKey,
             @Named("userKey") String userEmail, @Named("role") String role,
-            User user) throws OAuthRequestException {
+            User user) throws UnauthorizedException {
         if (projectKey == null || userEmail == null || role == null) {
             throw new NullPointerException();
         }
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
         
         AppEngineUtils.basicAuthentication(user);
 
@@ -220,8 +211,7 @@ public class ScrumPlayerEndpoint {
             scrumPlayer.setProject(scrumProject);
             persistenceManager.makePersistent(scrumPlayer);
             transaction.commit();
-            opStatus.setKey(scrumPlayer.getKey());
-            opStatus.setSuccess(true);
+            return new KeyResponse(scrumPlayer.getKey());
 
         } finally {
             if (transaction.isActive()) {
@@ -238,28 +228,11 @@ public class ScrumPlayerEndpoint {
                 sendNotificationEMail(scrumUser.getEmail(), scrumProject.getName());
             }
         }
-
-        return opStatus;
-    }
-
-    private boolean containsScrumPlayer(String playerKey) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumPlayer.class,
-                    playerKey);
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
     }
 
     private static PersistenceManager getPersistenceManager() {
         return PMF.get().getPersistenceManager();
     }
-
 
     private static void sendNotificationEMail(String address, String projectName) {
         Properties props = new Properties();

@@ -11,11 +11,11 @@ import javax.persistence.EntityNotFoundException;
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -39,7 +39,9 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP },
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+            },
         audiences = { 
             Constants.ANDROID_AUDIENCE }
         )
@@ -54,11 +56,9 @@ public class ScrumSprintEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumSprint")
-    public OperationStatus insertScrumSprint(
+    public KeyResponse insertScrumSprint(
             @Named("projectKey") String projectKey, ScrumSprint scrumSprint,
-            User user) throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+            User user) throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -74,8 +74,7 @@ public class ScrumSprintEndpoint {
             scrumSprint.setIssues(new HashSet<ScrumIssue>());
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
-            opStatus.setKey(scrumProject.getKey());
-            opStatus.setSuccess(true);
+            return new KeyResponse(scrumProject.getKey());
 
         } finally {
             if (transaction.isActive()) {
@@ -83,7 +82,6 @@ public class ScrumSprintEndpoint {
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -96,10 +94,8 @@ public class ScrumSprintEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumSprint", path = "operationstatus/updatesprint")
-    public OperationStatus updateScrumSprint(ScrumSprint updated, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+    public void updateScrumSprint(ScrumSprint updated, User user)
+            throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -120,15 +116,12 @@ public class ScrumSprintEndpoint {
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
 
-            opStatus.setSuccess(true);
-
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -139,11 +132,9 @@ public class ScrumSprintEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumSprint", path = "operationstatus/removesprint")
-    public OperationStatus removeScrumSprint(
+    public void removeScrumSprint(
             @Named("sprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+            throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -159,7 +150,6 @@ public class ScrumSprintEndpoint {
             }
             persistenceManager.deletePersistent(scrumSprint);
             transaction.commit();
-            opStatus.setSuccess(true);
 
         } finally {
             if (transaction.isActive()) {
@@ -167,13 +157,12 @@ public class ScrumSprintEndpoint {
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     @ApiMethod(name = "loadSprints")
     public CollectionResponse<ScrumSprint> loadSprints(
             @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
