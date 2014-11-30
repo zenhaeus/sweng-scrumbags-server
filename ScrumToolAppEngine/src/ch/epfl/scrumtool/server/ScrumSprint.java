@@ -50,6 +50,10 @@ public class ScrumSprint {
         this.title = title;
     }
     
+    public void setKey(String key) {
+        this.key = key;
+    }
+    
     public String getKey() {
         return key;
     }
