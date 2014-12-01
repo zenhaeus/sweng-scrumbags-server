@@ -388,6 +388,9 @@ public class ScrumIssueEndpoint {
             @Named("issueKey") String issueKey,
             @Named("sprintKey") String sprintKey, User user)
             throws ServiceException {
+        if (issueKey == null || sprintKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
