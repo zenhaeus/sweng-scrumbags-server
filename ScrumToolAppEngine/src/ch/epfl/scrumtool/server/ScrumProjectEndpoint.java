@@ -61,7 +61,7 @@ public class ScrumProjectEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            String userKey = scrumProject.getLastModUser();
+            String userKey = user.getEmail();
             ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
