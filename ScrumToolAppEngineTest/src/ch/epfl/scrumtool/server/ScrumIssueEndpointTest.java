@@ -699,31 +699,58 @@ public class ScrumIssueEndpointTest {
 
     // Remove issues from sprint tests
     @Test
-    public void testRemoveExistingIssueFromExistingSprint() {
-        fail("Not yet Implemented");
+    public void testRemoveExistingIssueFromExistingSprintWithUser() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn())
+                .getKey();
+        sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
+        assertEquals(1, sprint.getIssues().size());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+        ISSUE_ENDPOINT.removeScrumIssueFromSprint(issueKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class,issueKey);
+        assertIssue();
+        assertNull(issue.getSprint());
+        sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
+        assertEquals(0, sprint.getIssues().size());
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testRemoveIssueFromNullSprint() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn())
+                .getKey();
+        ISSUE_ENDPOINT.removeScrumIssueFromSprint(issueKey, userLoggedIn());
+        fail("should have thrown a NotFoundException");
     }
 
     @Test(expected = NullPointerException.class)
-    public void testRemoveIssueFromNullSprint() {
-        fail("should have thrown a NullPointerException");
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testRemoveNullIssueFromSprint() {
+    public void testRemoveNullIssueFromSprint() throws ServiceException {
+        loginUser(USER_KEY);
+        ISSUE_ENDPOINT.removeScrumIssueFromSprint(null, userLoggedIn());
         fail("should have thrown a NullPointerException");
     }
 
     @Test(expected = NotFoundException.class)
-    public void testRemoveNonExistingIssueFromSprint() {
+    public void testRemoveNonExistingIssueFromSprint() throws ServiceException {
+        loginUser(USER_KEY);
+        ISSUE_ENDPOINT.removeScrumIssueFromSprint("non-existing", userLoggedIn());
         fail("should have thrown NotFoundException");
     }
     
-    @Test(expected = NotFoundException.class)
-    public void testRemoveIssueFromNonExistingSprint() {
-        fail("should have thrown NotFoundException");
-    }
     @Test(expected = UnauthorizedException.class)
-    public void testRemoveIssueFromSprintNotLoggedIn() {
+    public void testRemoveIssueFromSprintNotLoggedIn() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn())
+                .getKey();
+        ISSUE_ENDPOINT.removeScrumIssueFromSprint(issueKey, userNotLoggedIn());
         fail("should have thrown UnauthorizedException");
     }
     

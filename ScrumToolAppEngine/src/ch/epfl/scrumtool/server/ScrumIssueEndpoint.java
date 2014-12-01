@@ -17,6 +17,7 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
+import com.google.api.server.spi.response.NotFoundException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -430,6 +431,9 @@ public class ScrumIssueEndpoint {
     public void removeScrumIssueFromSprint(
             @Named("issueKey") String issueKey, User user)
             throws ServiceException {
+        if (issueKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -439,7 +443,9 @@ public class ScrumIssueEndpoint {
 
             ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey,
                     persistenceManager);
-            
+            if (scrumIssue.getSprint() == null) {
+                throw new NotFoundException("This Issue is not assigned to any Sprint");
+            }
             ScrumSprint scrumSprint = scrumIssue.getSprint();
             
             scrumIssue.setSprint(null);
