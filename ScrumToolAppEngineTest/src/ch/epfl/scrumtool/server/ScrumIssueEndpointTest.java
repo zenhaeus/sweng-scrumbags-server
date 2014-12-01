@@ -598,22 +598,102 @@ public class ScrumIssueEndpointTest {
 
     // Remove Issue tests
     @Test
-    public void testRemoveExistingIssue() {
-        fail("Not yet Implemented");
+    public void testRemoveExistingIssueWithPlayerWithSprint() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn())
+                .getKey();
+        sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
+        assertEquals(1, sprint.getIssues().size());
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(1, maintask.getIssues().size());
+        ScrumPlayer player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, playerKey);
+        assertEquals(1, player.getIssues().size());
+        ISSUE_ENDPOINT.removeScrumIssue(issueKey, userLoggedIn());
+        sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
+        assertEquals(0, sprint.getIssues().size());
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(0, maintask.getIssues().size());
+        player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, playerKey);
+        assertEquals(0, player.getIssues().size());
+    }
+    
+    @Test
+    public void testRemoveExistingIssue() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn())
+                .getKey();
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(1, maintask.getIssues().size());
+        ISSUE_ENDPOINT.removeScrumIssue(issueKey, userLoggedIn());
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(0, maintask.getIssues().size());
+    }
+    
+    @Test
+    public void testRemoveExistingIssueWithPlayer() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, null, userLoggedIn())
+                .getKey();
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(1, maintask.getIssues().size());
+        ScrumPlayer player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, playerKey);
+        assertEquals(1, player.getIssues().size());
+        ISSUE_ENDPOINT.removeScrumIssue(issueKey, userLoggedIn());
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(0, maintask.getIssues().size());
+        player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, playerKey);
+        assertEquals(0, player.getIssues().size());
+    }
+    
+    @Test
+    public void testRemoveExistingIssueWithSprint() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, sprintKey, userLoggedIn())
+                .getKey();
+        sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
+        assertEquals(1, sprint.getIssues().size());
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(1, maintask.getIssues().size());
+        ISSUE_ENDPOINT.removeScrumIssue(issueKey, userLoggedIn());
+        sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
+        assertEquals(0, sprint.getIssues().size());
+        maintask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, maintaskKey);
+        assertEquals(0, maintask.getIssues().size());
     }
 
     @Test(expected = NullPointerException.class)
-    public void testRemoveNullIssue() {
+    public void testRemoveNullIssue() throws ServiceException {
+        ISSUE_ENDPOINT.removeScrumIssue(null, userLoggedIn());
         fail("should have thrown a NullPointerException");
     }
 
     @Test(expected = NotFoundException.class)
-    public void testRemoveNonExistingIssue() {
+    public void testRemoveNonExistingIssue() throws ServiceException {
+        ISSUE_ENDPOINT.removeScrumIssue("non-existing", userLoggedIn());
         fail("should have thrown NotFoundException");
     }
 
     @Test(expected = UnauthorizedException.class)
-    public void testRemoveIssueNotLoggedIn() {
+    public void testRemoveIssueNotLoggedIn() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, sprintKey, userLoggedIn())
+                .getKey();
+        ISSUE_ENDPOINT.removeScrumIssue(issueKey, userNotLoggedIn());
         fail("should have thrown UnauthorizedException");
     }
 

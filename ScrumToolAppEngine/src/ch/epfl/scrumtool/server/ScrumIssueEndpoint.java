@@ -461,6 +461,9 @@ public class ScrumIssueEndpoint {
     @ApiMethod(name = "removeScrumIssue", path = "operationstatus/removeIssue")
     public void removeScrumIssue(@Named("issueKey") String issueKey,
             User user) throws ServiceException {
+        if (issueKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
