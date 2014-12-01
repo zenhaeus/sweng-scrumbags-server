@@ -174,7 +174,8 @@ public class ScrumIssueEndpointTest {
         sprint.setTitle("Ttitle");
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, sprintKey, userLoggedIn());
-        HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesBySprint(sprintKey, userLoggedIn()).getItems();
+        HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesBySprint(sprintKey, userLoggedIn())
+                .getItems();
         assertNotNull(issues);
         assertEquals(1, issues.size());
         assertEquals(Priority.HIGH, issues.iterator().next().getPriority());
@@ -206,23 +207,47 @@ public class ScrumIssueEndpointTest {
 
     // LoadUnsprintedIssues tests
     @Test
-    public void testLoadUnsprintedIssuesExistingProject() {
-        fail("Not yet Implemented");
+    public void testLoadUnsprintedIssuesExistingProject() throws ServiceException {
+        loginUser(USER_KEY);
+        ScrumProject project = new ScrumProject();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        ScrumMainTask maintask = new ScrumMainTask();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        ScrumIssue issue = new ScrumIssue();
+        issue.setName("issue1");
+        issue.setDescription("description issue");
+        issue.setPriority(Priority.HIGH);
+        ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn());
+        HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadUnsprintedIssuesForProject(projectKey, 
+                userLoggedIn()).getItems();
+        assertNotNull(issues);
+        assertEquals(1, issues.size());
+        assertEquals(Priority.HIGH, issues.iterator().next().getPriority());
+        assertEquals("issue1", issues.iterator().next().getName());
+        assertEquals("description issue", issues.iterator().next().getDescription());
     }
     
-    @Test
-    public void testLoadUnsprintedIssuesNonExistingProject() {
-        fail("Not yet Implemented");
+    @Test(expected = NotFoundException.class)
+    public void testLoadUnsprintedIssuesNonExistingProject() throws ServiceException {
+        loginUser(USER_KEY);
+        ISSUE_ENDPOINT.loadUnsprintedIssuesForProject("non-existing", userLoggedIn());
+        fail("should have thrown NotFoundException");
     }
     
-    @Test
-    public void testLoadUnsprintedIssuesNullProject() {
-        fail("Not yet Implemented");
+    @Test(expected = NullPointerException.class)
+    public void testLoadUnsprintedIssuesNullProject() throws ServiceException {
+        loginUser(USER_KEY);
+        ISSUE_ENDPOINT.loadUnsprintedIssuesForProject(null, userLoggedIn());
+        fail("should have thrown NullPointerException");
     }
     
-    @Test
-    public void testLoadUnsprintedIssuesNotLoggedIn() {
-        fail("Not yet Implemented");
+    @Test(expected = UnauthorizedException.class)
+    public void testLoadUnsprintedIssuesNotLoggedIn() throws ServiceException {
+        loginUser(USER_KEY);
+        ScrumProject project = new ScrumProject();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        ISSUE_ENDPOINT.loadUnsprintedIssuesForProject(projectKey, userNotLoggedIn());
+        fail("should have thrown UnauthorizedException");
     }
 
     // Insert Issue tests
