@@ -63,6 +63,9 @@ public class ScrumIssueEndpoint {
             @Nullable @Named("playerKey") String playerKey,
             @Nullable @Named("SprintKey") String sprintKey, User user)
             throws ServiceException {
+        if (scrumIssue == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -114,6 +117,9 @@ public class ScrumIssueEndpoint {
     public CollectionResponse<ScrumIssue> loadIssuesByMainTask(
             @Named("mainTaskKey") String maintaskKey, User user)
             throws ServiceException {
+        if(maintaskKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -142,6 +148,9 @@ public class ScrumIssueEndpoint {
     public CollectionResponse<ScrumIssue> loadIssuesBySprint(
             @Named("sprintKey") String sprintKey, User user)
             throws ServiceException {
+        if (sprintKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -182,6 +191,9 @@ public class ScrumIssueEndpoint {
     public CollectionResponse<ScrumIssue> loadIssuesForUser(
             @Named("userKey") String userKey, User user)
             throws ServiceException {
+        if (userKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -241,6 +253,9 @@ public class ScrumIssueEndpoint {
     @ApiMethod(name = "loadUnsprintedIssuesForProject")
     public CollectionResponse<ScrumIssue> loadUnsprintedIssuesForProject(
             @Named("projectKey") String projectKey, User user) throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
 
@@ -292,7 +307,9 @@ public class ScrumIssueEndpoint {
             @Nullable @Named("SprintKey") String sprintKey,
             User user)
             throws ServiceException {
-
+        if (update == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = getPersistenceManager();
