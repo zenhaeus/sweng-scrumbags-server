@@ -49,10 +49,16 @@ public class ScrumIssueEndpointTest {
     private static final long TIME = Calendar.getInstance().getTimeInMillis();
     private static final Status STATUS = Status.READY_FOR_SPRINT;
     private static final Priority PRIORITY = Priority.HIGH;
+    private static final String TITLE2 = "issue2 title";
+    private static final String DESCRIPTION2 = "issue2 description";
+    private static final long TIME2 = Calendar.getInstance().getTimeInMillis()+10000;
+    private static final Status STATUS2 = Status.READY_FOR_ESTIMATION;
+    private static final Priority PRIORITY2 = Priority.LOW;
     private static final double DELTA = 1e8; // used to test equality between 2 long
     private static final String ROLE = Role.DEVELOPER.name();
     private static final long SPRINT_DATE = Calendar.getInstance().getTimeInMillis();
     private static final String SPRINT_TITLE = "sprint 1";
+    
     private ScrumMainTask maintask;
     private ScrumProject project;
     private ScrumSprint sprint;
@@ -76,11 +82,7 @@ public class ScrumIssueEndpointTest {
         sprint.setTitle(SPRINT_TITLE);
 
         issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
+        setIssue();
         
         helper.setUp();
     }
@@ -105,7 +107,7 @@ public class ScrumIssueEndpointTest {
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertIssue(issue);
+        assertIssue();
         assertEquals(playerKey, issue.getAssignedPlayer().getKey());
         assertNull(issue.getSprint());
     }
@@ -142,7 +144,7 @@ public class ScrumIssueEndpointTest {
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertIssue(issue);
+        assertIssue();
         assertNull(issue.getAssignedPlayer());
         assertNull(issue.getSprint());
     }
@@ -183,7 +185,7 @@ public class ScrumIssueEndpointTest {
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertIssue(issue);
+        assertIssue();
         assertNull(issue.getAssignedPlayer());
         assertEquals(sprintKey, issue.getSprint().getKey());
     }
@@ -222,7 +224,7 @@ public class ScrumIssueEndpointTest {
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertIssue(issue);
+        assertIssue();
         assertNull(issue.getSprint());
         assertNull(issue.getAssignedPlayer());
     }
@@ -257,7 +259,7 @@ public class ScrumIssueEndpointTest {
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertIssue(issue);
+        assertIssue();
         assertNull(issue.getAssignedPlayer());
         assertNull(issue.getSprint());
         }
@@ -270,7 +272,7 @@ public class ScrumIssueEndpointTest {
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, null, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertIssue(issue);
+        assertIssue();
         assertEquals(playerKey, issue.getAssignedPlayer().getKey());
         assertNull(issue.getSprint());
     }
@@ -283,7 +285,7 @@ public class ScrumIssueEndpointTest {
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, sprintKey, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertIssue(issue);
+        assertIssue();
         assertNull(issue.getAssignedPlayer());
         assertEquals(sprintKey, issue.getSprint().getKey());
     }
@@ -297,7 +299,7 @@ public class ScrumIssueEndpointTest {
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertIssue(issue);
+        assertIssue();
         assertEquals(playerKey, issue.getAssignedPlayer().getKey());
         assertEquals(sprintKey, issue.getSprint().getKey());
     }
@@ -344,7 +346,7 @@ public class ScrumIssueEndpointTest {
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssueInSprint(issueKey, sprintKey, userLoggedIn());
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertIssue(issue);
+        assertIssue();
         assertNull(issue.getAssignedPlayer());
         assertEquals(sprintKey, issue.getSprint().getKey());
         sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
@@ -352,8 +354,8 @@ public class ScrumIssueEndpointTest {
         assertEquals(SPRINT_TITLE, sprint.getTitle());
         assertNotNull(sprint.getIssues());
         assertEquals(1, sprint.getIssues().size());
-        ScrumIssue iss = sprint.getIssues().iterator().next();
-        assertIssue(iss);
+        issue = sprint.getIssues().iterator().next();
+        assertIssue();
     }
     
     @Test
@@ -366,7 +368,7 @@ public class ScrumIssueEndpointTest {
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, null, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssueInSprint(issueKey, sprintKey, userLoggedIn());
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertIssue(issue);
+        assertIssue();
         assertEquals(playerKey, issue.getAssignedPlayer().getKey());
         assertEquals(sprintKey, issue.getSprint().getKey());
         sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
@@ -374,8 +376,8 @@ public class ScrumIssueEndpointTest {
         assertEquals(SPRINT_TITLE, sprint.getTitle());
         assertNotNull(sprint.getIssues());
         assertEquals(1, sprint.getIssues().size());
-        ScrumIssue iss = sprint.getIssues().iterator().next();
-        assertIssue(iss);
+        issue = sprint.getIssues().iterator().next();
+        assertIssue();
         
     }
     
@@ -433,26 +435,164 @@ public class ScrumIssueEndpointTest {
 
     // Update Issue tests
     @Test
-    public void testUpdateExistingIssue() {
-        fail("Not yet Implemented");
-        //without player and sprint
-        //with sprint
-        //with player
-        //with player and sprint
-    }
+    public void testUpdateExistingIssue() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn()).getKey();
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        
+        // for the foolowing comments it means from one state ==> to a new state
+        // p stands for player, s for sprint
+        // the backslash means without
+        assertNull(issue.getAssignedPlayer());
+        assertNull(issue.getSprint());
+        
+        // /p/s ==> /p/s
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertNull(issue.getAssignedPlayer());
+        assertNull(issue.getSprint());
+        
+        // /p/s ==> /ps
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertNull(issue.getAssignedPlayer());
+        assertEquals(sprintKey, issue.getSprint().getKey());
 
-    @Test(expected = NotFoundException.class)
-    public void testUpdateNonExistingIssue() {
-        fail("should have thrown NotFoundException");
+        // /ps ==> /p/s
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertNull(issue.getAssignedPlayer());
+        assertNull(issue.getSprint());
+
+        // /p/s ==> p/s
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertNull(issue.getSprint());
+
+        // p/s ==> /p/s
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertNull(issue.getAssignedPlayer());
+        assertNull(issue.getSprint());
+
+        // /p/s ==> ps
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+
+        // ps ==> ps
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+
+        // ps ==> /ps
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertNull(issue.getAssignedPlayer());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+
+        // /ps ==> ps
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+
+        // ps ==> p/s 
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertNull(issue.getSprint());
+
+        // p/s ==> /ps
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertNull(issue.getAssignedPlayer());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+
+        // /ps ==> /ps
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertNull(issue.getAssignedPlayer());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+
+        // /ps ==> p/s
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertNull(issue.getSprint());
+
+        // p/s ==> p/s
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertNull(issue.getSprint());
+
+        // p/s ==> ps
+        setIssue2();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, playerKey, sprintKey, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue2();
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertEquals(sprintKey, issue.getSprint().getKey());
+
+        // ps ==> /p/s
+        setIssue();
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, null, userLoggedIn());
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        assertIssue();
+        assertNull(issue.getAssignedPlayer());
+        assertNull(issue.getSprint());
     }
 
     @Test(expected = NullPointerException.class)
-    public void testUpdateNullIssue() {
+    public void testUpdateNullIssue() throws ServiceException {
+        ISSUE_ENDPOINT.updateScrumIssue(null, null, null, userLoggedIn());
         fail("should have thrown a NullPointerException");
     }
 
     @Test(expected = UnauthorizedException.class)
-    public void testUpdateIssueNotLoggedIn() {
+    public void testUpdateIssueNotLoggedIn() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn()).getKey();
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+        ISSUE_ENDPOINT.updateScrumIssue(issue, null, null, userNotLoggedIn());
         fail("should have thrown UnauthorizedException");
     }
 
@@ -507,12 +647,38 @@ public class ScrumIssueEndpointTest {
         fail("should have thrown UnauthorizedException");
     }
     
-    private void assertIssue(ScrumIssue issue) {
+    private void setIssue() {
+        issue.setName(TITLE);
+        issue.setDescription(DESCRIPTION);
+        issue.setPriority(PRIORITY);
+        issue.setEstimation(TIME);
+        issue.setStatus(STATUS);
+    }
+    
+    private void setIssue2() {
+        issue.setName(TITLE2);
+        issue.setDescription(DESCRIPTION2);
+        issue.setPriority(PRIORITY2);
+        issue.setEstimation(TIME2);
+        issue.setStatus(STATUS2);
+    }
+    
+    
+    
+    private void assertIssue() {
         assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
+        assertEquals(TITLE, issue.getName());
         assertEquals(DESCRIPTION, issue.getDescription());
         assertEquals(TIME, issue.getEstimation(), DELTA);
         assertEquals(STATUS, issue.getStatus());
+    }
+    
+    private void assertIssue2() {
+        assertEquals(PRIORITY2, issue.getPriority());
+        assertEquals(TITLE2, issue.getName());
+        assertEquals(DESCRIPTION2, issue.getDescription());
+        assertEquals(TIME2, issue.getEstimation(), DELTA);
+        assertEquals(STATUS2, issue.getStatus());
     }
 
     private ScrumUser loginUser(String email) throws ServiceException {

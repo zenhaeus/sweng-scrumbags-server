@@ -329,6 +329,7 @@ public class ScrumIssueEndpoint {
             scrumIssue.setStatus(update.getStatus());
             scrumIssue.setPriority(update.getPriority());
 
+            // update the player only if necessary
             if (playerKey != null) {
                 if (scrumIssue.getAssignedPlayer() == null) {
                     ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
@@ -336,8 +337,7 @@ public class ScrumIssueEndpoint {
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
                     persistenceManager.makePersistent(scrumPlayer);
-                } else if (!scrumIssue.getAssignedPlayer().getKey()
-                        .equals(playerKey)) {
+                } else if (!scrumIssue.getAssignedPlayer().getKey().equals(playerKey)) {
                     scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
                     ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
                             persistenceManager);
@@ -348,6 +348,7 @@ public class ScrumIssueEndpoint {
             } else {
                 if (scrumIssue.getAssignedPlayer() != null) {
                     scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
+                    scrumIssue.setAssignedPlayer(null);
                 }
             }
 
@@ -371,6 +372,7 @@ public class ScrumIssueEndpoint {
             } else {
                 if (scrumIssue.getSprint() != null) {
                     scrumIssue.getSprint().removeIssue(scrumIssue);
+                    scrumIssue.setSprint(null);
                 }
             }
             persistenceManager.makePersistent(scrumIssue);
