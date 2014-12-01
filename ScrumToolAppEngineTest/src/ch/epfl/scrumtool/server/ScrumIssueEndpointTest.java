@@ -53,6 +53,9 @@ public class ScrumIssueEndpointTest {
     private static final String ROLE = Role.DEVELOPER.name();
 
     private ScrumMainTask maintask;
+    private ScrumProject project;
+    private ScrumSprint sprint;
+    private ScrumIssue issue;
 
     @Before
     public void setUp() throws Exception {
@@ -62,6 +65,22 @@ public class ScrumIssueEndpointTest {
         maintask.setName("MainTask");
         maintask.setLastModUser(USER_KEY);
         maintask.setPriority(Priority.NORMAL);
+        
+        project = new ScrumProject();
+        project.setName("Project name");
+        project.setDescription("Project description");
+        
+        sprint = new ScrumSprint();
+        sprint.setDate(Calendar.getInstance().getTimeInMillis());
+        sprint.setTitle("sprint 1");
+
+        issue = new ScrumIssue();
+        issue.setName(TITLE);
+        issue.setDescription(DESCRIPTION);
+        issue.setPriority(PRIORITY);
+        issue.setEstimation(TIME);
+        issue.setStatus(STATUS);
+        
         helper.setUp();
     }
 
@@ -76,18 +95,8 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testLoadIssuesForUser() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
-        project.setName("Name");
-        project.setDescription("Description");
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         String playerKey = project.getPlayers().iterator().next().getKey();
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, null, userLoggedIn());
@@ -95,11 +104,9 @@ public class ScrumIssueEndpointTest {
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
+        assertEquals(playerKey, issue.getAssignedPlayer().getKey());
+        assertNull(issue.getSprint());
     }
     
     @Test(expected = NotFoundException.class)
@@ -127,26 +134,16 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testLoadIssuesByMainTask() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn());
         HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesByMainTask(maintaskKey, userLoggedIn()).getItems();
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
+        assertNull(issue.getAssignedPlayer());
+        assertNull(issue.getSprint());
     }
     
     @Test(expected = NotFoundException.class)
@@ -166,9 +163,7 @@ public class ScrumIssueEndpointTest {
     @Test(expected = UnauthorizedException.class)
     public void testLoadIssuesByMainTaskNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.loadIssuesByMainTask(maintaskKey, userNotLoggedIn()).getItems();
         fail("Should have thrown UnauthorizedException");
@@ -178,17 +173,8 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testLoadIssuesBySprint() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
-        ScrumSprint sprint = new ScrumSprint();
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, sprintKey, userLoggedIn());
         HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesBySprint(sprintKey, userLoggedIn())
@@ -196,11 +182,9 @@ public class ScrumIssueEndpointTest {
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
+        assertNull(issue.getAssignedPlayer());
+        assertEquals(sprintKey, issue.getSprint().getKey());
     }
     
     
@@ -229,27 +213,17 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testLoadUnsprintedIssuesExistingProject() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn());
         HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadUnsprintedIssuesForProject(projectKey, 
                 userLoggedIn()).getItems();
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
+        assertNull(issue.getSprint());
+        assertNull(issue.getAssignedPlayer());
     }
     
     @Test(expected = NotFoundException.class)
@@ -269,7 +243,6 @@ public class ScrumIssueEndpointTest {
     @Test(expected = UnauthorizedException.class)
     public void testLoadUnsprintedIssuesNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.loadUnsprintedIssuesForProject(projectKey, userNotLoggedIn());
         fail("should have thrown UnauthorizedException");
@@ -279,23 +252,11 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testInsertIssueWithoutPlayerWithoutSprint() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
         assertNull(issue.getAssignedPlayer());
         assertNull(issue.getSprint());
         }
@@ -303,24 +264,12 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testInsertIssueWithPlayer() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, null, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
         assertEquals(playerKey, issue.getAssignedPlayer().getKey());
         assertNull(issue.getSprint());
     }
@@ -328,25 +277,12 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testInsertIssueWithSprint() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        ScrumSprint sprint = new ScrumSprint();
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, sprintKey, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
         assertNull(issue.getAssignedPlayer());
         assertEquals(sprintKey, issue.getSprint().getKey());
     }
@@ -354,35 +290,21 @@ public class ScrumIssueEndpointTest {
     @Test
     public void testInsertIssueWithPlayerWithSprint() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
-        ScrumSprint sprint = new ScrumSprint();
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
-        issue.setName(TITLE);
-        issue.setDescription(DESCRIPTION);
-        issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
-        issue.setStatus(STATUS);
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
-        assertEquals(PRIORITY, issue.getPriority());
-        assertEquals(TITLE , issue.getName());
-        assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
-        assertEquals(STATUS, issue.getStatus());
+        assertIssue(issue);
         assertEquals(playerKey, issue.getAssignedPlayer().getKey());
-        assertEquals(sprintKey, issue.getSprint().getKey());    }
+        assertEquals(sprintKey, issue.getSprint().getKey());
+    }
     
     @Test(expected = NullPointerException.class)
     public void testInsertNullIssue() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssue(null, maintaskKey, null, null, userLoggedIn());
         fail("should have thrown a NullPointerException");
@@ -391,7 +313,6 @@ public class ScrumIssueEndpointTest {
     @Test(expected = NullPointerException.class)
     public void testInsertIssueNullMaintask() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumIssue issue = new ScrumIssue();
         ISSUE_ENDPOINT.insertScrumIssue(issue, null, null, null, userLoggedIn());
         fail("should have thrown a NullPointerException");
     }
@@ -399,7 +320,6 @@ public class ScrumIssueEndpointTest {
     @Test(expected = NotFoundException.class)
     public void testInsertIssueNonExistingMaintask() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumIssue issue = new ScrumIssue();
         ISSUE_ENDPOINT.insertScrumIssue(issue, "non-existing", null, null, userLoggedIn());
         fail("should have thrown NotFoundException");
     }
@@ -407,19 +327,17 @@ public class ScrumIssueEndpointTest {
     @Test(expected = UnauthorizedException.class)
     public void testInsertIssueNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
-        ScrumProject project = new ScrumProject();
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        ScrumIssue issue = new ScrumIssue();
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userNotLoggedIn());
         fail("should have thrown UnauthorizedException");
     }
 
     // Insert Issue in sprint tests
     @Test
-    public void testInsertExistingIssueInExistingSprint() {
-        fail("Not yet Implemented");
+    public void testInsertExistingIssueInExistingSprint() throws ServiceException {
+        loginUser(USER_KEY);
+        
     }
     
     @Test(expected = NotFoundException.class)
@@ -521,6 +439,14 @@ public class ScrumIssueEndpointTest {
     @Test(expected = UnauthorizedException.class)
     public void testRemoveIssueFromSprintNotLoggedIn() {
         fail("should have thrown UnauthorizedException");
+    }
+    
+    private void assertIssue(ScrumIssue issue) {
+        assertEquals(PRIORITY, issue.getPriority());
+        assertEquals(TITLE , issue.getName());
+        assertEquals(DESCRIPTION, issue.getDescription());
+        assertEquals(TIME, issue.getEstimation(), DELTA);
+        assertEquals(STATUS, issue.getStatus());
     }
 
     private ScrumUser loginUser(String email) throws ServiceException {
