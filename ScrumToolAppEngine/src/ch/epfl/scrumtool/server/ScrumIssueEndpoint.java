@@ -63,7 +63,7 @@ public class ScrumIssueEndpoint {
             @Nullable @Named("playerKey") String playerKey,
             @Nullable @Named("SprintKey") String sprintKey, User user)
             throws ServiceException {
-        if (scrumIssue == null) {
+        if (scrumIssue == null || maintaskKey == null) {
             throw new NullPointerException();
         }
         AppEngineUtils.basicAuthentication(user);
@@ -117,7 +117,7 @@ public class ScrumIssueEndpoint {
     public CollectionResponse<ScrumIssue> loadIssuesByMainTask(
             @Named("mainTaskKey") String maintaskKey, User user)
             throws ServiceException {
-        if(maintaskKey == null) {
+        if (maintaskKey == null) {
             throw new NullPointerException();
         }
 
