@@ -58,6 +58,9 @@ public class ScrumMainTaskEndpoint {
     public KeyResponse insertScrumMainTask(ScrumMainTask scrumMaintask,
             @Named("projectKey") String projectKey, User user)
             throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
         
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -90,6 +93,9 @@ public class ScrumMainTaskEndpoint {
     public CollectionResponse<ScrumMainTask> loadMainTasks(
             @Named("projectKey") String projectKey, User user)
             throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = getPersistenceManager();
@@ -128,9 +134,6 @@ public class ScrumMainTaskEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            if (!containsScrumMainTask(update)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
             transaction.begin();
             ScrumMainTask scrumMainTask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, update.getKey(),
                     persistenceManager);
@@ -163,6 +166,9 @@ public class ScrumMainTaskEndpoint {
     public void removeScrumMainTask(
             @Named("mainTaskKey") String mainTaskKey, User user)
             throws ServiceException {
+        if (mainTaskKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -182,26 +188,6 @@ public class ScrumMainTaskEndpoint {
             }
             persistenceManager.close();
         }
-    }
-
-    /**
-     * Return true if the DS contains the Maintaks
-     * 
-     * @param scrumMaintask
-     * @return
-     */
-    private boolean containsScrumMainTask(ScrumMainTask scrumMaintask) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumMainTask.class,
-                    scrumMaintask.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
     }
 
     private static PersistenceManager getPersistenceManager() {
