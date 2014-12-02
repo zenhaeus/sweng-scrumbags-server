@@ -177,7 +177,7 @@ public class ScrumPlayerEndpoint {
         ScrumProject scrumProject = null;
 
         try {
-            scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class,projectKey, persistenceManager);
+            scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
             for (ScrumPlayer player : scrumProject.getPlayers()) {
                 if (player.getUser().getEmail().equals(userEmail)) {
                     throw new EntityExistsException("Object already exists");
