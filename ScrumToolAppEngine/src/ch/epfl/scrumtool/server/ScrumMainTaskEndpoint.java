@@ -195,8 +195,8 @@ public class ScrumMainTaskEndpoint {
     };
     
     public static void computeMainTaskIssueInfo(ScrumMainTask t) {
-        long estimatedTime = 0;
-        long estimatedTimeFinished = 0;
+        float estimatedTime = 0;
+        float estimatedTimeFinished = 0;
         int issuesFinished = 0;
 
         for (ScrumIssue i : t.getIssues()) {

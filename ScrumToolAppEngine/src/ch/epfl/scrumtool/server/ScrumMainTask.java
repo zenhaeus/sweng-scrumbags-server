@@ -53,10 +53,10 @@ public class ScrumMainTask {
     private int totalIssues;
     
     @NotPersistent
-    private long totalTime;
+    private float totalTime;
     
     @NotPersistent
-    private long timeFinished;
+    private float timeFinished;
     
     
 
@@ -91,28 +91,28 @@ public class ScrumMainTask {
     /**
      * @return the totalTime
      */
-    public long getTotalTime() {
+    public float getTotalTime() {
         return totalTime;
     }
 
     /**
      * @param totalTime the totalTime to set
      */
-    public void setTotalTime(long totalTime) {
+    public void setTotalTime(float totalTime) {
         this.totalTime = totalTime;
     }
 
     /**
      * @return the timeFinished
      */
-    public long getTimeFinished() {
+    public float getTimeFinished() {
         return timeFinished;
     }
 
     /**
      * @param timeFinished the timeFinished to set
      */
-    public void setTimeFinished(long timeFinished) {
+    public void setTimeFinished(float timeFinished) {
         this.timeFinished = timeFinished;
     }
 
