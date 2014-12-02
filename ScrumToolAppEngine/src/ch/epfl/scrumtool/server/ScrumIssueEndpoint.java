@@ -75,7 +75,8 @@ public class ScrumIssueEndpoint {
                     persistenceManager);
             transaction.begin();
 
-            // Add the issue
+            // Check issue status and add it
+            scrumIssue.verifyAndSetStatus();
             scrumMainTask.getIssues().add(scrumIssue);
             persistenceManager.makePersistent(scrumMainTask);
 

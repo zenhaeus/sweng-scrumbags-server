@@ -3,11 +3,11 @@ package ch.epfl.scrumtool.server;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.Random;
 
 import org.junit.After;
 import org.junit.Before;
@@ -21,7 +21,6 @@ import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import com.google.appengine.repackaged.org.codehaus.jackson.sym.Name;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
@@ -46,15 +45,14 @@ public class ScrumIssueEndpointTest {
     private static final String USER2_KEY = "joeyzenh@gmail.com";
     private static final String TITLE = "issue title";
     private static final String DESCRIPTION = "issue description";
-    private static final long TIME = Calendar.getInstance().getTimeInMillis();
+    private static final float ESTIMATION_1 = new Float(new Random().nextInt(Integer.MAX_VALUE));
     private static final Status STATUS = Status.READY_FOR_SPRINT;
     private static final Priority PRIORITY = Priority.HIGH;
     private static final String TITLE2 = "issue2 title";
     private static final String DESCRIPTION2 = "issue2 description";
-    private static final long TIME2 = Calendar.getInstance().getTimeInMillis()+10000;
+    private static final float ESTIMATION_2 = new Float(new Random().nextInt(Integer.MAX_VALUE));
     private static final Status STATUS2 = Status.READY_FOR_ESTIMATION;
     private static final Priority PRIORITY2 = Priority.LOW;
-    private static final double DELTA = 1e8; // used to test equality between 2 long
     private static final String ROLE = Role.DEVELOPER.name();
     private static final long SPRINT_DATE = Calendar.getInstance().getTimeInMillis();
     private static final String SPRINT_TITLE = "sprint 1";
@@ -444,7 +442,7 @@ public class ScrumIssueEndpointTest {
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
         
-        // for the foolowing comments it means from one state ==> to a new state
+        // for the following comments it means from one state ==> to a new state
         // p stands for player, s for sprint
         // the backslash means without
         assertNull(issue.getAssignedPlayer());
@@ -758,7 +756,7 @@ public class ScrumIssueEndpointTest {
         issue.setName(TITLE);
         issue.setDescription(DESCRIPTION);
         issue.setPriority(PRIORITY);
-        issue.setEstimation(TIME);
+        issue.setEstimation(ESTIMATION_1);
         issue.setStatus(STATUS);
     }
     
@@ -766,7 +764,7 @@ public class ScrumIssueEndpointTest {
         issue.setName(TITLE2);
         issue.setDescription(DESCRIPTION2);
         issue.setPriority(PRIORITY2);
-        issue.setEstimation(TIME2);
+        issue.setEstimation(ESTIMATION_2);
         issue.setStatus(STATUS2);
     }
     
@@ -776,7 +774,7 @@ public class ScrumIssueEndpointTest {
         assertEquals(PRIORITY, issue.getPriority());
         assertEquals(TITLE, issue.getName());
         assertEquals(DESCRIPTION, issue.getDescription());
-        assertEquals(TIME, issue.getEstimation(), DELTA);
+        assertEquals(Float.compare(ESTIMATION_1, issue.getEstimation()), 0);
         assertEquals(STATUS, issue.getStatus());
     }
     
@@ -784,7 +782,7 @@ public class ScrumIssueEndpointTest {
         assertEquals(PRIORITY2, issue.getPriority());
         assertEquals(TITLE2, issue.getName());
         assertEquals(DESCRIPTION2, issue.getDescription());
-        assertEquals(TIME2, issue.getEstimation(), DELTA);
+        assertEquals(Float.compare(ESTIMATION_2, issue.getEstimation()), 0);
         assertEquals(STATUS2, issue.getStatus());
     }
 
