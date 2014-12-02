@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
@@ -316,9 +315,6 @@ public class ScrumIssueEndpoint {
         PersistenceManager persistenceManager = getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            if (!containsScrumIssue(update)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
             transaction.begin();
             ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, update.getKey(),
                     persistenceManager);
@@ -495,26 +491,6 @@ public class ScrumIssueEndpoint {
             }
             persistenceManager.close();
         }
-    }
-
-    /**
-     * Return true if the DS contains the Issue
-     * 
-     * @param scrumissue
-     * @return
-     */
-    private boolean containsScrumIssue(ScrumIssue scrumissue) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumIssue.class,
-                    scrumissue.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
     }
 
     private static PersistenceManager getPersistenceManager() {

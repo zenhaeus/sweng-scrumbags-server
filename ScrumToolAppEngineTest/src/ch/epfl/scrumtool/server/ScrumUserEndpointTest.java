@@ -91,10 +91,10 @@ public class ScrumUserEndpointTest {
         ENDPOINT.removeScrumUser(user.getEmail(), userLoggedIn());
     }
 
-    @Test(expected = ServiceException.class)
+    @Test(expected = NotFoundException.class)
     public void testRemoveNonexistantUser() throws ServiceException {
-        ENDPOINT.removeScrumUser(USER_KEY, userLoggedIn());
-        fail("should have thrown a ServiceException");
+        ENDPOINT.removeScrumUser("non-existing", userLoggedIn());
+        fail("should have thrown a NotFoundException");
     }
 
     @Test(expected = ServiceException.class)
@@ -132,7 +132,7 @@ public class ScrumUserEndpointTest {
         ScrumUser notInDatastore = new ScrumUser();
         notInDatastore.setEmail(USER_KEY);
         ENDPOINT.updateScrumUser(notInDatastore, userLoggedIn());
-        fail("should have thrown a ServiceException");
+        fail("should have thrown a NotFoundException");
     }
 
     @Test

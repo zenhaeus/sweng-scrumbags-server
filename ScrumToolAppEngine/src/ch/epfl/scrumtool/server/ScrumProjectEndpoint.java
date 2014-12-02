@@ -6,7 +6,6 @@ import java.util.Set;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
@@ -127,12 +126,9 @@ public class ScrumProjectEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
-            if (!containsScrumProject(update)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
-            transaction.begin();
             ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, update.getKey(),
                     persistenceManager);
+            transaction.begin();
             scrumProject.setDescription(update.getDescription());
             scrumProject.setLastModDate(update.getLastModDate());
             scrumProject.setLastModUser(update.getLastModUser());
@@ -182,19 +178,6 @@ public class ScrumProjectEndpoint {
             }
             persistenceManager.close();
         }
-    }
-    
-    private boolean containsScrumProject(ScrumProject scrumProject) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumProject.class, scrumProject.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
     }
 
     private static PersistenceManager getPersistenceManager() {

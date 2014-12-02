@@ -74,7 +74,7 @@ public class ScrumUserEndpoint {
             newUser.setName(eMail);
             insertScrumUser(newUser);
 
-            scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail,persistenceManager);
+            scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail, persistenceManager);
         } finally {
             persistenceManager.close();
         }
@@ -179,25 +179,6 @@ public class ScrumUserEndpoint {
             }
             persistenceManager.close();
         }
-    }
-
-    /**
-     * Returns true if the DS contains the User
-     * 
-     * @param scrumUser
-     * @return
-     */
-    private boolean containsScrumUser(ScrumUser scrumUser) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
     }
 
     /**

@@ -6,7 +6,6 @@ import java.util.Set;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 import ch.epfl.scrumtool.PMF;
@@ -189,26 +188,6 @@ public class ScrumSprintEndpoint {
             persistenceManager.close();
         }
         return CollectionResponse.<ScrumSprint>builder().setItems(sprints).build();
-    }
-
-    /**
-     * Returns true if the DS containts the Sprint
-     * 
-     * @param scrumSprint
-     * @return
-     */
-    private boolean containsScrumSprint(ScrumSprint scrumSprint) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumSprint.class,
-                    scrumSprint.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
     }
 
     private static PersistenceManager getPersistenceManager() {

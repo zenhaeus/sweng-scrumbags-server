@@ -1,9 +1,7 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -14,16 +12,16 @@ import org.junit.Test;
  *
  */
 public class ScrumMainTaskTest {
-    
+    private static final double DELTA = 1e8; // used to test equality between 2 long
+
     private static final String KEY = "key";
     private static final String NAME = "Name";
-    private static final String DESCRIPTION = "Description";
     private static final Priority PRIORITY = Priority.NORMAL;
     private static final Status STATUS = Status.READY_FOR_ESTIMATION;
     private static final long DATE = Calendar.getInstance().getTimeInMillis();
     private static final String LAST_USER = "sylvain@mock.ch";
     private static final int ISSUES_NUMBER = 4;
-    private static final long ISSUES_TIME = Calendar.getInstance().getTimeInMillis();
+    private static final float ISSUES_TIME = Calendar.getInstance().getTimeInMillis();
     
     private static ScrumMainTask mainTask = new ScrumMainTask();
     
@@ -92,12 +90,12 @@ public class ScrumMainTaskTest {
     @Test
     public void testSetGetTotalTime() {
         mainTask.setTotalTime(ISSUES_TIME);
-        assertEquals(ISSUES_TIME, mainTask.getTotalTime());
+        assertEquals(ISSUES_TIME, mainTask.getTotalTime(), DELTA);
     }
     
     @Test
     public void testSetGetTimeFinished() {
         mainTask.setTimeFinished(ISSUES_TIME);
-        assertEquals(ISSUES_TIME, mainTask.getTimeFinished());
+        assertEquals(ISSUES_TIME, mainTask.getTimeFinished(), DELTA);
     }
 }
