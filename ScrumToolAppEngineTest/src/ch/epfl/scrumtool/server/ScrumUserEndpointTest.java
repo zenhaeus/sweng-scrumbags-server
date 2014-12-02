@@ -13,12 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import ch.epfl.scrumtool.PMF;
-import ch.epfl.scrumtool.server.ScrumProject;
-import ch.epfl.scrumtool.server.ScrumUser;
-import ch.epfl.scrumtool.server.ScrumUserEndpoint;
 
 import com.google.api.server.spi.ServiceException;
-import com.google.api.server.spi.response.CollectionResponse;
 import com.google.api.server.spi.response.NotFoundException;
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;

@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.api.server.spi.response.UnauthorizedException;
-import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
