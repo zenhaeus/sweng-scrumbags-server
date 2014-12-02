@@ -75,8 +75,7 @@ public class ScrumIssueEndpoint {
                     persistenceManager);
             transaction.begin();
 
-            // Check issue status and add it
-            scrumIssue.verifyAndSetStatus();
+            // Add issue
             scrumMainTask.getIssues().add(scrumIssue);
             persistenceManager.makePersistent(scrumMainTask);
 
@@ -100,6 +99,9 @@ public class ScrumIssueEndpoint {
                 scrumSprint.addIssue(scrumIssue);
                 persistenceManager.makePersistent(scrumSprint);
             }
+            
+            // Check status and update if necessary
+            scrumIssue.verifyAndSetStatus();
 
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
@@ -136,6 +138,7 @@ public class ScrumIssueEndpoint {
                     i.getAssignedPlayer().getUser();
                 }
                 i.getSprint();
+                checkIssueStatus(i);
             }
         } finally {
             persistenceManager.close();
@@ -179,7 +182,7 @@ public class ScrumIssueEndpoint {
                 i.getStatus();
                 i.getPriority();
                 
-                
+                checkIssueStatus(i);
             }
         } finally {
             persistenceManager.close();
@@ -226,9 +229,8 @@ public class ScrumIssueEndpoint {
                         if (issue.getSprint() != null) {
                             issue.getSprint().setProject(null);
                         }
-                        
-                        
                     }
+                    checkIssueStatus(issue);
                 }
             }
             
@@ -282,6 +284,8 @@ public class ScrumIssueEndpoint {
                         persistenceManager.makeTransient(i.getMainTask());
                         i.getMainTask().setIssues(null);
                         issues.add(i);
+                        
+                        checkIssueStatus(i);
                     }
                 }
             }
@@ -372,6 +376,7 @@ public class ScrumIssueEndpoint {
                     scrumIssue.setSprint(null);
                 }
             }
+            scrumIssue.verifyAndSetStatus();
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
         } finally {
@@ -404,6 +409,7 @@ public class ScrumIssueEndpoint {
             scrumIssue.setSprint(scrumSprint);
             scrumSprint.getIssues().add(scrumIssue);
 
+            scrumIssue.verifyAndSetStatus();
             persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
@@ -490,6 +496,12 @@ public class ScrumIssueEndpoint {
                 transaction.rollback();
             }
             persistenceManager.close();
+        }
+    }
+
+    private void checkIssueStatus(ScrumIssue i) throws IllegalStateException {
+        if (i.verifyAndSetStatus()) {
+            throw new IllegalStateException();
         }
     }
 
