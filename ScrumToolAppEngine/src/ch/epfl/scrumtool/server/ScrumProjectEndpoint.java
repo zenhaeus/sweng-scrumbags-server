@@ -6,10 +6,8 @@ import java.util.Set;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
@@ -58,7 +56,7 @@ public class ScrumProjectEndpoint {
         
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             String userKey = user.getEmail();
@@ -123,16 +121,13 @@ public class ScrumProjectEndpoint {
         
         AppEngineUtils.basicAuthentication(user);
         
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
-            if (!containsScrumProject(update)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
-            transaction.begin();
             ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, update.getKey(),
                     persistenceManager);
+            transaction.begin();
             scrumProject.setDescription(update.getDescription());
             scrumProject.setLastModDate(update.getLastModDate());
             scrumProject.setLastModUser(update.getLastModUser());
@@ -161,7 +156,7 @@ public class ScrumProjectEndpoint {
             throws ServiceException {
         
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -182,23 +177,6 @@ public class ScrumProjectEndpoint {
             }
             persistenceManager.close();
         }
-    }
-    
-    private boolean containsScrumProject(ScrumProject scrumProject) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumProject.class, scrumProject.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }

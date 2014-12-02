@@ -40,4 +40,8 @@ public class AppEngineUtils {
             throw new NotFoundException(e);
         }
     }
+
+    public static PersistenceManager getPersistenceManager() {
+        return PMF.get().getPersistenceManager();
+    }
 }

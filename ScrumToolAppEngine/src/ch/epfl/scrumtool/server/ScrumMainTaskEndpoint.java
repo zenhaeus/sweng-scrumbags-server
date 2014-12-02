@@ -7,7 +7,6 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
@@ -62,7 +61,7 @@ public class ScrumMainTaskEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
         
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             ScrumProject scrumProject =
@@ -97,7 +96,7 @@ public class ScrumMainTaskEndpoint {
         }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumMainTask> tasks = null;
         try {
@@ -130,7 +129,7 @@ public class ScrumMainTaskEndpoint {
             throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             transaction.begin();
@@ -171,7 +170,7 @@ public class ScrumMainTaskEndpoint {
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -189,10 +188,6 @@ public class ScrumMainTaskEndpoint {
         }
     }
 
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
-    };
-    
     public static void computeMainTaskIssueInfo(ScrumMainTask t) {
         float estimatedTime = 0;
         float estimatedTimeFinished = 0;

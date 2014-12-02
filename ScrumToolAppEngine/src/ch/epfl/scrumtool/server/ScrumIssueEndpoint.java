@@ -7,10 +7,8 @@ import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
@@ -69,7 +67,7 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -123,7 +121,7 @@ public class ScrumIssueEndpoint {
         }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = null;
         try {
@@ -154,7 +152,7 @@ public class ScrumIssueEndpoint {
         }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = null;
         try {
@@ -197,7 +195,7 @@ public class ScrumIssueEndpoint {
         }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
@@ -258,7 +256,7 @@ public class ScrumIssueEndpoint {
             throw new NullPointerException();
         }
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
@@ -313,12 +311,9 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            if (!containsScrumIssue(update)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
             transaction.begin();
             ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, update.getKey(),
                     persistenceManager);
@@ -396,7 +391,7 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -436,7 +431,7 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -471,7 +466,7 @@ public class ScrumIssueEndpoint {
             throw new NullPointerException();
         }
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -495,30 +490,6 @@ public class ScrumIssueEndpoint {
             }
             persistenceManager.close();
         }
-    }
-
-    /**
-     * Return true if the DS contains the Issue
-     * 
-     * @param scrumissue
-     * @return
-     */
-    private boolean containsScrumIssue(ScrumIssue scrumissue) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumIssue.class,
-                    scrumissue.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }
