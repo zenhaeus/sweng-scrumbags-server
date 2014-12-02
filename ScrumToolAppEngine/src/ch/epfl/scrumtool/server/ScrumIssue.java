@@ -15,7 +15,10 @@ import javax.jdo.annotations.PrimaryKey;
 import com.google.appengine.datanucleus.annotations.Unowned;
 
 /**
- * @author sylb, aschneuw, zenhaeus
+ * @author sylb
+ * @author aschneuw
+ * @author zenhaeus
+ * @author Cyriaque Brousse
  */
 
 @PersistenceCapable(identityType = IdentityType.APPLICATION)

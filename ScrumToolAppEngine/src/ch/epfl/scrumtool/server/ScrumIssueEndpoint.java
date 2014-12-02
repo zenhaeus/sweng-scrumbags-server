@@ -19,9 +19,9 @@ import com.google.api.server.spi.response.NotFoundException;
 import com.google.appengine.api.users.User;
 
 /**
- * 
- * @author aschneuw, sylb
- * 
+ * @author aschneuw
+ * @author sylb
+ * @author Cyriaque Brousse
  */
 @Api(
         name = "scrumtool",
