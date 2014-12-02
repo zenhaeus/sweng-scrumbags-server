@@ -9,7 +9,6 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
@@ -68,7 +67,7 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -122,7 +121,7 @@ public class ScrumIssueEndpoint {
         }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = null;
         try {
@@ -153,7 +152,7 @@ public class ScrumIssueEndpoint {
         }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = null;
         try {
@@ -196,7 +195,7 @@ public class ScrumIssueEndpoint {
         }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
@@ -257,7 +256,7 @@ public class ScrumIssueEndpoint {
             throw new NullPointerException();
         }
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
@@ -312,7 +311,7 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             transaction.begin();
@@ -392,7 +391,7 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -432,7 +431,7 @@ public class ScrumIssueEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -467,7 +466,7 @@ public class ScrumIssueEndpoint {
             throw new NullPointerException();
         }
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -491,10 +490,6 @@ public class ScrumIssueEndpoint {
             }
             persistenceManager.close();
         }
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }

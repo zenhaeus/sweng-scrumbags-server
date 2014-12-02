@@ -20,7 +20,6 @@ import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityExistsException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
@@ -65,7 +64,7 @@ public class ScrumPlayerEndpoint {
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -104,7 +103,7 @@ public class ScrumPlayerEndpoint {
         
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -136,7 +135,7 @@ public class ScrumPlayerEndpoint {
         List<ScrumPlayer> players = null;
 
         try {
-            persistenceManager = getPersistenceManager();
+            persistenceManager = AppEngineUtils.getPersistenceManager();
             ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, 
                     persistenceManager);
             players = new ArrayList<ScrumPlayer>();
@@ -170,7 +169,7 @@ public class ScrumPlayerEndpoint {
         
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         ScrumPlayer scrumPlayer = null;
         ScrumUser scrumUser = null;
@@ -228,10 +227,6 @@ public class ScrumPlayerEndpoint {
                 sendNotificationEMail(scrumUser.getEmail(), scrumProject.getName());
             }
         }
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
     private static void sendNotificationEMail(String address, String projectName) {

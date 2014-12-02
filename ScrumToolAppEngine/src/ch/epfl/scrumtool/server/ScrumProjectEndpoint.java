@@ -8,7 +8,6 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
@@ -57,7 +56,7 @@ public class ScrumProjectEndpoint {
         
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             String userKey = user.getEmail();
@@ -122,7 +121,7 @@ public class ScrumProjectEndpoint {
         
         AppEngineUtils.basicAuthentication(user);
         
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
@@ -157,7 +156,7 @@ public class ScrumProjectEndpoint {
             throws ServiceException {
         
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -178,10 +177,6 @@ public class ScrumProjectEndpoint {
             }
             persistenceManager.close();
         }
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }

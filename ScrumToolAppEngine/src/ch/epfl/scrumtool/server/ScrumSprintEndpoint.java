@@ -8,7 +8,6 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
@@ -64,7 +63,7 @@ public class ScrumSprintEndpoint {
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -101,7 +100,7 @@ public class ScrumSprintEndpoint {
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -140,7 +139,7 @@ public class ScrumSprintEndpoint {
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
@@ -170,7 +169,7 @@ public class ScrumSprintEndpoint {
         }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Set<ScrumSprint> sprints = new HashSet<ScrumSprint>();
 
         try {
@@ -188,10 +187,6 @@ public class ScrumSprintEndpoint {
             persistenceManager.close();
         }
         return CollectionResponse.<ScrumSprint>builder().setItems(sprints).build();
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }
