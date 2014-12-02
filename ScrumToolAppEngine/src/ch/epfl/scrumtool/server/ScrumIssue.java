@@ -1,5 +1,10 @@
 package ch.epfl.scrumtool.server;
 
+import static ch.epfl.scrumtool.server.Status.FINISHED;
+import static ch.epfl.scrumtool.server.Status.IN_SPRINT;
+import static ch.epfl.scrumtool.server.Status.READY_FOR_ESTIMATION;
+import static ch.epfl.scrumtool.server.Status.READY_FOR_SPRINT;
+
 import javax.jdo.annotations.Extension;
 import javax.jdo.annotations.IdGeneratorStrategy;
 import javax.jdo.annotations.IdentityType;
@@ -51,6 +56,47 @@ public class ScrumIssue {
 
     @Persistent
     private String lastModUser;
+    
+    /**
+     * Verifies the status for the issue according to the estimation and sprint
+     * it is or is not assigned, and enforces the right status.
+     * 
+     * @return true if any modifications were made,
+     *         false otherwise
+     */
+    public boolean verifyAndSetStatus() {
+        if (status == FINISHED) {
+            // No further checks needed
+            return false;
+        }
+        
+        if (Float.compare(estimation, 0f) <= 0) {
+            if (status == READY_FOR_ESTIMATION) {
+                return false;
+            } else {
+                status = READY_FOR_ESTIMATION;
+                return true;
+            }
+        } else {
+            // If no sprint was yet assigned, we must be in state
+            // READY_FOR_SPRINT, otherwise in state IN_SPRINT
+            if (sprint == null) {
+                if (status == READY_FOR_SPRINT) {
+                    return false;
+                } else {
+                    status = READY_FOR_SPRINT;
+                    return true;
+                }
+            } else {
+                if (status == IN_SPRINT) {
+                    return false;
+                } else {
+                    status = IN_SPRINT;
+                    return true;
+                }
+            }
+        }
+    }
     
     public void setPriority(Priority priority) {
         this.priority = priority;

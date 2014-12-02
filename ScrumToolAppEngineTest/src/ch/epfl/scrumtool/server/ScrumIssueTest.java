@@ -12,6 +12,8 @@ import org.junit.Test;
  */
 public class ScrumIssueTest {
     
+    private static final float POSITIVE_NBR = 42f;
+    
     private static final String KEY = "gfsgfds5454gfes";
     private static final String NAME = "Issue name";
     private static final String DESCRIPTION = "Issue description";
@@ -184,5 +186,76 @@ public class ScrumIssueTest {
         assertEquals(other.getKey(), ISSUE.getMainTask().getKey());
         ISSUE.setMainTask(MAIN_TASK);
     }
+    
+    @Test
+    public void testVerifyAndSetStatusFinished() {
+        ScrumIssue issue = newIssueWithStatus(Status.FINISHED);
+        assertFalse(issue.verifyAndSetStatus());
+    }
 
+    @Test
+    public void testVerifyAndSetStatusReadyEstimation() {
+        ScrumIssue issue = newIssueWithStatusAndEstimation(null, 0f);
+        if (issue.verifyAndSetStatus()) {
+            assertEquals(Status.READY_FOR_ESTIMATION, issue.getStatus());
+        } else {
+            fail("Should have changed status to READY_FOR_ESTIMATION");
+        }
+        
+        // now calling again verifyAndSetStatus should not change anything
+        assertFalse(issue.verifyAndSetStatus());
+    }
+    
+    @Test
+    public void testVerifyAndSetStatusReadySprint() {
+        ScrumIssue issue = newIssueWithStatusAndEstimation(null, POSITIVE_NBR);
+        if (issue.verifyAndSetStatus()) {
+            assertEquals(Status.READY_FOR_SPRINT, issue.getStatus());
+        } else {
+            fail("Should have changed status to READY_FOR_SPRINT");
+        }
+        
+        // now calling again verifyAndSetStatus should not change anything
+        assertFalse(issue.verifyAndSetStatus());
+    }
+    
+    @Test
+    public void testVerifyAndSetStatusInSprintWithEstimation() {
+        ScrumIssue issue = newIssueWithStatusAndEstimation(null, POSITIVE_NBR);
+        issue.setSprint(new ScrumSprint());
+        if (issue.verifyAndSetStatus()) {
+            assertEquals(Status.IN_SPRINT, issue.getStatus());
+        } else {
+            fail("Should have changed status to IN_SPRINT");
+        }
+        
+        // now calling again verifyAndSetStatus should not change anything
+        assertFalse(issue.verifyAndSetStatus());
+    }
+    
+    @Test
+    public void testVerifyAndSetStatusInSprintWithoutEstimation() {
+        ScrumIssue issue = newIssueWithStatusAndEstimation(null, 0f);
+        issue.setSprint(new ScrumSprint());
+        if (issue.verifyAndSetStatus()) {
+            assertEquals(Status.READY_FOR_ESTIMATION, issue.getStatus());
+        } else {
+            fail("Should have changed status to READY_FOR_ESTIMATION");
+        }
+        
+        // now calling again verifyAndSetStatus should not change anything
+        assertFalse(issue.verifyAndSetStatus());
+    }
+
+    private ScrumIssue newIssueWithStatus(Status status) {
+        ScrumIssue issue = new ScrumIssue();
+        issue.setStatus(status);
+        return issue;
+    }
+
+    private ScrumIssue newIssueWithStatusAndEstimation(Status status, float estimation) {
+        ScrumIssue issue = newIssueWithStatus(status);
+        issue.setEstimation(estimation);
+        return issue;
+    }
 }
