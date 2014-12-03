@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Calendar;
 import java.util.Set;
 
 import javax.inject.Named;
@@ -64,12 +65,18 @@ public class ScrumMainTaskEndpoint {
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             ScrumProject scrumProject =
                     AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
             
             transaction.begin();
             
             scrumProject.getBacklog().add(scrumMaintask);
+            scrumMaintask.setLastModDate(lastDate);
+            scrumMaintask.setLastModUser(lastUser);
+            scrumProject.setLastModDate(lastDate);
+            scrumProject.setLastModUser(lastUser);
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
             return new KeyResponse(scrumMaintask.getKey());
@@ -136,8 +143,8 @@ public class ScrumMainTaskEndpoint {
             ScrumMainTask scrumMainTask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, update.getKey(),
                     persistenceManager);
             scrumMainTask.setDescription(update.getDescription());
-            scrumMainTask.setLastModDate(update.getLastModDate());
-            scrumMainTask.setLastModUser(update.getLastModUser());
+            scrumMainTask.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumMainTask.setLastModUser(user.getEmail());
             scrumMainTask.setName(update.getName());
             scrumMainTask.setStatus(update.getStatus());
             scrumMainTask.setPriority(update.getPriority());
@@ -177,6 +184,9 @@ public class ScrumMainTaskEndpoint {
             ScrumMainTask scrumMaintask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, mainTaskKey,
                     persistenceManager);
             transaction.begin();
+            scrumMaintask.getProject().setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumMaintask.getProject().setLastModUser(user.getEmail());
+            persistenceManager.makePersistent(scrumMaintask.getProject());
             persistenceManager.deletePersistent(scrumMaintask);
             transaction.commit();
 

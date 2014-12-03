@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -59,8 +60,11 @@ public class ScrumProjectEndpoint {
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            String userKey = user.getEmail();
-            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, user.getEmail(),
+                    persistenceManager);
 
             ScrumPlayer scrumPlayer = new ScrumPlayer();
             scrumPlayer.setAdminFlag(true);
@@ -72,8 +76,8 @@ public class ScrumProjectEndpoint {
              * corresponding to the user inserting the project. Therefore the
              * timestamp and lastermoduser tags are the same
              */
-            scrumPlayer.setLastModDate(scrumProject.getLastModDate());
-            scrumPlayer.setLastModUser(scrumProject.getLastModUser());
+            scrumPlayer.setLastModDate(lastDate);
+            scrumPlayer.setLastModUser(lastUser);
             
             Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
             scrumPlayer.setIssues(issues);
@@ -85,6 +89,8 @@ public class ScrumProjectEndpoint {
             scrumProject.setSprints(scrumSprints);
 
             scrumProject.setBacklog(new HashSet<ScrumMainTask>());
+            scrumProject.setLastModDate(lastDate);
+            scrumProject.setLastModUser(lastUser);
 
             scrumUser.addPlayer(scrumPlayer);
             
@@ -129,8 +135,8 @@ public class ScrumProjectEndpoint {
                     persistenceManager);
             transaction.begin();
             scrumProject.setDescription(update.getDescription());
-            scrumProject.setLastModDate(update.getLastModDate());
-            scrumProject.setLastModUser(update.getLastModUser());
+            scrumProject.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumProject.setLastModUser(user.getEmail());
             scrumProject.setName(update.getName());
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
@@ -166,10 +172,13 @@ public class ScrumProjectEndpoint {
             ScrumProject scrumproject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
                     persistenceManager);
             for (ScrumPlayer p : scrumproject.getPlayers()) {
+                p.getUser().setLastModDate(Calendar.getInstance().getTimeInMillis());
+                p.getUser().setLastModUser(user.getEmail());
+                persistenceManager.makePersistent(p.getUser());
                 persistenceManager.deletePersistent(p);
             }
     
-            // Tasks and sprints are deleted automatically (owned relationship)
+            // Tasks, issues and sprints are deleted automatically (owned relationship)
             persistenceManager.deletePersistent(scrumproject);
             transaction.commit();
             

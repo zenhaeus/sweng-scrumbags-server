@@ -108,8 +108,6 @@ public class ScrumUserEndpointTest {
         updatedUser.setJobTitle(JOB_TITLE);
         updatedUser.setName(NAME);
         updatedUser.setLastName(LASTNAME);
-        updatedUser.setLastModDate(LAST_MOD_DATE);
-        updatedUser.setLastModUser(LAST_MOD_USER);
         updatedUser.setGender(GENDER);
         ENDPOINT.updateScrumUser(updatedUser, userLoggedIn());
         updatedUser = PMF.get().getPersistenceManager().getObjectById(ScrumUser.class, USER_KEY);
@@ -118,8 +116,7 @@ public class ScrumUserEndpointTest {
         assertEquals(JOB_TITLE, updatedUser.getJobTitle());
         assertEquals(NAME, updatedUser.getName());
         assertEquals(LASTNAME, updatedUser.getLastName());
-        assertEquals(LAST_MOD_DATE, updatedUser.getLastModDate());
-        assertEquals(LAST_MOD_USER, updatedUser.getLastModUser());
+        assertEquals(USER_KEY, updatedUser.getLastModUser());
         assertEquals(GENDER, updatedUser.getGender());
     }
     

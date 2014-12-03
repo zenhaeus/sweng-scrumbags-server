@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -67,12 +68,18 @@ public class ScrumSprintEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
             ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
                     persistenceManager);
             scrumProject.addSprint(scrumSprint);
+            scrumProject.setLastModDate(lastDate);
+            scrumProject.setLastModUser(lastUser);
             scrumSprint.setProject(scrumProject);
             scrumSprint.setIssues(new HashSet<ScrumIssue>());
+            scrumSprint.setLastModDate(lastDate);
+            scrumSprint.setLastModUser(lastUser);
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
             return new KeyResponse(scrumSprint.getKey());
@@ -109,8 +116,8 @@ public class ScrumSprintEndpoint {
             transaction.begin();
             scrumSprint.setTitle(updated.getTitle());
             scrumSprint.setDate(updated.getDate());
-            scrumSprint.setLastModDate(updated.getLastModDate());
-            scrumSprint.setLastModUser(updated.getLastModUser());
+            scrumSprint.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumSprint.setLastModUser(user.getEmail());
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
 
@@ -148,6 +155,9 @@ public class ScrumSprintEndpoint {
                     persistenceManager);
             for (ScrumIssue i : scrumSprint.getIssues()) {
                 i.setSprint(null);
+                i.setLastModDate(Calendar.getInstance().getTimeInMillis());
+                i.setLastModUser(user.getEmail());
+                persistenceManager.makePersistent(i);
             }
             persistenceManager.deletePersistent(scrumSprint);
             transaction.commit();

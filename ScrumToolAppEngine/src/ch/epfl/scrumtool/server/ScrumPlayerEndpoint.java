@@ -2,7 +2,7 @@ package ch.epfl.scrumtool.server;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -58,6 +58,116 @@ import com.google.appengine.api.users.User;
         )
 public class ScrumPlayerEndpoint {
 
+    @ApiMethod(name = "addPlayerToProject")
+    public KeyResponse addPlayerToProject(@Named("projectKey") String projectKey,
+            @Named("userKey") String userEmail, @Named("role") String role,
+            User user) throws ServiceException {
+        if (projectKey == null || userEmail == null || role == null) {
+            throw new NullPointerException();
+        }
+        
+        AppEngineUtils.basicAuthentication(user);
+    
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        ScrumPlayer scrumPlayer = null;
+        ScrumUser scrumUser = null;
+        ScrumProject scrumProject = null;
+    
+        try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
+            for (ScrumPlayer player : scrumProject.getPlayers()) {
+                if (player.getUser().getEmail().equals(userEmail)) {
+                    throw new EntityExistsException("Object already exists");
+                }
+            }
+            scrumPlayer = new ScrumPlayer();
+    
+            try {
+                scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userEmail, persistenceManager);
+            } catch (ServiceException ex) {
+                scrumUser = new ScrumUser();
+                scrumUser.setEmail(userEmail);
+                scrumUser.setLastModDate(lastDate);
+                scrumUser.setName(userEmail.substring(0, userEmail.indexOf('@')));
+                scrumUser.setLastModUser(lastUser);
+            }
+    
+            scrumPlayer.setAdminFlag(false);
+            scrumPlayer.setIssues(new HashSet<ScrumIssue>());
+            scrumPlayer.setRole(Role.valueOf(role));
+            scrumPlayer.setLastModDate(lastDate);
+            scrumPlayer.setLastModUser(lastUser);
+    
+            scrumUser.addPlayer(scrumPlayer);
+    
+            transaction.begin();
+            persistenceManager.makePersistent(scrumUser);
+            scrumProject.addPlayer(scrumPlayer);
+            scrumProject.setLastModDate(lastDate);
+            scrumPlayer.setLastModUser(lastUser);
+            persistenceManager.makePersistent(scrumProject);
+            scrumPlayer.setProject(scrumProject);
+            persistenceManager.makePersistent(scrumPlayer);
+            transaction.commit();
+            return new KeyResponse(scrumPlayer.getKey());
+    
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            persistenceManager.close();
+    
+            if (scrumPlayer != null) {
+                scrumPlayer.setProject(null);
+            }
+    
+            if (scrumUser != null) {
+                scrumUser.setPlayers(null);
+                sendNotificationEMail(scrumUser.getEmail(), scrumProject.getName());
+            }
+        }
+    }
+
+    @ApiMethod(name = "loadPlayers")
+    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
+        throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
+        
+        AppEngineUtils.basicAuthentication(user);
+    
+        PersistenceManager persistenceManager = null;
+        List<ScrumPlayer> players = null;
+    
+        try {
+            persistenceManager = AppEngineUtils.getPersistenceManager();
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, 
+                    persistenceManager);
+            players = new ArrayList<ScrumPlayer>();
+            for (ScrumPlayer p : scrumProject.getPlayers()) {
+                // lazy fetch
+                p.getUser();
+                p.getUser().getDateOfBirth();
+                p.getUser().getName();
+                p.getUser().getLastName();
+                p.getUser().getCompanyName();
+                p.getUser().getJobTitle();
+                p.getUser().getGender();
+                p.getRole();
+                p.getAdminFlag();
+                players.add(p);
+            }
+        } finally {
+            persistenceManager.close();
+        }
+        return CollectionResponse.<ScrumPlayer>builder().setItems(players)
+                .build();
+    }
+
     @ApiMethod(name = "updateScrumPlayer")
     public void updateScrumPlayer(ScrumPlayer update, User user)
         throws ServiceException {
@@ -73,8 +183,8 @@ public class ScrumPlayerEndpoint {
             transaction.begin();
             scrumPlayer.setAdminFlag(update.getAdminFlag());
             scrumPlayer.setKey(update.getKey());
-            scrumPlayer.setLastModDate(update.getLastModDate());
-            scrumPlayer.setLastModUser(update.getLastModUser());
+            scrumPlayer.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumPlayer.setLastModUser(user.getEmail());
             scrumPlayer.setRole(update.getRole());
             transaction.commit();
 
@@ -107,9 +217,21 @@ public class ScrumPlayerEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            
             transaction.begin();
             ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
                     persistenceManager);
+            ScrumUser scrumUser = scrumPlayer.getUser();
+            scrumUser.setLastModDate(lastDate);
+            scrumUser.setLastModUser(lastUser);
+            persistenceManager.makePersistent(scrumUser);
+            
+            ScrumProject scrumProject = scrumPlayer.getProject();
+            scrumProject.setLastModDate(lastDate);
+            scrumProject.setLastModUser(lastUser);
+            persistenceManager.makePersistent(scrumProject);
 
             persistenceManager.deletePersistent(scrumPlayer);
             transaction.commit();
@@ -119,113 +241,6 @@ public class ScrumPlayerEndpoint {
                 transaction.rollback();
             }
             persistenceManager.close();
-        }
-    }
-
-    @ApiMethod(name = "loadPlayers")
-    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
-        throws ServiceException {
-        if (projectKey == null) {
-            throw new NullPointerException();
-        }
-        
-        AppEngineUtils.basicAuthentication(user);
-
-        PersistenceManager persistenceManager = null;
-        List<ScrumPlayer> players = null;
-
-        try {
-            persistenceManager = AppEngineUtils.getPersistenceManager();
-            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, 
-                    persistenceManager);
-            players = new ArrayList<ScrumPlayer>();
-            for (ScrumPlayer p : scrumProject.getPlayers()) {
-                // lazy fetch
-                p.getUser();
-                p.getUser().getDateOfBirth();
-                p.getUser().getName();
-                p.getUser().getLastName();
-                p.getUser().getCompanyName();
-                p.getUser().getJobTitle();
-                p.getUser().getGender();
-                p.getRole();
-                p.getAdminFlag();
-                players.add(p);
-            }
-        } finally {
-            persistenceManager.close();
-        }
-        return CollectionResponse.<ScrumPlayer>builder().setItems(players)
-                .build();
-    }
-
-    @ApiMethod(name = "addPlayerToProject")
-    public KeyResponse addPlayerToProject(@Named("projectKey") String projectKey,
-            @Named("userKey") String userEmail, @Named("role") String role,
-            User user) throws ServiceException {
-        if (projectKey == null || userEmail == null || role == null) {
-            throw new NullPointerException();
-        }
-        
-        AppEngineUtils.basicAuthentication(user);
-
-        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
-        Transaction transaction = persistenceManager.currentTransaction();
-        ScrumPlayer scrumPlayer = null;
-        ScrumUser scrumUser = null;
-        ScrumProject scrumProject = null;
-
-        try {
-            scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
-            for (ScrumPlayer player : scrumProject.getPlayers()) {
-                if (player.getUser().getEmail().equals(userEmail)) {
-                    throw new EntityExistsException("Object already exists");
-                }
-            }
-            scrumPlayer = new ScrumPlayer();
-
-            try {
-                scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userEmail, persistenceManager);
-            } catch (ServiceException ex) {
-                scrumUser = new ScrumUser();
-                scrumUser.setEmail(userEmail);
-                scrumUser.setLastModDate((new Date()).getTime());
-                scrumUser
-                .setName(userEmail.substring(0, userEmail.indexOf('@')));
-                scrumUser.setLastModUser(userEmail);
-            }
-
-            scrumPlayer.setAdminFlag(false);
-            scrumPlayer.setIssues(new HashSet<ScrumIssue>());
-            scrumPlayer.setRole(Role.valueOf(role));
-            scrumPlayer.setLastModDate((new Date()).getTime());
-            scrumPlayer.setLastModUser(user.getEmail());
-
-            scrumUser.addPlayer(scrumPlayer);
-
-            transaction.begin();
-            persistenceManager.makePersistent(scrumUser);
-            scrumProject.addPlayer(scrumPlayer);
-            persistenceManager.makePersistent(scrumProject);
-            scrumPlayer.setProject(scrumProject);
-            persistenceManager.makePersistent(scrumPlayer);
-            transaction.commit();
-            return new KeyResponse(scrumPlayer.getKey());
-
-        } finally {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            persistenceManager.close();
-
-            if (scrumPlayer != null) {
-                scrumPlayer.setProject(null);
-            }
-
-            if (scrumUser != null) {
-                scrumUser.setPlayers(null);
-                sendNotificationEMail(scrumUser.getEmail(), scrumProject.getName());
-            }
         }
     }
 

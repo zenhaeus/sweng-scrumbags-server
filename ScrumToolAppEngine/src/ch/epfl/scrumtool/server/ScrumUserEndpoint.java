@@ -1,6 +1,6 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.Date;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -67,8 +67,7 @@ public class ScrumUserEndpoint {
         } catch (ServiceException ex) {
             ScrumUser newUser = new ScrumUser();
             newUser.setEmail(eMail);
-            Date date = new Date();
-            newUser.setLastModDate(date.getTime());
+            newUser.setLastModDate(Calendar.getInstance().getTimeInMillis());
             newUser.setLastModUser(eMail);
             newUser.setName(eMail);
             insertScrumUser(newUser);
@@ -132,8 +131,8 @@ public class ScrumUserEndpoint {
             update.setDateOfBirth(scrumUser.getDateOfBirth());
             update.setEmail(scrumUser.getEmail());
             update.setJobTitle(scrumUser.getJobTitle());
-            update.setLastModDate(scrumUser.getLastModDate());
-            update.setLastModUser(scrumUser.getLastModUser());
+            update.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            update.setLastModUser(user.getEmail());
             update.setLastName(scrumUser.getLastName());
             update.setName(scrumUser.getName());
             update.setGender(scrumUser.getGender());
@@ -165,9 +164,22 @@ public class ScrumUserEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
             ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
-            
+            for (ScrumPlayer p : scrumUser.getPlayers()) {
+                ScrumProject project = p.getProject();
+                project.setLastModDate(lastDate);
+                project.setLastModUser(lastUser);
+                persistenceManager.makePersistent(project);
+                for (ScrumIssue i : p.getIssues()) {
+                    i.setAssignedPlayer(null);
+                    i.setLastModDate(lastDate);
+                    i.setLastModUser(lastUser);
+                    persistenceManager.makePersistent(i);
+                }
+            }
             persistenceManager.deletePersistent(scrumUser);
             transaction.commit();
             

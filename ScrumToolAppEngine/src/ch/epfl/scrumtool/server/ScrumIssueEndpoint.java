@@ -1,5 +1,6 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,6 +79,8 @@ public class ScrumIssueEndpoint {
             // Add issue
             scrumMainTask.getIssues().add(scrumIssue);
             persistenceManager.makePersistent(scrumMainTask);
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
 
             // Assign the player if there is one
             if (playerKey != null) {
@@ -88,6 +91,8 @@ public class ScrumIssueEndpoint {
                 scrumPlayer.getProject();
                 scrumPlayer.getAdminFlag();
                 scrumPlayer.getRole();
+                scrumPlayer.setLastModDate(lastDate);
+                scrumPlayer.setLastModUser(lastUser);
                 persistenceManager.makePersistent(scrumPlayer);
             }
 
@@ -97,12 +102,16 @@ public class ScrumIssueEndpoint {
                         persistenceManager);
                 scrumIssue.setSprint(scrumSprint);
                 scrumSprint.addIssue(scrumIssue);
+                scrumSprint.setLastModDate(lastDate);
+                scrumSprint.setLastModUser(lastUser);
                 persistenceManager.makePersistent(scrumSprint);
             }
             
             // Check status and update if necessary
             scrumIssue.verifyAndSetStatus();
-
+            
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
 
@@ -319,14 +328,17 @@ public class ScrumIssueEndpoint {
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            
             transaction.begin();
             ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, update.getKey(),
                     persistenceManager);
             scrumIssue.setName(update.getName());
             scrumIssue.setDescription(update.getDescription());
             scrumIssue.setEstimation(update.getEstimation());
-            scrumIssue.setLastModDate(update.getLastModDate());
-            scrumIssue.setLastModUser(update.getLastModUser());
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
             scrumIssue.setStatus(update.getStatus());
             scrumIssue.setPriority(update.getPriority());
 
@@ -337,6 +349,8 @@ public class ScrumIssueEndpoint {
                             persistenceManager);
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
+                    scrumPlayer.setLastModDate(lastDate);
+                    scrumPlayer.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumPlayer);
                 } else if (!scrumIssue.getAssignedPlayer().getKey().equals(playerKey)) {
                     scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
@@ -344,10 +358,14 @@ public class ScrumIssueEndpoint {
                             persistenceManager);
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
+                    scrumPlayer.setLastModDate(lastDate);
+                    scrumPlayer.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumPlayer);
                 }
             } else {
                 if (scrumIssue.getAssignedPlayer() != null) {
+                    scrumIssue.getAssignedPlayer().setLastModDate(lastDate);
+                    scrumIssue.getAssignedPlayer().setLastModUser(lastUser);
                     scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(null);
                 }
@@ -360,6 +378,8 @@ public class ScrumIssueEndpoint {
                             persistenceManager);
                     scrumSprint.addIssue(scrumIssue);
                     scrumIssue.setSprint(scrumSprint);
+                    scrumSprint.setLastModDate(lastDate);
+                    scrumSprint.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumSprint);
                 } else if (!scrumIssue.getSprint().getKey()
                         .equals(sprintKey)) {
@@ -368,11 +388,15 @@ public class ScrumIssueEndpoint {
                             persistenceManager);
                     scrumSprint.addIssue(scrumIssue);
                     scrumIssue.setSprint(scrumSprint);
+                    scrumSprint.setLastModDate(lastDate);
+                    scrumSprint.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumSprint);
                 }
             } else {
                 if (scrumIssue.getSprint() != null) {
                     scrumIssue.getSprint().removeIssue(scrumIssue);
+                    scrumIssue.getSprint().setLastModDate(lastDate);
+                    scrumIssue.getSprint().setLastModUser(lastUser);
                     scrumIssue.setSprint(null);
                 }
             }
@@ -401,6 +425,8 @@ public class ScrumIssueEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
             ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
                     persistenceManager);
@@ -408,7 +434,10 @@ public class ScrumIssueEndpoint {
                     persistenceManager);
             scrumIssue.setSprint(scrumSprint);
             scrumSprint.getIssues().add(scrumIssue);
-
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
+            scrumSprint.setLastModDate(lastDate);
+            scrumSprint.setLastModUser(lastUser);
             scrumIssue.verifyAndSetStatus();
             persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
@@ -442,7 +471,9 @@ public class ScrumIssueEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            
             ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey,
                     persistenceManager);
             if (scrumIssue.getSprint() == null) {
@@ -452,6 +483,10 @@ public class ScrumIssueEndpoint {
             
             scrumIssue.setSprint(null);
             scrumSprint.getIssues().remove(scrumIssue);
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
+            scrumSprint.setLastModDate(lastDate);
+            scrumSprint.setLastModUser(lastUser);
 
             transaction.begin();
             persistenceManager.makePersistent(scrumIssue);
@@ -477,17 +512,28 @@ public class ScrumIssueEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
             ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey, 
                     persistenceManager);
             if (scrumIssue.getSprint() != null) {
                 scrumIssue.getSprint().removeIssue(scrumIssue);
+                scrumIssue.getSprint().setLastModDate(lastDate);
+                scrumIssue.getSprint().setLastModUser(lastUser);
+                persistenceManager.makePersistent(scrumIssue.getSprint());
             }
             if (scrumIssue.getAssignedPlayer() != null) {
                 scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
+                scrumIssue.getAssignedPlayer().setLastModDate(lastDate);
+                scrumIssue.getAssignedPlayer().setLastModUser(lastUser);
+                persistenceManager.makePersistent(scrumIssue.getAssignedPlayer());
             }
             if (scrumIssue.getSprint() != null) {
                 scrumIssue.getSprint().removeIssue(scrumIssue);
+                scrumIssue.getSprint().setLastModDate(lastDate);
+                scrumIssue.getSprint().setLastModUser(lastUser);
+                persistenceManager.makePersistent(scrumIssue.getSprint());
             }
             persistenceManager.deletePersistent(scrumIssue);
             transaction.commit();
