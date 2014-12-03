@@ -156,6 +156,7 @@ public class ScrumPlayerEndpointTest {
         assertEquals(USER2_KEY, player.getUser().getEmail());
         assertEquals(ROLE, player.getRole().name());
         assertEquals(projectKey, player.getProject().getKey());
+        assertEquals(USER_KEY, player.getLastModUser());
         assertFalse(player.getAdminFlag());
     }
     
@@ -172,6 +173,7 @@ public class ScrumPlayerEndpointTest {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER_KEY, ROLE, userNotLoggedIn());
+        fail("should have thrown an UnauthorizedException");
     }
 
     // Remove Players tests
@@ -221,6 +223,7 @@ public class ScrumPlayerEndpointTest {
         player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
         assertFalse(player.getAdminFlag());
         assertEquals(player.getRole(), Role.STAKEHOLDER);
+        assertEquals(USER_KEY, player.getLastModUser());
     }
 
     @Test(expected = NullPointerException.class)

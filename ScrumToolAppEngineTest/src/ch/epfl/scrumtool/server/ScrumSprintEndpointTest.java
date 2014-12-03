@@ -75,6 +75,7 @@ public class ScrumSprintEndpointTest {
         assertEquals(projectKey, sprint.getProject().getKey());
         assertEquals(10000,sprint.getDate());
         assertEquals("Title", sprint.getTitle());
+        assertEquals(USER_KEY, sprint.getLastModUser());
     }
     
     @Test(expected = NullPointerException.class)
@@ -125,7 +126,8 @@ public class ScrumSprintEndpointTest {
         assertNotSame(date, update.getDate());
         assertNotSame(title, update.getTitle());
         assertNotSame(issues, update.getIssues());
-        
+        assertEquals(USER_KEY, sprint.getLastModUser());
+
         update.setDate(date);
         update.setIssues(issues);
         update.setTitle(title);
@@ -134,6 +136,7 @@ public class ScrumSprintEndpointTest {
         assertEquals(date, update.getDate());
         assertEquals(title, update.getTitle());
         assertEquals(issues, update.getIssues());
+        assertEquals(USER_KEY, sprint.getLastModUser());
     }
     
     @Test(expected = NullPointerException.class)

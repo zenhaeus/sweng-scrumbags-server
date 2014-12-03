@@ -196,6 +196,7 @@ public class ScrumProjectEndpointTest {
         assertNotNull(project.getPlayers());
         assertEquals(1, project.getPlayers().size());
         assertEquals(USER_KEY, project.getPlayers().iterator().next().getUser().getEmail());
+        assertEquals(USER_KEY, project.getLastModUser());
     }
     
     private boolean entityExists(Class<?> c, String key) {

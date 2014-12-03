@@ -775,6 +775,7 @@ public class ScrumIssueEndpointTest {
         assertEquals(TITLE, issue.getName());
         assertEquals(DESCRIPTION, issue.getDescription());
         assertEquals(Float.compare(ESTIMATION_1, issue.getEstimation()), 0);
+        assertEquals(USER_KEY, issue.getLastModUser());
     }
     
     private void assertIssueWithStatusCheck(Status status) {
@@ -787,6 +788,7 @@ public class ScrumIssueEndpointTest {
         assertEquals(TITLE2, issue.getName());
         assertEquals(DESCRIPTION2, issue.getDescription());
         assertEquals(Float.compare(ESTIMATION_2, issue.getEstimation()), 0);
+        assertEquals(USER_KEY, issue.getLastModUser());
     }
     
     private void assertIssue2WithStatusCheck(Status status) {

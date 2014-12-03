@@ -157,6 +157,7 @@ public class ScrumSprintEndpoint {
                 i.setSprint(null);
                 i.setLastModDate(Calendar.getInstance().getTimeInMillis());
                 i.setLastModUser(user.getEmail());
+                i.verifyAndSetStatus();
                 persistenceManager.makePersistent(i);
             }
             persistenceManager.deletePersistent(scrumSprint);

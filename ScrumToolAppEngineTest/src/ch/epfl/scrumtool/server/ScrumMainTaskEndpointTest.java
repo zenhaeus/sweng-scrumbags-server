@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
 
+import javax.jdo.JDOObjectNotFoundException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,18 +39,15 @@ public class ScrumMainTaskEndpointTest {
     private static final String AUTH_DOMAIN = "epfl.ch";
     private static final ScrumProjectEndpoint PROJECT_ENDPOINT = new ScrumProjectEndpoint();
     private static final ScrumMainTaskEndpoint MAINTASK_ENDPOINT = new ScrumMainTaskEndpoint();
+    private static final ScrumIssueEndpoint ISSUE_ENDPOINT = new ScrumIssueEndpoint();
     private static final ScrumUserEndpoint USER_ENDPOINT = new ScrumUserEndpoint();
 
     private static final String USER_KEY = "vincent.debieux@gmail.com";
-    private static final String USER2_KEY = "joeyzenh@gmail.com";
-    private static final String ROLE = "SCRUM_MASTER";
     
     private static final String NAME = "Name";
     private static final String DESCRIPTION = "Description";
     private static final Priority PRIORITY = Priority.NORMAL;
     private static final Status STATUS = Status.READY_FOR_ESTIMATION;
-    private static final long LAST_MOD_DATE = Calendar.getInstance().getTimeInMillis();
-    private static final String LAST_MOD_USER = USER_KEY;
     
     private ScrumProject project;
     private ScrumMainTask mainTask;
@@ -65,10 +64,7 @@ public class ScrumMainTaskEndpointTest {
         mainTask.setName(NAME);
         mainTask.setDescription(DESCRIPTION);
         mainTask.setPriority(PRIORITY);
-        mainTask.setStatus(STATUS);
-        mainTask.setLastModDate(LAST_MOD_DATE);
-        mainTask.setLastModUser(LAST_MOD_USER);
-        
+        mainTask.setStatus(STATUS);        
         
         helper.setUp();
     }
@@ -83,11 +79,6 @@ public class ScrumMainTaskEndpointTest {
   public void testLoadMainTaskExistingProject() throws ServiceException{
       loginUser(USER_KEY);
       String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-      ScrumMainTask mainTask = new ScrumMainTask();
-      mainTask.setName(NAME);
-      mainTask.setDescription(DESCRIPTION);
-      mainTask.setPriority(PRIORITY);
-      mainTask.setStatus(STATUS);
       MAINTASK_ENDPOINT.insertScrumMainTask(mainTask, projectKey, userLoggedIn());
       ArrayList<ScrumMainTask> tasks = new ArrayList<ScrumMainTask>((HashSet<ScrumMainTask>)
               MAINTASK_ENDPOINT.loadMainTasks(projectKey, userLoggedIn()).getItems());
@@ -98,6 +89,7 @@ public class ScrumMainTaskEndpointTest {
       assertEquals(DESCRIPTION, tasks.get(0).getDescription());
       assertEquals(PRIORITY, tasks.get(0).getPriority());
       assertEquals(STATUS, tasks.get(0).getStatus());
+      assertEquals(USER_KEY, tasks.get(0).getLastModUser());
   }
   
   @Test(expected = NotFoundException.class)
@@ -127,11 +119,6 @@ public class ScrumMainTaskEndpointTest {
   public void testInsertMainTaskExistingProject() throws ServiceException {
       loginUser(USER_KEY);
       String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-      ScrumMainTask mainTask = new ScrumMainTask();
-      mainTask.setName(NAME);
-      mainTask.setDescription(DESCRIPTION);
-      mainTask.setPriority(PRIORITY);
-      mainTask.setStatus(STATUS);
       String mainTaskKey = MAINTASK_ENDPOINT.insertScrumMainTask(mainTask, projectKey, userLoggedIn()).getKey();
       mainTask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, mainTaskKey);
       assertEquals(projectKey, mainTask.getProject().getKey());
@@ -139,6 +126,7 @@ public class ScrumMainTaskEndpointTest {
       assertEquals(DESCRIPTION, mainTask.getDescription());
       assertEquals(PRIORITY, mainTask.getPriority());
       assertEquals(STATUS,mainTask.getStatus());
+      assertEquals(USER_KEY, mainTask.getLastModUser());
   }
 
   @Test(expected = NullPointerException.class)
@@ -183,10 +171,18 @@ public class ScrumMainTaskEndpointTest {
       HashSet<ScrumMainTask> tasks = (HashSet<ScrumMainTask>) MAINTASK_ENDPOINT.
               loadMainTasks(projectKey, userLoggedIn()).getItems();
       ScrumMainTask mainTask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, tasks.iterator().next().getKey());
-      mainTask.setDescription(NAME);
+      mainTask.setName("test2");
+      mainTask.setDescription("desc2");
+      mainTask.setPriority(Priority.HIGH);
+      mainTask.setStatus(Status.FINISHED);
       MAINTASK_ENDPOINT.updateScrumMainTask(mainTask, userLoggedIn());
       mainTask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, tasks.iterator().next().getKey());
-      assertEquals(NAME, mainTask.getDescription());
+      assertEquals(projectKey, mainTask.getProject().getKey());
+      assertEquals("test2", mainTask.getName());
+      assertEquals("desc2", mainTask.getDescription());
+      assertEquals(Priority.HIGH, mainTask.getPriority());
+      assertEquals(Status.FINISHED,mainTask.getStatus());
+      assertEquals(USER_KEY, mainTask.getLastModUser());
   }
 
   @Test(expected = NotFoundException.class)
@@ -213,7 +209,6 @@ public class ScrumMainTaskEndpointTest {
       HashSet<ScrumMainTask> tasks = (HashSet<ScrumMainTask>) MAINTASK_ENDPOINT
               .loadMainTasks(projectKey, userLoggedIn()).getItems();
       ScrumMainTask mainTask = PMF.get().getPersistenceManager().getObjectById(ScrumMainTask.class, tasks.iterator().next().getKey());
-      mainTask.setDescription(NAME);
       MAINTASK_ENDPOINT.updateScrumMainTask(mainTask, userNotLoggedIn());
       fail("updateScrumMainTask should throw a a UnauthorizedException when the user is not logged in");
   }
@@ -225,7 +220,16 @@ public class ScrumMainTaskEndpointTest {
       ScrumMainTask mainTask = new ScrumMainTask();
       String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
       String mainTaskKey = MAINTASK_ENDPOINT.insertScrumMainTask(mainTask, projectKey, userLoggedIn()).getKey();
+      String issueKey = ISSUE_ENDPOINT.insertScrumIssue(new ScrumIssue(), mainTaskKey, null, null, userLoggedIn())
+              .getKey();
       MAINTASK_ENDPOINT.removeScrumMainTask(mainTaskKey, userLoggedIn());
+      ScrumProject project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
+      assertEquals(0, project.getBacklog().size());
+      try {
+          PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
+      } catch (JDOObjectNotFoundException e) {
+          // expected
+      }
   }
 
   @Test(expected = NotFoundException.class)

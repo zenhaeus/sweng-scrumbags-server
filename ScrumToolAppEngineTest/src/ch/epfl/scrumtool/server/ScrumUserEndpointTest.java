@@ -50,8 +50,6 @@ public class ScrumUserEndpointTest {
     private static final String JOB_TITLE = "CEO";
     private static final String NAME = "Name";
     private static final String LASTNAME = "Lastname";
-    private static final long LAST_MOD_DATE = Calendar.getInstance().getTimeInMillis();
-    private static final String LAST_MOD_USER = USER_KEY;
     private static final String GENDER = "male";
 
     @Before
@@ -73,6 +71,7 @@ public class ScrumUserEndpointTest {
         ScrumUser user = loginUser(USER_KEY);
         assertEquals(USER_KEY, user.getEmail());
         assertEquals(USER_KEY, user.getName());
+        assertEquals(USER_KEY, user.getLastModUser());
     }
 
     @Test(expected = NullPointerException.class)
@@ -118,6 +117,7 @@ public class ScrumUserEndpointTest {
         assertEquals(LASTNAME, updatedUser.getLastName());
         assertEquals(USER_KEY, updatedUser.getLastModUser());
         assertEquals(GENDER, updatedUser.getGender());
+        assertEquals(USER_KEY, user.getLastModUser());
     }
     
     @Test(expected = NotFoundException.class)

@@ -181,12 +181,30 @@ public class ScrumMainTaskEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             ScrumMainTask scrumMaintask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, mainTaskKey,
                     persistenceManager);
             transaction.begin();
             scrumMaintask.getProject().setLastModDate(Calendar.getInstance().getTimeInMillis());
             scrumMaintask.getProject().setLastModUser(user.getEmail());
             persistenceManager.makePersistent(scrumMaintask.getProject());
+            for (ScrumIssue i : scrumMaintask.getIssues()) {
+                if (i.getAssignedPlayer() != null) {
+                    ScrumPlayer player = i.getAssignedPlayer();
+                    player.setLastModDate(lastDate);
+                    player.setLastModUser(lastUser);
+                    player.removeIssue(i);
+                    persistenceManager.makePersistent(player);
+                }
+                if (i.getSprint() != null) {
+                    ScrumSprint sprint = i.getSprint();
+                    sprint.setLastModDate(lastDate);
+                    sprint.setLastModUser(lastUser);
+                    sprint.removeIssue(i);
+                    persistenceManager.makePersistent(sprint);
+                }
+            }
             persistenceManager.deletePersistent(scrumMaintask);
             transaction.commit();
 
