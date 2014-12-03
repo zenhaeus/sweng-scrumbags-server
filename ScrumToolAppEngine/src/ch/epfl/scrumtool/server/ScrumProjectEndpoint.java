@@ -154,7 +154,9 @@ public class ScrumProjectEndpoint {
     public void removeScrumProject(
             @Named("projectKey") String projectKey, User user)
             throws ServiceException {
-        
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
