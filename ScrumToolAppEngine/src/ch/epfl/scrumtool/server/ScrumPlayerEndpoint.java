@@ -140,11 +140,10 @@ public class ScrumPlayerEndpoint {
         
         AppEngineUtils.basicAuthentication(user);
     
-        PersistenceManager persistenceManager = null;
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         List<ScrumPlayer> players = null;
     
         try {
-            persistenceManager = AppEngineUtils.getPersistenceManager();
             ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, 
                     persistenceManager);
             players = new ArrayList<ScrumPlayer>();
