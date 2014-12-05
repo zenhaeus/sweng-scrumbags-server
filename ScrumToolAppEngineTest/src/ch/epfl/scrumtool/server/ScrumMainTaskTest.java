@@ -165,6 +165,22 @@ public class ScrumMainTaskTest {
     }
     
     @Test
+    public void testVerifyAndSetStatusFinishedAndOthers() {
+        ScrumMainTask task = newTaskWithStatus(null);
+        addIssueWithStatusToTask(Status.FINISHED, task);
+        addIssueWithStatusToTask(Status.IN_SPRINT, task);
+        
+        if (task.verifyAndSetStatusWithRespectToIssues()) {
+            assertEquals(Status.IN_SPRINT, task.getStatus());
+        } else {
+            fail("Should have changed status to IN_SPRINT");
+        }
+        
+     // calling again should not yield any changes
+        assertFalse(task.verifyAndSetStatusWithRespectToIssues());
+    }
+    
+    @Test
     public void testVerifyAndSetStatusEmptyIssueSet() {
         ScrumMainTask task = newTaskWithStatus(null);
         

@@ -80,6 +80,9 @@ public class ScrumMainTask {
             }
         }
         
+        // We will perform side-effecting operations, so let's do them in a copy of the original set
+        final Set<ScrumIssue> issues = new HashSet<>(this.issues);
+        
         // Condition for FINISHED: all issues are FINISHED
         if (allIssuesHaveStatus(issues, FINISHED)) {
             if (status == FINISHED) {
@@ -89,6 +92,9 @@ public class ScrumMainTask {
                 return true;
             }
         }
+        
+        // Remove all finished issues
+        issues.removeAll(allIssuesWithStatus(issues, FINISHED));
         
         // Condition for READY_FOR_SPRINT: all issues are READY_FOR_SPRINT
         if (allIssuesHaveStatus(issues, READY_FOR_SPRINT)) {
