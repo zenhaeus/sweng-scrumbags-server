@@ -88,7 +88,7 @@ public class ScrumMainTaskEndpointTest {
       assertEquals(NAME, tasks.get(0).getName());
       assertEquals(DESCRIPTION, tasks.get(0).getDescription());
       assertEquals(PRIORITY, tasks.get(0).getPriority());
-      assertEquals(STATUS, tasks.get(0).getStatus());
+      assertEquals(Status.READY_FOR_ESTIMATION, tasks.get(0).getStatus());
       assertEquals(USER_KEY, tasks.get(0).getLastModUser());
   }
   
@@ -125,7 +125,7 @@ public class ScrumMainTaskEndpointTest {
       assertEquals(NAME, mainTask.getName());
       assertEquals(DESCRIPTION, mainTask.getDescription());
       assertEquals(PRIORITY, mainTask.getPriority());
-      assertEquals(STATUS,mainTask.getStatus());
+      assertEquals(Status.READY_FOR_ESTIMATION, mainTask.getStatus());
       assertEquals(USER_KEY, mainTask.getLastModUser());
   }
 
@@ -181,7 +181,7 @@ public class ScrumMainTaskEndpointTest {
       assertEquals("test2", mainTask.getName());
       assertEquals("desc2", mainTask.getDescription());
       assertEquals(Priority.HIGH, mainTask.getPriority());
-      assertEquals(Status.FINISHED,mainTask.getStatus());
+      assertEquals(Status.READY_FOR_ESTIMATION, mainTask.getStatus());
       assertEquals(USER_KEY, mainTask.getLastModUser());
   }
 
