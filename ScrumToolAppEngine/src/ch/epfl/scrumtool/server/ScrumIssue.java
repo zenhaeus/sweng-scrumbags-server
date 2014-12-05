@@ -20,7 +20,6 @@ import com.google.appengine.datanucleus.annotations.Unowned;
  * @author zenhaeus
  * @author Cyriaque Brousse
  */
-
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class ScrumIssue {
     @PrimaryKey

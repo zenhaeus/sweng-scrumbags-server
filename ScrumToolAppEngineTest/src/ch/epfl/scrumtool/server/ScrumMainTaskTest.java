@@ -1,19 +1,18 @@
 package ch.epfl.scrumtool.server;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Calendar;
 import java.util.HashSet;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
+
 /**
- * 
- * @author aschneuw, sylb
- *
+ * @author aschneuw
+ * @author sylb
+ * @author Cyriaque Brousse
  */
 public class ScrumMainTaskTest {
-    private static final double DELTA = 1e8; // used to test equality between 2 long
-
     private static final String KEY = "key";
     private static final String NAME = "Name";
     private static final Priority PRIORITY = Priority.NORMAL;
@@ -23,79 +22,79 @@ public class ScrumMainTaskTest {
     private static final int ISSUES_NUMBER = 4;
     private static final float ISSUES_TIME = Calendar.getInstance().getTimeInMillis();
     
-    private static ScrumMainTask mainTask = new ScrumMainTask();
+    private static final ScrumMainTask MAIN_TASK = new ScrumMainTask();
     
     @Test
     public void testSetGetKey() {
-        mainTask.setKey(KEY);
-        assertEquals(KEY, mainTask.getKey());
+        MAIN_TASK.setKey(KEY);
+        assertEquals(KEY, MAIN_TASK.getKey());
     }
     
     @Test
     public void testSetGetName() {
-        mainTask.setName(NAME);
-        assertEquals(NAME, mainTask.getName());
+        MAIN_TASK.setName(NAME);
+        assertEquals(NAME, MAIN_TASK.getName());
     }
     
     @Test
     public void testSetGetIssues() {
         HashSet<ScrumIssue> issues = new HashSet<ScrumIssue>();
-        mainTask.setIssues(issues);
-        assertEquals(issues, mainTask.getIssues());
+        MAIN_TASK.setIssues(issues);
+        assertEquals(issues, MAIN_TASK.getIssues());
     }
     
     @Test
     public void testSetGetProject() {
         ScrumProject project = new ScrumProject();
-        mainTask.setProject(project);
-        assertEquals(project, mainTask.getProject());
+        MAIN_TASK.setProject(project);
+        assertEquals(project, MAIN_TASK.getProject());
     }
     
     @Test
     public void testSetGetStatus() {
-        mainTask.setStatus(STATUS);
-        assertEquals(STATUS, mainTask.getStatus());
+        MAIN_TASK.setStatus(STATUS);
+        assertEquals(STATUS, MAIN_TASK.getStatus());
     }
     
     @Test
     public void testSetGetPriority() {
-        mainTask.setPriority(PRIORITY);
-        assertEquals(PRIORITY, mainTask.getPriority());
+        MAIN_TASK.setPriority(PRIORITY);
+        assertEquals(PRIORITY, MAIN_TASK.getPriority());
     }
     
     @Test
     public void testSetGetLastModDate() {
-        mainTask.setLastModDate(DATE);
-        assertEquals(DATE, mainTask.getLastModDate());
+        MAIN_TASK.setLastModDate(DATE);
+        assertEquals(DATE, MAIN_TASK.getLastModDate());
     }
     
     @Test
     public void testSetGetLastModUser() {
-        mainTask.setLastModUser(LAST_USER);
-        assertEquals(LAST_USER, mainTask.getLastModUser());
+        MAIN_TASK.setLastModUser(LAST_USER);
+        assertEquals(LAST_USER, MAIN_TASK.getLastModUser());
     }
     
     @Test
     public void testSetGetIssuesFinished() {
-        mainTask.setIssuesFinished(ISSUES_NUMBER);
-        assertEquals(ISSUES_NUMBER, mainTask.getIssuesFinished());
+        MAIN_TASK.setIssuesFinished(ISSUES_NUMBER);
+        assertEquals(ISSUES_NUMBER, MAIN_TASK.getIssuesFinished());
     }
     
     @Test
     public void testSetGetTotalIssues() {
-        mainTask.setTotalIssues(ISSUES_NUMBER);
-        assertEquals(ISSUES_NUMBER, mainTask.getTotalIssues());
+        MAIN_TASK.setTotalIssues(ISSUES_NUMBER);
+        assertEquals(ISSUES_NUMBER, MAIN_TASK.getTotalIssues());
     }
     
     @Test
     public void testSetGetTotalTime() {
-        mainTask.setTotalTime(ISSUES_TIME);
-        assertEquals(ISSUES_TIME, mainTask.getTotalTime(), DELTA);
+        MAIN_TASK.setTotalTime(ISSUES_TIME);
+        assertEquals(Float.compare(ISSUES_TIME, MAIN_TASK.getTotalTime()), 0);
     }
     
     @Test
     public void testSetGetTimeFinished() {
-        mainTask.setTimeFinished(ISSUES_TIME);
-        assertEquals(ISSUES_TIME, mainTask.getTimeFinished(), DELTA);
+        MAIN_TASK.setTimeFinished(ISSUES_TIME);
+        assertEquals(Float.compare(ISSUES_TIME, MAIN_TASK.getTimeFinished()), 0);
     }
 }
