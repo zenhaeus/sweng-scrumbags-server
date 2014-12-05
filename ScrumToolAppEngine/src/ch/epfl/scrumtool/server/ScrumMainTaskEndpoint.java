@@ -17,9 +17,9 @@ import com.google.api.server.spi.response.CollectionResponse;
 import com.google.appengine.api.users.User;
 
 /**
- * 
- * @author aschneuw, sylb
- * 
+ * @author aschneuw
+ * @author sylb
+ * @author Cyriaque Brousse
  */
 
 @Api(
@@ -77,6 +77,10 @@ public class ScrumMainTaskEndpoint {
             scrumMaintask.setLastModUser(lastUser);
             scrumProject.setLastModDate(lastDate);
             scrumProject.setLastModUser(lastUser);
+            
+            // Check status and update if necessary
+            scrumMaintask.verifyAndSetStatusWithRespectToIssues();
+            
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
             return new KeyResponse(scrumMaintask.getKey());
@@ -114,6 +118,7 @@ public class ScrumMainTaskEndpoint {
             
             for (ScrumMainTask t: tasks) {
                 computeMainTaskIssueInfo(t);
+                checkTaskStatus(t);
             }
             
         } finally {
@@ -149,6 +154,7 @@ public class ScrumMainTaskEndpoint {
             scrumMainTask.setStatus(update.getStatus());
             scrumMainTask.setPriority(update.getPriority());
 
+            scrumMainTask.verifyAndSetStatusWithRespectToIssues();
             persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();
 
@@ -233,6 +239,12 @@ public class ScrumMainTaskEndpoint {
         t.setTotalIssues(t.getIssues().size());
         t.setTotalTime(estimatedTime);
         t.setIssuesFinished(issuesFinished);
+    }
+    
+    private void checkTaskStatus(ScrumMainTask t) throws IllegalStateException {
+        if (t.verifyAndSetStatusWithRespectToIssues()) {
+            throw new IllegalStateException();
+        }
     }
 
 }

@@ -1,5 +1,10 @@
 package ch.epfl.scrumtool.server;
 
+import static ch.epfl.scrumtool.server.Status.FINISHED;
+import static ch.epfl.scrumtool.server.Status.IN_SPRINT;
+import static ch.epfl.scrumtool.server.Status.READY_FOR_ESTIMATION;
+import static ch.epfl.scrumtool.server.Status.READY_FOR_SPRINT;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,8 +18,8 @@ import javax.jdo.annotations.PrimaryKey;
 
 /**
  * @author sylb
+ * @author Cyriaque Brousse
  */
-
 @PersistenceCapable(identityType = IdentityType.APPLICATION)
 public class ScrumMainTask {
     @PrimaryKey
@@ -58,7 +63,99 @@ public class ScrumMainTask {
     @NotPersistent
     private float timeFinished;
     
+    /**
+     * Verifies and sets the status for the task according to the issues'
+     * status, and enforces the right status
+     * 
+     * @return true if any modifications were made, false otherwise
+     */
+    public boolean verifyAndSetStatusWithRespectToIssues() {
+        // If issue set is null or empty, status should be READY_FOR_ESTIMATION
+        if (issues == null || issues.isEmpty()) {
+            if (status == READY_FOR_ESTIMATION) {
+                return false;
+            } else {
+                setStatus(READY_FOR_ESTIMATION);
+                return true;
+            }
+        }
+        
+        // Condition for FINISHED: all issues are FINISHED
+        if (allIssuesHaveStatus(issues, FINISHED)) {
+            if (status == FINISHED) {
+                return false;
+            } else {
+                setStatus(FINISHED);
+                return true;
+            }
+        }
+        
+        // Condition for READY_FOR_SPRINT: all issues are READY_FOR_SPRINT
+        if (allIssuesHaveStatus(issues, READY_FOR_SPRINT)) {
+            if (status == READY_FOR_SPRINT) {
+                return false;
+            } else {
+                setStatus(READY_FOR_SPRINT);
+                return true;
+            }
+        }
+        
+        // Condition for IN_SPRINT: (at least) one issue is IN_SPRINT and all
+        // others are READY_FOR_SPRINT
+        final Set<ScrumIssue> allInSprintIssues = allIssuesWithStatus(issues, IN_SPRINT);
+        final Set<ScrumIssue> notInSprintIssues = new HashSet<ScrumIssue>(issues);
+        notInSprintIssues.removeAll(allInSprintIssues);
+        if (!allInSprintIssues.isEmpty() && allIssuesHaveStatus(notInSprintIssues, READY_FOR_SPRINT)) {
+            if (status == IN_SPRINT) {
+                return false;
+            } else {
+                setStatus(IN_SPRINT);
+                return true;
+            }
+        } else { // Otherwise status is READY_FOR_ESTIMATION
+            if (status == READY_FOR_ESTIMATION) {
+                return false;
+            } else {
+                setStatus(READY_FOR_ESTIMATION);
+                return true;
+            }
+        }
+    }
     
+    /**
+     * @param issues
+     *            the set to iterate on
+     * @param status
+     *            the status to check
+     * @return true if all issues in the provided set have the specified status,
+     *         false otherwise
+     */
+    private boolean allIssuesHaveStatus(Set<ScrumIssue> issues, Status status) {
+        for (ScrumIssue i : issues) {
+            if (i.getStatus() != status) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * @param issues
+     *            the set to iterate on
+     * @param status
+     *            the status to check
+     * @return the subset of {@code issues} where the status is the provided
+     *         {@code status}
+     */
+    private Set<ScrumIssue> allIssuesWithStatus(Set<ScrumIssue> issues, Status status) {
+        Set<ScrumIssue> allIssuesWithStatus = new HashSet<ScrumIssue>();
+        for (ScrumIssue i : issues) {
+            if (i.getStatus() == status) {
+                allIssuesWithStatus.add(i);
+            }
+        }
+        return allIssuesWithStatus;
+    }
 
     /**
      * @return the issuesFinished
