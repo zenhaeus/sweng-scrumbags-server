@@ -147,7 +147,7 @@ public class ScrumIssueEndpoint {
                     i.getAssignedPlayer().getUser();
                 }
                 i.getSprint();
-                checkIssueStatus(i);
+                i.verifyAndSetStatus();
             }
         } finally {
             persistenceManager.close();
@@ -190,8 +190,7 @@ public class ScrumIssueEndpoint {
                 i.getSprint().setProject(null);
                 i.getStatus();
                 i.getPriority();
-                
-                checkIssueStatus(i);
+                i.verifyAndSetStatus();
             }
         } finally {
             persistenceManager.close();
@@ -239,7 +238,7 @@ public class ScrumIssueEndpoint {
                             issue.getSprint().setProject(null);
                         }
                     }
-                    checkIssueStatus(issue);
+                    issue.verifyAndSetStatus();
                 }
             }
             
@@ -293,8 +292,7 @@ public class ScrumIssueEndpoint {
                         persistenceManager.makeTransient(i.getMainTask());
                         i.getMainTask().setIssues(null);
                         issues.add(i);
-                        
-                        checkIssueStatus(i);
+                        i.verifyAndSetStatus();
                     }
                 }
             }
@@ -542,12 +540,6 @@ public class ScrumIssueEndpoint {
                 transaction.rollback();
             }
             persistenceManager.close();
-        }
-    }
-
-    private void checkIssueStatus(ScrumIssue i) throws IllegalStateException {
-        if (i.verifyAndSetStatus()) {
-            throw new IllegalStateException();
         }
     }
 

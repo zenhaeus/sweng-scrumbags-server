@@ -118,7 +118,6 @@ public class ScrumMainTaskEndpoint {
             
             for (ScrumMainTask t: tasks) {
                 computeMainTaskIssueInfo(t);
-                checkTaskStatus(t);
             }
             
         } finally {
@@ -239,12 +238,7 @@ public class ScrumMainTaskEndpoint {
         t.setTotalIssues(t.getIssues().size());
         t.setTotalTime(estimatedTime);
         t.setIssuesFinished(issuesFinished);
+        t.verifyAndSetStatusWithRespectToIssues();
     }
     
-    private void checkTaskStatus(ScrumMainTask t) throws IllegalStateException {
-        if (t.verifyAndSetStatusWithRespectToIssues()) {
-            throw new IllegalStateException();
-        }
-    }
-
 }

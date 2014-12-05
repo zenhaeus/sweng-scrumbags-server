@@ -80,7 +80,7 @@ public class ScrumMainTask {
             }
         }
         
-        // We will perform side-effecting operations, so let's do them in a copy of the original set
+        // We will perform side-effecting operations: create a copy of the original set
         final Set<ScrumIssue> issues = new HashSet<>(this.issues);
         
         // Condition for FINISHED: all issues are FINISHED
