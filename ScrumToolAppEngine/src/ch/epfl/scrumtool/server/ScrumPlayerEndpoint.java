@@ -98,6 +98,7 @@ public class ScrumPlayerEndpoint {
             scrumPlayer.setAdminFlag(false);
             scrumPlayer.setIssues(new HashSet<ScrumIssue>());
             scrumPlayer.setRole(Role.valueOf(role));
+            scrumPlayer.setInvitedFlag(true);
             scrumPlayer.setLastModDate(lastDate);
             scrumPlayer.setLastModUser(lastUser);
     
@@ -158,6 +159,8 @@ public class ScrumPlayerEndpoint {
                 p.getUser().getGender();
                 p.getRole();
                 p.getAdminFlag();
+                p.getInvitedFlag();
+                p.getProject();
                 players.add(p);
             }
         } finally {
@@ -185,6 +188,7 @@ public class ScrumPlayerEndpoint {
             scrumPlayer.setLastModDate(Calendar.getInstance().getTimeInMillis());
             scrumPlayer.setLastModUser(user.getEmail());
             scrumPlayer.setRole(update.getRole());
+            scrumPlayer.setInvitedFlag(update.getInvitedFlag());
             transaction.commit();
 
         } finally {
