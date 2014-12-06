@@ -69,6 +69,11 @@ public class ScrumProjectEndpointTest {
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertProject();
+        ScrumPlayer player = project.getPlayers().iterator().next();
+        assertFalse(player.getInvitedFlag());
+        assertTrue(player.getAdminFlag());
+        assertEquals(USER_KEY, player.getUser().getEmail());
+        assertEquals(project.getKey(), player.getProject().getKey());
     }
     
     @Test(expected = NullPointerException.class)

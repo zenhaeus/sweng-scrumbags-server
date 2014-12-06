@@ -2,6 +2,7 @@ package ch.epfl.scrumtool.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -157,6 +158,7 @@ public class ScrumPlayerEndpointTest {
         assertEquals(ROLE, player.getRole().name());
         assertEquals(projectKey, player.getProject().getKey());
         assertEquals(USER_KEY, player.getLastModUser());
+        assertTrue(player.getInvitedFlag());
         assertFalse(player.getAdminFlag());
     }
     
@@ -218,12 +220,14 @@ public class ScrumPlayerEndpointTest {
                 .getItems();
         ScrumPlayer player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
         player.setAdminFlag(false);
+        player.setInvitedFlag(false);
         player.setRole(Role.STAKEHOLDER);
         PLAYER_ENDPOINT.updateScrumPlayer(player, userLoggedIn());
         player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
         assertFalse(player.getAdminFlag());
         assertEquals(player.getRole(), Role.STAKEHOLDER);
         assertEquals(USER_KEY, player.getLastModUser());
+        assertFalse(player.getInvitedFlag());
     }
 
     @Test(expected = NullPointerException.class)

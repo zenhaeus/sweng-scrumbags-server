@@ -35,6 +35,14 @@ public class ScrumPlayerTest {
         player.setAdminFlag(IS_ADMIN);
         assertEquals(IS_ADMIN, player.getAdminFlag());
     }
+    
+    @Test
+    public void testSetGetInvitedFlag() {
+        player.setInvitedFlag(false);
+        assertEquals(false, player.getInvitedFlag());
+        player.setInvitedFlag(true);
+        assertEquals(true, player.getInvitedFlag());
+    }
 
     @Test
     public void testSetGetLastModDate() {
