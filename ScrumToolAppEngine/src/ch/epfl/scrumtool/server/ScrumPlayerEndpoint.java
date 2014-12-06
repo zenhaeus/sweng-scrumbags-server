@@ -166,6 +166,11 @@ public class ScrumPlayerEndpoint {
         } finally {
             persistenceManager.close();
         }
+        for (ScrumPlayer p : players) {
+            p.getProject().setBacklog(null);
+            p.getProject().setPlayers(null);
+            p.getProject().setSprints(null);
+        }
         return CollectionResponse.<ScrumPlayer>builder().setItems(players)
                 .build();
     }
