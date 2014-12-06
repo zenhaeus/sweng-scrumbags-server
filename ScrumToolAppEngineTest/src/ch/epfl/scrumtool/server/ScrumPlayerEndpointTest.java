@@ -74,7 +74,7 @@ public class ScrumPlayerEndpointTest {
     public void testLoadPlayersNonExistingProject() throws ServiceException {
         loginUser(USER_KEY);
         PLAYER_ENDPOINT.loadPlayers("non existing", userLoggedIn()).getItems();
-        fail("loadPlayers should throw a JDOObjectNotFoundException when given a non existing project");
+        fail("loadPlayers should throw a NotFoundException when given a non existing project");
     }
 
     @Test
@@ -94,6 +94,34 @@ public class ScrumPlayerEndpointTest {
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.loadPlayers(projectKey, userNotLoggedIn());
         fail("loadPlayers should throw a ServiceException when user is not logged in");
+    }
+    
+    //Load invited Players tests
+    @Test
+    public void testLoadInvitedPlayersExistingUser() throws ServiceException{
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn());
+        ArrayList<ScrumPlayer> players = (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadInvitedPlayers(user2LoggedIn())
+                .getItems();
+        assertEquals(1, players.size());
+        assertFalse(players.get(0).getAdminFlag());
+        assertTrue(players.get(0).getInvitedFlag());
+        assertEquals(USER2_KEY,players.get(0).getUser().getEmail());
+    }
+    
+    @Test(expected = NotFoundException.class)
+    public void testLoadInvitedPlayersNonExistingUser() throws ServiceException{
+        loginUser(USER2_KEY);
+        PLAYER_ENDPOINT.loadInvitedPlayers(userLoggedIn());
+        fail("should have thrown a NotFoundException");
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testLoadInvitedPlayersNotLoggedIn() throws ServiceException{
+        loginUser(USER_KEY);
+        PLAYER_ENDPOINT.loadInvitedPlayers(userNotLoggedIn());
+        fail("should have thrown a UnauthorizedException");
     }
 
     //Add Players tests
@@ -266,6 +294,13 @@ public class ScrumPlayerEndpointTest {
 
     private User userLoggedIn() {
         helper.setEnvEmail(USER_KEY);
+        helper.setEnvAuthDomain(AUTH_DOMAIN);
+        helper.setEnvIsLoggedIn(true);
+        return userService.getCurrentUser();
+    }
+    
+    private User user2LoggedIn() {
+        helper.setEnvEmail(USER2_KEY);
         helper.setEnvAuthDomain(AUTH_DOMAIN);
         helper.setEnvIsLoggedIn(true);
         return userService.getCurrentUser();

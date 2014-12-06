@@ -167,6 +167,7 @@ public class ScrumPlayerEndpoint {
             persistenceManager.close();
         }
         for (ScrumPlayer p : players) {
+            p.getUser().setPlayers(null);
             p.getProject().setBacklog(null);
             p.getProject().setPlayers(null);
             p.getProject().setSprints(null);
@@ -175,6 +176,49 @@ public class ScrumPlayerEndpoint {
                 .build();
     }
 
+    @ApiMethod(name = "loadInvitedPlayers")
+    public CollectionResponse<ScrumPlayer> loadInvitedPlayers(User user)
+        throws ServiceException {
+        
+        AppEngineUtils.basicAuthentication(user);
+    
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
+        List<ScrumPlayer> players = null;
+    
+        try {
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, user.getEmail(), 
+                    persistenceManager);
+            players = new ArrayList<ScrumPlayer>();
+            for (ScrumPlayer p : scrumUser.getPlayers()) {
+                if (p.getInvitedFlag()) {
+                 // lazy fetch
+                    p.getUser();
+                    p.getUser().getDateOfBirth();
+                    p.getUser().getName();
+                    p.getUser().getLastName();
+                    p.getUser().getCompanyName();
+                    p.getUser().getJobTitle();
+                    p.getUser().getGender();
+                    p.getRole();
+                    p.getAdminFlag();
+                    p.getInvitedFlag();
+                    p.getProject();
+                    players.add(p);
+                }
+            }
+        } finally {
+            persistenceManager.close();
+        }
+        for (ScrumPlayer p : players) {
+            p.getUser().setPlayers(null);
+            p.getProject().setBacklog(null);
+            p.getProject().setPlayers(null);
+            p.getProject().setSprints(null);
+        }
+        return CollectionResponse.<ScrumPlayer>builder().setItems(players)
+                .build();
+    }
+    
     @ApiMethod(name = "updateScrumPlayer")
     public void updateScrumPlayer(ScrumPlayer update, User user)
         throws ServiceException {
