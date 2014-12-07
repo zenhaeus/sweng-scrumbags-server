@@ -8,16 +8,15 @@ Setup
 
 How to setup Google App Engine in Eclipse for our project:
 
-1. If you have already cloned the repo for the server, delete it.
-2. If you haven't done so already, install the Google Cloud Eclipse Plugin:
+2. Install the Google Cloud Eclipse Plugin:
   1. Help -> Install new Software... -> Add...
   2. Add location: https://dl.google.com/eclipse/plugin/4.2
-  3. Install at least the following sources: i) Developer Tools -> Android Development Tools
+  3. Install at least the following sources: 
+    1. Developer Tools -> Android Development Tools
     1. Google App Engine Tools for Android
     2. Google Plugin for Eclipse 4.2
-    3. SDKs -> Google App Engine Java SDK 1.9.13
+    3. SDKs -> Google App Engine Java SDK 1.9.14
   
-  I admit, we are not entirely sure if all of these are needed, but this configuration seems to work on my machine.
 
 3. Clone the server repo
 4. Import the project:
@@ -28,5 +27,3 @@ How to setup Google App Engine in Eclipse for our project:
     1. Enter the server project properties
     2. Google -> App Engine and change the setting "Datanucleus JDO/JPA version:" to v1, press ok, then go back and change it back to v2.
     3. clean the project in eclipse. This should do the trick and you should be able to run the Server now.
-
-5. If you want to work with the server you need to switch to the ServerAccess branch in our Android project, since this branch contains the libraries that are needed on the client side. Sylvain and Arno can probably explain this closer tomorrow.
