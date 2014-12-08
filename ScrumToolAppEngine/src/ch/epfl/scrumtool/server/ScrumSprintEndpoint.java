@@ -154,15 +154,28 @@ public class ScrumSprintEndpoint {
             ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey, 
                     persistenceManager);
             for (ScrumIssue i : scrumSprint.getIssues()) {
-                i.setSprint(null);
-                i.setLastModDate(Calendar.getInstance().getTimeInMillis());
-                i.setLastModUser(user.getEmail());
+                i.getName();
+                i.getDescription();
+                i.getEstimation();
+                i.getPriority();
                 i.verifyAndSetStatus();
-                persistenceManager.makePersistent(i);
+                i.getStatus();
+                i.getKey();
+                i.getAssignedPlayer();
+                i.getMainTask().getKey();
+                i.getMainTask().getName();
+                i.getMainTask().getDescription();
+                i.getMainTask().getPriority();
+                i.getMainTask().verifyAndSetStatusWithRespectToIssues();
+                i.getMainTask().getStatus();
+                persistenceManager.makeTransient(i.getMainTask());
+                i.getMainTask().setProject(null);
+                i.getMainTask().setIssues(null);
+                persistenceManager.makeTransient(i);
+                i.setSprint(null);
             }
             persistenceManager.deletePersistent(scrumSprint);
             transaction.commit();
-
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
@@ -189,15 +202,28 @@ public class ScrumSprintEndpoint {
             sprints = scrumProject.getSprints();
             for (ScrumSprint s : sprints) {
                 s.getIssues();
+                s.getDate();
+                s.getTitle();
                 for (ScrumIssue i : s.getIssues()) {
+                    i.getName();
+                    i.getDescription();
+                    i.getEstimation();
+                    i.getPriority();
+                    i.verifyAndSetStatus();
+                    i.getStatus();
+                    i.getKey();
                     i.getAssignedPlayer();
                     i.getMainTask().getKey();
                     i.getMainTask().getName();
                     i.getMainTask().getDescription();
                     i.getMainTask().getPriority();
+                    i.getMainTask().verifyAndSetStatusWithRespectToIssues();
                     i.getMainTask().getStatus();
                     persistenceManager.makeTransient(i.getMainTask());
                     i.getMainTask().setProject(null);
+                    i.getMainTask().setIssues(null);
+                    persistenceManager.makeTransient(i);
+                    i.setSprint(null);
                 }
             }
         } finally {

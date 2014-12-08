@@ -116,7 +116,20 @@ public class ScrumMainTaskEndpoint {
             tasks = scrumProject.getBacklog();
             
             for (ScrumMainTask t: tasks) {
+                t.getKey();
+                t.getName();
+                t.getDescription();
+                t.getPriority();
+                t.verifyAndSetStatusWithRespectToIssues();
+                t.getStatus();
                 computeMainTaskIssueInfo(t);
+                t.getIssuesFinished();
+                t.getTimeFinished();
+                t.getTotalIssues();
+                t.getTotalTime();
+                persistenceManager.makeTransient(t);
+                t.setIssues(null);
+                t.setProject(null);
             }
             
         } finally {

@@ -143,11 +143,38 @@ public class ScrumIssueEndpoint {
 
             // Lazy Fetch
             for (ScrumIssue i : issues) {
-                if (i.getAssignedPlayer() != null) {
-                    i.getAssignedPlayer().getUser();
-                }
-                i.getSprint();
+                i.getKey();
+                i.getDescription();
+                i.getName();
+                i.getEstimation();
+                i.getPriority();
                 i.verifyAndSetStatus();
+                i.getStatus();
+                if (i.getAssignedPlayer() != null) {
+                    ScrumPlayer p = i.getAssignedPlayer();
+                    p.getAdminFlag();
+                    p.getInvitedFlag();
+                    p.getRole();
+                    p.getUser().getName();
+                    p.getUser().getEmail();
+                    p.getUser().getCompanyName();
+                    p.getUser().getDateOfBirth();
+                    p.getUser().getGender();
+                    p.getUser().getJobTitle();
+                    p.getUser().getLastName();
+                    persistenceManager.makeTransient(p.getUser());
+                    p.getUser().setPlayers(null);
+                    persistenceManager.makeTransient(p);
+                    p.setProject(null);
+                }
+                if (i.getSprint() != null) {
+                    i.getSprint().getKey();
+                    i.getSprint().getDate();
+                    i.getSprint().getTitle();
+                    persistenceManager.makeTransient(i.getSprint());
+                    i.getSprint().setProject(null);
+                    i.getSprint().setIssues(null);
+                }
             }
         } finally {
             persistenceManager.close();
@@ -173,24 +200,40 @@ public class ScrumIssueEndpoint {
             scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey, persistenceManager);
             issues = scrumSprint.getIssues();
 
-            // Lazy Fetch
+         // Lazy Fetch
             for (ScrumIssue i : issues) {
-                if (i.getAssignedPlayer() != null) {
-                    i.getAssignedPlayer().getUser();
-                    i.getAssignedPlayer().getRole();
-                    persistenceManager.makeTransient(i.getAssignedPlayer());
-                    persistenceManager.makeTransient(i.getAssignedPlayer().getUser());
-                    i.getAssignedPlayer().setIssues(null);
-                    i.getAssignedPlayer().getUser().setPlayers(null);
-                    
-                }
-                i.getSprint();
-                persistenceManager.makeTransient(i.getSprint());
-                i.getSprint().setIssues(null);
-                i.getSprint().setProject(null);
-                i.getStatus();
+                i.getKey();
+                i.getDescription();
+                i.getName();
+                i.getEstimation();
                 i.getPriority();
                 i.verifyAndSetStatus();
+                i.getStatus();
+                if (i.getAssignedPlayer() != null) {
+                    ScrumPlayer p = i.getAssignedPlayer();
+                    p.getAdminFlag();
+                    p.getInvitedFlag();
+                    p.getRole();
+                    p.getUser().getName();
+                    p.getUser().getEmail();
+                    p.getUser().getCompanyName();
+                    p.getUser().getDateOfBirth();
+                    p.getUser().getGender();
+                    p.getUser().getJobTitle();
+                    p.getUser().getLastName();
+                    persistenceManager.makeTransient(p.getUser());
+                    p.getUser().setPlayers(null);
+                    persistenceManager.makeTransient(p);
+                    p.setProject(null);
+                }
+                if (i.getSprint() != null) {
+                    i.getSprint().getKey();
+                    i.getSprint().getDate();
+                    i.getSprint().getTitle();
+                    persistenceManager.makeTransient(i.getSprint());
+                    i.getSprint().setProject(null);
+                    i.getSprint().setIssues(null);
+                }
             }
         } finally {
             persistenceManager.close();
@@ -218,6 +261,13 @@ public class ScrumIssueEndpoint {
                 for (ScrumIssue issue: is) {
                     if (issue.getStatus() != Status.FINISHED) {
                         issues.add(issue);
+                        issue.getDescription();
+                        issue.getKey();
+                        issue.getEstimation();
+                        issue.getName();
+                        issue.getPriority();
+                        issue.verifyAndSetStatus();
+                        issue.getStatus();
                         issue.getMainTask().getPriority();
                         issue.getMainTask().getStatus();
                         issue.getMainTask().getName();
@@ -227,7 +277,6 @@ public class ScrumIssueEndpoint {
                         issue.getMainTask().getProject().getDescription();
                         issue.getAssignedPlayer();
                         issue.getAssignedPlayer().getUser();
-                        issue.getPriority();
                         issue.getSprint();
                         persistenceManager.makeTransient(issue);
                         persistenceManager.makeTransient(issue.getSprint());

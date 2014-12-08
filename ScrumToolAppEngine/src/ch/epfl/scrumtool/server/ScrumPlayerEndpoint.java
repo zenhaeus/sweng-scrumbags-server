@@ -150,6 +150,7 @@ public class ScrumPlayerEndpoint {
             players = new ArrayList<ScrumPlayer>();
             for (ScrumPlayer p : scrumProject.getPlayers()) {
                 // lazy fetch
+                p.getKey();
                 p.getUser();
                 p.getUser().getDateOfBirth();
                 p.getUser().getName();
@@ -200,6 +201,7 @@ public class ScrumPlayerEndpoint {
                     p.getUser().getCompanyName();
                     p.getUser().getJobTitle();
                     p.getUser().getGender();
+                    p.getKey();
                     p.getRole();
                     p.getAdminFlag();
                     p.getInvitedFlag();
