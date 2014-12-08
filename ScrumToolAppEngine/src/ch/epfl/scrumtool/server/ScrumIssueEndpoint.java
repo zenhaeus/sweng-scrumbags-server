@@ -218,7 +218,14 @@ public class ScrumIssueEndpoint {
                 for (ScrumIssue issue: is) {
                     if (issue.getStatus() != Status.FINISHED) {
                         issues.add(issue);
-                        issue.getMainTask().getProject();
+                        issue.getMainTask().getPriority();
+                        issue.getMainTask().getStatus();
+                        issue.getMainTask().getName();
+                        issue.getMainTask().getDescription();
+                        issue.getMainTask().getKey();
+                        issue.getMainTask().getProject().getName();
+                        issue.getMainTask().getProject().getDescription();
+                        issue.getAssignedPlayer();
                         issue.getAssignedPlayer().getUser();
                         issue.getPriority();
                         issue.getSprint();
