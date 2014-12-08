@@ -277,7 +277,11 @@ public class ScrumIssueEndpoint {
                         issue.getMainTask().getProject().getDescription();
                         issue.getAssignedPlayer();
                         issue.getAssignedPlayer().getUser();
-                        issue.getSprint();
+                        if (issue.getSprint() != null){
+                            issue.getSprint().getTitle();
+                            issue.getSprint().getDate();
+                            issue.getSprint().getKey();
+                        }
                         persistenceManager.makeTransient(issue);
                         persistenceManager.makeTransient(issue.getSprint());
                         persistenceManager.makeTransient(issue.getAssignedPlayer());
@@ -292,6 +296,7 @@ public class ScrumIssueEndpoint {
                         issue.getMainTask().getProject().setSprints(null);
                         if (issue.getSprint() != null) {
                             issue.getSprint().setProject(null);
+                            issue.getSprint().setIssues(null);
                         }
                     }
                     issue.verifyAndSetStatus();
