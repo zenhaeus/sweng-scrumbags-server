@@ -96,7 +96,9 @@ public class ScrumUserEndpoint {
         try {
             ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
             for (ScrumPlayer p : scrumUser.getPlayers()) {
-                projects.add(p.getProject());
+                if (!p.getInvitedFlag()) {
+                    projects.add(p.getProject());
+                }
             }
     
         } finally {
