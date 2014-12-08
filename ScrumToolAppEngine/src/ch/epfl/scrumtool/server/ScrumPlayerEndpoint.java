@@ -157,6 +157,7 @@ public class ScrumPlayerEndpoint {
                 p.getUser().getCompanyName();
                 p.getUser().getJobTitle();
                 p.getUser().getGender();
+                p.getUser().getEmail();
                 p.getRole();
                 p.getAdminFlag();
                 p.getInvitedFlag();

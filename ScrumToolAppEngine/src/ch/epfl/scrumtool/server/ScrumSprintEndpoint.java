@@ -191,12 +191,19 @@ public class ScrumSprintEndpoint {
                 s.getIssues();
                 for (ScrumIssue i : s.getIssues()) {
                     i.getAssignedPlayer();
-                    i.getMainTask();
+                    i.getMainTask().getKey();
+                    i.getMainTask().getName();
+                    i.getMainTask().getDescription();
+                    i.getMainTask().getPriority();
+                    i.getMainTask().getStatus();
+                    persistenceManager.makeTransient(i.getMainTask());
+                    i.getMainTask().setProject(null);
                 }
             }
         } finally {
             persistenceManager.close();
         }
+        
         return CollectionResponse.<ScrumSprint>builder().setItems(sprints).build();
     }
 

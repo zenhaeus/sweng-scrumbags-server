@@ -111,8 +111,7 @@ public class ScrumMainTaskEndpoint {
 
         Set<ScrumMainTask> tasks = null;
         try {
-            ScrumProject scrumProject = null;
-            scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class,
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class,
                     projectKey, persistenceManager);
             tasks = scrumProject.getBacklog();
             
