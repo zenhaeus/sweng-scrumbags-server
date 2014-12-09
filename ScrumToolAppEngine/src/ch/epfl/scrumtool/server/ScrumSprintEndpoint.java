@@ -154,25 +154,9 @@ public class ScrumSprintEndpoint {
             ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey, 
                     persistenceManager);
             for (ScrumIssue i : scrumSprint.getIssues()) {
-                i.getName();
-                i.getDescription();
-                i.getEstimation();
-                i.getPriority();
-                i.verifyAndSetStatus();
-                i.getStatus();
-                i.getKey();
-                i.getAssignedPlayer();
-                i.getMainTask().getKey();
-                i.getMainTask().getName();
-                i.getMainTask().getDescription();
-                i.getMainTask().getPriority();
-                i.getMainTask().verifyAndSetStatusWithRespectToIssues();
-                i.getMainTask().getStatus();
-                persistenceManager.makeTransient(i.getMainTask());
-                i.getMainTask().setProject(null);
-                i.getMainTask().setIssues(null);
-                persistenceManager.makeTransient(i);
+                scrumSprint.removeIssue(i);
                 i.setSprint(null);
+                persistenceManager.makePersistent(i);
             }
             persistenceManager.deletePersistent(scrumSprint);
             transaction.commit();
