@@ -277,7 +277,7 @@ public class ScrumIssueEndpoint {
                         issue.getMainTask().getProject().getDescription();
                         issue.getAssignedPlayer();
                         issue.getAssignedPlayer().getUser();
-                        if (issue.getSprint() != null){
+                        if (issue.getSprint() != null) {
                             issue.getSprint().getTitle();
                             issue.getSprint().getDate();
                             issue.getSprint().getKey();
