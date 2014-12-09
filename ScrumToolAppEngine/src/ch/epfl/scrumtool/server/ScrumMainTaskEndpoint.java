@@ -1,26 +1,25 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Calendar;
 import java.util.Set;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
 /**
- * 
- * @author aschneuw, sylb
- * 
+ * @author aschneuw
+ * @author sylb
+ * @author Cyriaque Brousse
  */
 
 @Api(
@@ -37,8 +36,12 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP},
-        audiences = {Constants.ANDROID_AUDIENCE}
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+        },
+        audiences = {
+            Constants.ANDROID_AUDIENCE
+            }
         )
 public class ScrumMainTaskEndpoint {
     /**
@@ -51,62 +54,84 @@ public class ScrumMainTaskEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumMainTask", path = "operationstatus/taskinsert")
-    public OperationStatus insertScrumMainTask(ScrumMainTask scrumMaintask,
+    public KeyResponse insertScrumMainTask(ScrumMainTask scrumMaintask,
             @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            ScrumProject scrumProject =
+                    AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
+            
             transaction.begin();
-
+            
             scrumProject.getBacklog().add(scrumMaintask);
+            scrumMaintask.setLastModDate(lastDate);
+            scrumMaintask.setLastModUser(lastUser);
+            scrumProject.setLastModDate(lastDate);
+            scrumProject.setLastModUser(lastUser);
+            
+            // Check status and update if necessary
+            scrumMaintask.verifyAndSetStatusWithRespectToIssues();
+            
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
-            opStatus.setKey(scrumMaintask.getKey());
-            opStatus.setSuccess(true);
+            return new KeyResponse(scrumMaintask.getKey());
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-
-        return opStatus;
     }
 
     /**
      * @param projectKey
      * @param user
      * @return CollectionResponse<ScrumMainTask>
-     * @throws OAuthRequestException
+     * @throws ServiceException
      */
     @ApiMethod(name = "loadMainTasks")
     public CollectionResponse<ScrumMainTask> loadMainTasks(
             @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumMainTask> tasks = null;
         try {
-            ScrumProject scrumProject = null;
-            scrumProject = persistenceManager.getObjectById(ScrumProject.class,
-                    projectKey);
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class,
+                    projectKey, persistenceManager);
             tasks = scrumProject.getBacklog();
             
-            //Lazy Fetch
-            for (ScrumMainTask t : tasks) {
-                for (ScrumIssue i : t.getIssues()) {
-                    i.getAssignedPlayer();
-                    i.getSprint();
-                }
+            for (ScrumMainTask t: tasks) {
+                t.getKey();
+                t.getName();
+                t.getDescription();
+                t.getPriority();
+                t.verifyAndSetStatusWithRespectToIssues();
+                t.getStatus();
+                computeMainTaskIssueInfo(t);
+                t.getIssuesFinished();
+                t.getTimeFinished();
+                t.getTotalIssues();
+                t.getTotalTime();
+                persistenceManager.makeTransient(t);
+                t.setIssues(null);
+                t.setProject(null);
             }
+            
         } finally {
             persistenceManager.close();
         }
@@ -123,40 +148,33 @@ public class ScrumMainTaskEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumMainTask", path = "operationstatus/taskupdate")
-    public OperationStatus updateScrumMainTask(ScrumMainTask update, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-
+    public void updateScrumMainTask(ScrumMainTask update, User user)
+            throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            if (!containsScrumMainTask(update)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
             transaction.begin();
-            ScrumMainTask scrumMainTask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, update.getKey());
+            ScrumMainTask scrumMainTask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, update.getKey(),
+                    persistenceManager);
             scrumMainTask.setDescription(update.getDescription());
-            scrumMainTask.setLastModDate(update.getLastModDate());
-            scrumMainTask.setLastModUser(update.getLastModUser());
+            scrumMainTask.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumMainTask.setLastModUser(user.getEmail());
             scrumMainTask.setName(update.getName());
             scrumMainTask.setStatus(update.getStatus());
             scrumMainTask.setPriority(update.getPriority());
 
+            scrumMainTask.verifyAndSetStatusWithRespectToIssues();
             persistenceManager.makePersistent(scrumMainTask);
             transaction.commit();
 
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -167,57 +185,72 @@ public class ScrumMainTaskEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumMainTask", path = "operationstatus/removeTask")
-    public OperationStatus removeScrumMainTask(
+    public void removeScrumMainTask(
             @Named("mainTaskKey") String mainTaskKey, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+            throws ServiceException {
+        if (mainTaskKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            ScrumMainTask scrumMaintask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, mainTaskKey);
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            ScrumMainTask scrumMaintask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, mainTaskKey,
+                    persistenceManager);
             transaction.begin();
+            scrumMaintask.getProject().setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumMaintask.getProject().setLastModUser(user.getEmail());
+            persistenceManager.makePersistent(scrumMaintask.getProject());
+            for (ScrumIssue i : scrumMaintask.getIssues()) {
+                if (i.getAssignedPlayer() != null) {
+                    ScrumPlayer player = i.getAssignedPlayer();
+                    player.setLastModDate(lastDate);
+                    player.setLastModUser(lastUser);
+                    player.removeIssue(i);
+                    persistenceManager.makePersistent(player);
+                }
+                if (i.getSprint() != null) {
+                    ScrumSprint sprint = i.getSprint();
+                    sprint.setLastModDate(lastDate);
+                    sprint.setLastModUser(lastUser);
+                    sprint.removeIssue(i);
+                    persistenceManager.makePersistent(sprint);
+                }
+            }
             persistenceManager.deletePersistent(scrumMaintask);
             transaction.commit();
 
-            opStatus.setKey(mainTaskKey);
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
-    /**
-     * Return true if the DS contains the Maintaks
-     * 
-     * @param scrumMaintask
-     * @return
-     */
-    private boolean containsScrumMainTask(ScrumMainTask scrumMaintask) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumMainTask.class,
-                    scrumMaintask.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
+    public static void computeMainTaskIssueInfo(ScrumMainTask t) {
+        float estimatedTime = 0;
+        float estimatedTimeFinished = 0;
+        int issuesFinished = 0;
+
+        for (ScrumIssue i : t.getIssues()) {
+            estimatedTime += i.getEstimation();
+            if (i.getStatus() == Status.FINISHED) {
+                issuesFinished++;
+                estimatedTimeFinished += i.getEstimation();
+            }
         }
-        return contains;
-    }
 
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
+        t.setTimeFinished(estimatedTimeFinished);
+        t.setTotalIssues(t.getIssues().size());
+        t.setTotalTime(estimatedTime);
+        t.setIssuesFinished(issuesFinished);
+        t.verifyAndSetStatusWithRespectToIssues();
     }
-
+    
 }

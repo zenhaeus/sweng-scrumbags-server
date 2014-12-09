@@ -1,22 +1,22 @@
 package ch.epfl.scrumtool.server;
 
-import java.util.Date;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Named;
+import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
+import com.google.api.server.spi.response.InternalServerErrorException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -38,7 +38,9 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP},
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+            },
         audiences = {Constants.ANDROID_AUDIENCE}
         )
 public class ScrumUserEndpoint {
@@ -49,25 +51,28 @@ public class ScrumUserEndpoint {
      * 
      * @param eMail
      * @return
+     * @throws ServiceException 
      */
     
     @ApiMethod(name = "loginUser")
-    public ScrumUser loginUser(@Named("eMail") String eMail) {
-        PersistenceManager persistenceManager = getPersistenceManager();
+    public ScrumUser loginUser(@Named("eMail") String eMail) throws ServiceException {
+        if (eMail == null) {
+            throw new NullPointerException();
+        }
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         ScrumUser scrumUser = null;
         try {
-            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
+            scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail, persistenceManager);
     
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
+        } catch (ServiceException ex) {
             ScrumUser newUser = new ScrumUser();
             newUser.setEmail(eMail);
-            Date date = new Date();
-            newUser.setLastModDate(date.getTime());
+            newUser.setLastModDate(Calendar.getInstance().getTimeInMillis());
             newUser.setLastModUser(eMail);
             newUser.setName(eMail);
             insertScrumUser(newUser);
-    
-            scrumUser = persistenceManager.getObjectById(ScrumUser.class, eMail);
+
+            scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail, persistenceManager);
         } finally {
             persistenceManager.close();
         }
@@ -76,19 +81,32 @@ public class ScrumUserEndpoint {
 
     /**
      * @return
-     * @throws OAuthRequestException
+     * @throws ServiceException
      */
     @ApiMethod(name = "loadProjects")
-    public CollectionResponse<ScrumProject> loadProjects(
-            @Named("userKey") String userKey, User user)
-            throws OAuthRequestException {
-        PersistenceManager persistenceManager = getPersistenceManager();
+    public CollectionResponse<ScrumProject> loadProjects(@Named("userKey") String userKey, User user)
+        throws ServiceException {
+        AppEngineUtils.basicAuthentication(user);
+        if (userKey == null) {
+            return null;
+        }
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Set<ScrumProject> projects = new HashSet<ScrumProject>();
     
         try {
-            ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
             for (ScrumPlayer p : scrumUser.getPlayers()) {
-                projects.add(p.getProject());
+                if (!p.getInvitedFlag()) {
+                    p.getProject().getName();
+                    p.getProject().getDescription();
+                    p.getProject().getKey();
+                    persistenceManager.makeTransient(p.getProject());
+                    p.getProject().setBacklog(null);
+                    p.getProject().setPlayers(null);
+                    p.getProject().setSprints(null);
+                    projects.add(p.getProject());
+                    
+                }
             }
     
         } finally {
@@ -107,27 +125,24 @@ public class ScrumUserEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumUser", path = "operationstatus/updateuser")
-    public OperationStatus updateScrumUser(ScrumUser scrumUser, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+    public void updateScrumUser(ScrumUser scrumUser, User user) throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        if (scrumUser == null) {
+            throw new InternalServerErrorException("Null");
+        }
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
-            if (!containsScrumUser(scrumUser)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
-            
             //Create valid JDO object
-            ScrumUser update = persistenceManager.getObjectById(ScrumUser.class, scrumUser.getEmail());
+            ScrumUser update = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, scrumUser.getEmail(),
+                    persistenceManager);
             update.setCompanyName(scrumUser.getCompanyName());
             update.setDateOfBirth(scrumUser.getDateOfBirth());
             update.setEmail(scrumUser.getEmail());
             update.setJobTitle(scrumUser.getJobTitle());
-            update.setLastModDate(scrumUser.getLastModDate());
-            update.setLastModUser(scrumUser.getLastModUser());
+            update.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            update.setLastModUser(user.getEmail());
             update.setLastName(scrumUser.getLastName());
             update.setName(scrumUser.getName());
             update.setGender(scrumUser.getGender());
@@ -135,16 +150,13 @@ public class ScrumUserEndpoint {
             transaction.begin();
             persistenceManager.makePersistent(update);
             transaction.commit();
-            
-            opStatus.setSuccess(true);
-            
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
+            
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -153,49 +165,41 @@ public class ScrumUserEndpoint {
      * 
      * @param userKey
      *            the primary key of the entity to be deleted.
+     * @throws ServiceException 
      */
     @ApiMethod(name = "removeScrumUser", path = "operationstatus/removeuser")
-    public OperationStatus removeScrumUser(@Named("userKey") String userKey) {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-        
-        PersistenceManager persistenceManager = getPersistenceManager();
+    public void removeScrumUser(@Named("userKey") String userKey, User user) throws ServiceException {
+        AppEngineUtils.basicAuthentication(user);
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
-            ScrumUser scrumUser = persistenceManager.getObjectById(ScrumUser.class, userKey);
-            
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey, persistenceManager);
+            for (ScrumPlayer p : scrumUser.getPlayers()) {
+                ScrumProject project = p.getProject();
+                project.setLastModDate(lastDate);
+                project.setLastModUser(lastUser);
+                persistenceManager.makePersistent(project);
+                for (ScrumIssue i : p.getIssues()) {
+                    i.setAssignedPlayer(null);
+                    i.setLastModDate(lastDate);
+                    i.setLastModUser(lastUser);
+                    persistenceManager.makePersistent(i);
+                }
+            }
             persistenceManager.deletePersistent(scrumUser);
             transaction.commit();
             
+        } catch (JDOObjectNotFoundException e) {
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
-    }
-
-    /**
-     * Returns true if the DS contains the User
-     * 
-     * @param scrumUser
-     * @return
-     */
-    private boolean containsScrumUser(ScrumUser scrumUser) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumUser.class,
-                    scrumUser.getEmail());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
     }
 
     /**
@@ -208,7 +212,7 @@ public class ScrumUserEndpoint {
      * @return The inserted entity.
      */
     private ScrumUser insertScrumUser(ScrumUser scrumUser) {
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
             if (scrumUser != null) {
@@ -225,10 +229,6 @@ public class ScrumUserEndpoint {
             persistenceManager.close();
         }
         return scrumUser;
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }

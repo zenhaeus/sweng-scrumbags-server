@@ -1,21 +1,20 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -39,7 +38,9 @@ import com.google.appengine.api.users.User;
             Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
             Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
             Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-            Constants.ANDROID_CLIENT_ID_ARNO_HP },
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+            },
         audiences = { 
             Constants.ANDROID_AUDIENCE }
         )
@@ -54,28 +55,34 @@ public class ScrumSprintEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumSprint")
-    public OperationStatus insertScrumSprint(
+    public KeyResponse insertScrumSprint(
             @Named("projectKey") String projectKey, ScrumSprint scrumSprint,
-            User user) throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+            User user) throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
+                    persistenceManager);
             scrumProject.addSprint(scrumSprint);
+            scrumProject.setLastModDate(lastDate);
+            scrumProject.setLastModUser(lastUser);
             scrumSprint.setProject(scrumProject);
             scrumSprint.setIssues(new HashSet<ScrumIssue>());
+            scrumSprint.setLastModDate(lastDate);
+            scrumSprint.setLastModUser(lastUser);
             persistenceManager.makePersistent(scrumProject);
             transaction.commit();
-            opStatus.setKey(scrumProject.getKey());
-            opStatus.setSuccess(true);
+            return new KeyResponse(scrumSprint.getKey());
 
         } finally {
             if (transaction.isActive()) {
@@ -83,7 +90,6 @@ public class ScrumSprintEndpoint {
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -96,31 +102,24 @@ public class ScrumSprintEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumSprint", path = "operationstatus/updatesprint")
-    public OperationStatus updateScrumSprint(ScrumSprint updated, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+    public void updateScrumSprint(ScrumSprint updated, User user)
+            throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            if (!containsScrumSprint(updated)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
+            ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, updated.getKey(),
+                    persistenceManager);
             transaction.begin();
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                    ScrumSprint.class, updated.getKey());
             scrumSprint.setTitle(updated.getTitle());
             scrumSprint.setDate(updated.getDate());
-            scrumSprint.setLastModDate(updated.getLastModDate());
-            scrumSprint.setLastModUser(updated.getLastModUser());
+            scrumSprint.setLastModDate(Calendar.getInstance().getTimeInMillis());
+            scrumSprint.setLastModUser(user.getEmail());
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
-
-            opStatus.setSuccess(true);
 
         } finally {
             if (transaction.isActive()) {
@@ -128,7 +127,6 @@ public class ScrumSprintEndpoint {
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     /**
@@ -139,85 +137,84 @@ public class ScrumSprintEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumSprint", path = "operationstatus/removesprint")
-    public OperationStatus removeScrumSprint(
+    public void removeScrumSprint(
             @Named("sprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+            throws ServiceException {
+        if (sprintKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
             transaction.begin();
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                    ScrumSprint.class, sprintKey);
+            ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey, 
+                    persistenceManager);
             for (ScrumIssue i : scrumSprint.getIssues()) {
+                scrumSprint.removeIssue(i);
                 i.setSprint(null);
+                persistenceManager.makePersistent(i);
             }
             persistenceManager.deletePersistent(scrumSprint);
             transaction.commit();
-            opStatus.setSuccess(true);
-
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     @ApiMethod(name = "loadSprints")
     public CollectionResponse<ScrumSprint> loadSprints(
             @Named("projectKey") String projectKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Set<ScrumSprint> sprints = new HashSet<ScrumSprint>();
 
         try {
-            ScrumProject scrumProject = persistenceManager.getObjectById(
-                    ScrumProject.class, projectKey);
+            ScrumProject scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
+                    persistenceManager);
             sprints = scrumProject.getSprints();
             for (ScrumSprint s : sprints) {
                 s.getIssues();
+                s.getDate();
+                s.getTitle();
                 for (ScrumIssue i : s.getIssues()) {
+                    i.getName();
+                    i.getDescription();
+                    i.getEstimation();
+                    i.getPriority();
+                    i.verifyAndSetStatus();
+                    i.getStatus();
+                    i.getKey();
                     i.getAssignedPlayer();
-                    i.getMainTask();
+                    i.getMainTask().getKey();
+                    i.getMainTask().getName();
+                    i.getMainTask().getDescription();
+                    i.getMainTask().getPriority();
+                    i.getMainTask().verifyAndSetStatusWithRespectToIssues();
+                    i.getMainTask().getStatus();
+                    persistenceManager.makeTransient(i.getMainTask());
+                    i.getMainTask().setProject(null);
+                    i.getMainTask().setIssues(null);
+                    persistenceManager.makeTransient(i);
+                    i.setSprint(null);
                 }
             }
         } finally {
             persistenceManager.close();
         }
+        
         return CollectionResponse.<ScrumSprint>builder().setItems(sprints).build();
-    }
-
-    /**
-     * Returns true if the DS containts the Sprint
-     * 
-     * @param scrumSprint
-     * @return
-     */
-    private boolean containsScrumSprint(ScrumSprint scrumSprint) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumSprint.class,
-                    scrumSprint.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }

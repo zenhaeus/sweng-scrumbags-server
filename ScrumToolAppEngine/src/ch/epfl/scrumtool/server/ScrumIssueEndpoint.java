@@ -1,46 +1,51 @@
 package ch.epfl.scrumtool.server;
 
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.jdo.PersistenceManager;
-import javax.jdo.Query;
 import javax.jdo.Transaction;
-import javax.persistence.EntityNotFoundException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
-import ch.epfl.scrumtool.PMF;
 
+import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.appengine.api.oauth.OAuthRequestException;
+import com.google.api.server.spi.response.NotFoundException;
 import com.google.appengine.api.users.User;
 
 /**
- * 
- * @author aschneuw, sylb
- * 
+ * @author aschneuw
+ * @author sylb
+ * @author Cyriaque Brousse
  */
 @Api(
         name = "scrumtool",
         version = "v1",
         namespace = @ApiNamespace(ownerDomain = "epfl.ch", ownerName = "epfl.ch", packagePath = "scrumtool.server"),
         clientIds = {
-        Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
-        Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
-        Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
-        Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
-        Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
-        Constants.ANDROID_CLIENT_ID_ARNO_HP }, audiences = { Constants.ANDROID_AUDIENCE })
+            Constants.ANDROID_CLIENT_ID_ARNO_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_JOEY_DESKTOP,
+            Constants.ANDROID_CLIENT_ID_JOEY_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LORIS_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_SYLVAIN_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ALEX_MACBOOK,
+            Constants.ANDROID_CLIENT_ID_VINCENT_LINUX,
+            Constants.ANDROID_CLIENT_ID_CYRIAQUE_LAPTOP,
+            Constants.ANDROID_CLIENT_ID_LEONARDO_THINKPAD,
+            Constants.ANDROID_CLIENT_ID_ARNO_HP,
+            Constants.ANDROID_CLIENT_ID_ARNO_THINKPAD
+        }, audiences = 
+                { 
+            Constants.ANDROID_AUDIENCE 
+            }
+        )
 public class ScrumIssueEndpoint {
 
     /**
@@ -53,83 +58,123 @@ public class ScrumIssueEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumIssue", path = "operationstatus/issueinsert")
-    public OperationStatus insertScrumIssue(ScrumIssue scrumIssue,
+    public KeyResponse insertScrumIssue(ScrumIssue scrumIssue,
             @Named("mainTaskKey") String maintaskKey,
             @Nullable @Named("playerKey") String playerKey,
             @Nullable @Named("SprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
+            throws ServiceException {
+        if (scrumIssue == null || maintaskKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            ScrumMainTask scrumMainTask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, maintaskKey);
+            ScrumMainTask scrumMainTask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, maintaskKey,
+                    persistenceManager);
             transaction.begin();
 
-            // Add the issue
+            // Add issue
             scrumMainTask.getIssues().add(scrumIssue);
             persistenceManager.makePersistent(scrumMainTask);
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
 
             // Assign the player if there is one
             if (playerKey != null) {
-                ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                        ScrumPlayer.class, playerKey);
+                ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                        persistenceManager);
                 scrumIssue.setAssignedPlayer(scrumPlayer);
                 scrumPlayer.addIssue(scrumIssue);
                 scrumPlayer.getProject();
                 scrumPlayer.getAdminFlag();
                 scrumPlayer.getRole();
+                scrumPlayer.setLastModDate(lastDate);
+                scrumPlayer.setLastModUser(lastUser);
                 persistenceManager.makePersistent(scrumPlayer);
             }
 
             // Assign a sprint if there is one
             if (sprintKey != null) {
-                ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                        ScrumSprint.class, sprintKey);
+                ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                        persistenceManager);
                 scrumIssue.setSprint(scrumSprint);
                 scrumSprint.addIssue(scrumIssue);
+                scrumSprint.setLastModDate(lastDate);
+                scrumSprint.setLastModUser(lastUser);
                 persistenceManager.makePersistent(scrumSprint);
             }
-
+            
+            // Check status and update if necessary
+            scrumIssue.verifyAndSetStatus();
+            
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
 
-            opStatus.setKey(scrumIssue.getKey());
-            opStatus.setSuccess(true);
+            return new KeyResponse(scrumIssue.getKey());
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     @ApiMethod(name = "loadIssuesByMainTask")
     public CollectionResponse<ScrumIssue> loadIssuesByMainTask(
             @Named("mainTaskKey") String maintaskKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (maintaskKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = null;
         try {
             ScrumMainTask scrumMaintask = null;
-            scrumMaintask = persistenceManager.getObjectById(
-                    ScrumMainTask.class, maintaskKey);
+            scrumMaintask = AppEngineUtils.getObjectFromDatastore(ScrumMainTask.class, maintaskKey, persistenceManager);
             issues = scrumMaintask.getIssues();
 
             // Lazy Fetch
             for (ScrumIssue i : issues) {
+                i.getKey();
+                i.getDescription();
+                i.getName();
+                i.getEstimation();
+                i.getPriority();
+                i.verifyAndSetStatus();
+                i.getStatus();
                 if (i.getAssignedPlayer() != null) {
-                    i.getAssignedPlayer().getUser();
+                    ScrumPlayer p = i.getAssignedPlayer();
+                    p.getAdminFlag();
+                    p.getInvitedFlag();
+                    p.getRole();
+                    p.getUser().getName();
+                    p.getUser().getEmail();
+                    p.getUser().getCompanyName();
+                    p.getUser().getDateOfBirth();
+                    p.getUser().getGender();
+                    p.getUser().getJobTitle();
+                    p.getUser().getLastName();
+                    persistenceManager.makeTransient(p.getUser());
+                    p.getUser().setPlayers(null);
+                    persistenceManager.makeTransient(p);
+                    p.setProject(null);
                 }
-                i.getSprint();
+                if (i.getSprint() != null) {
+                    i.getSprint().getKey();
+                    i.getSprint().getDate();
+                    i.getSprint().getTitle();
+                    persistenceManager.makeTransient(i.getSprint());
+                    i.getSprint().setProject(null);
+                    i.getSprint().setIssues(null);
+                }
             }
         } finally {
             persistenceManager.close();
@@ -141,37 +186,54 @@ public class ScrumIssueEndpoint {
     @ApiMethod(name = "loadIssuesBySprint")
     public CollectionResponse<ScrumIssue> loadIssuesBySprint(
             @Named("sprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (sprintKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = null;
         try {
             ScrumSprint scrumSprint = null;
-            scrumSprint = persistenceManager.getObjectById(ScrumSprint.class,
-                    sprintKey);
+            scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey, persistenceManager);
             issues = scrumSprint.getIssues();
 
-            // Lazy Fetch
+         // Lazy Fetch
             for (ScrumIssue i : issues) {
-                if (i.getAssignedPlayer() != null) {
-                    i.getAssignedPlayer().getUser();
-                    i.getAssignedPlayer().getRole();
-                    persistenceManager.makeTransient(i.getAssignedPlayer());
-                    persistenceManager.makeTransient(i.getAssignedPlayer().getUser());
-                    i.getAssignedPlayer().setIssues(null);
-                    i.getAssignedPlayer().getUser().setPlayers(null);
-                    
-                }
-                i.getSprint();
-                persistenceManager.makeTransient(i.getSprint());
-                i.getSprint().setIssues(null);
-                i.getSprint().setProject(null);
-                i.getStatus();
+                i.getKey();
+                i.getDescription();
+                i.getName();
+                i.getEstimation();
                 i.getPriority();
-                
-                
+                i.verifyAndSetStatus();
+                i.getStatus();
+                if (i.getAssignedPlayer() != null) {
+                    ScrumPlayer p = i.getAssignedPlayer();
+                    p.getAdminFlag();
+                    p.getInvitedFlag();
+                    p.getRole();
+                    p.getUser().getName();
+                    p.getUser().getEmail();
+                    p.getUser().getCompanyName();
+                    p.getUser().getDateOfBirth();
+                    p.getUser().getGender();
+                    p.getUser().getJobTitle();
+                    p.getUser().getLastName();
+                    persistenceManager.makeTransient(p.getUser());
+                    p.getUser().setPlayers(null);
+                    persistenceManager.makeTransient(p);
+                    p.setProject(null);
+                }
+                if (i.getSprint() != null) {
+                    i.getSprint().getKey();
+                    i.getSprint().getDate();
+                    i.getSprint().getTitle();
+                    persistenceManager.makeTransient(i.getSprint());
+                    i.getSprint().setProject(null);
+                    i.getSprint().setIssues(null);
+                }
             }
         } finally {
             persistenceManager.close();
@@ -182,28 +244,62 @@ public class ScrumIssueEndpoint {
     @ApiMethod(name = "loadIssuesForUser")
     public CollectionResponse<ScrumIssue> loadIssuesForUser(
             @Named("userKey") String userKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (userKey == null) {
+            throw new NullPointerException();
+        }
 
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
-            Set<ScrumPlayer> players = persistenceManager.getObjectById(ScrumUser.class, userKey).getPlayers();
+            Set<ScrumPlayer> players = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, userKey,
+                    persistenceManager).getPlayers();
             for (ScrumPlayer p: players) {
                 Set<ScrumIssue> is = p.getIssues(); 
                 for (ScrumIssue issue: is) {
                     if (issue.getStatus() != Status.FINISHED) {
                         issues.add(issue);
-                        issue.getAssignedPlayer().getUser();
+                        issue.getDescription();
+                        issue.getKey();
+                        issue.getEstimation();
+                        issue.getName();
                         issue.getPriority();
+                        issue.verifyAndSetStatus();
+                        issue.getStatus();
+                        issue.getMainTask().getPriority();
+                        issue.getMainTask().getStatus();
+                        issue.getMainTask().getName();
+                        issue.getMainTask().getDescription();
+                        issue.getMainTask().getKey();
+                        issue.getMainTask().getProject().getName();
+                        issue.getMainTask().getProject().getDescription();
+                        issue.getAssignedPlayer();
+                        issue.getAssignedPlayer().getUser();
+                        if (issue.getSprint() != null){
+                            issue.getSprint().getTitle();
+                            issue.getSprint().getDate();
+                            issue.getSprint().getKey();
+                        }
                         persistenceManager.makeTransient(issue);
+                        persistenceManager.makeTransient(issue.getSprint());
                         persistenceManager.makeTransient(issue.getAssignedPlayer());
+                        persistenceManager.makeTransient(issue.getMainTask());
+                        persistenceManager.makeTransient(issue.getMainTask().getProject());
                         persistenceManager.makeTransient(issue.getAssignedPlayer().getUser());
                         issue.getAssignedPlayer().getUser().setPlayers(null);
                         issue.getAssignedPlayer().setIssues(null);
-                        issue.getSprint();
+                        issue.getMainTask().setIssues(null);
+                        issue.getMainTask().getProject().setBacklog(null);
+                        issue.getMainTask().getProject().setPlayers(null);
+                        issue.getMainTask().getProject().setSprints(null);
+                        if (issue.getSprint() != null) {
+                            issue.getSprint().setProject(null);
+                            issue.getSprint().setIssues(null);
+                        }
                     }
+                    issue.verifyAndSetStatus();
                 }
             }
             
@@ -223,17 +319,21 @@ public class ScrumIssueEndpoint {
      * @param projectKey
      * @param user
      * @return
-     * @throws OAuthRequestException
+     * @throws ServiceException
      */
     @ApiMethod(name = "loadUnsprintedIssuesForProject")
     public CollectionResponse<ScrumIssue> loadUnsprintedIssuesForProject(
-            @Named("projectKey") String projectKey, User user) throws OAuthRequestException {
+            @Named("projectKey") String projectKey, User user) throws ServiceException {
+        if (projectKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
 
         Set<ScrumIssue> issues = new HashSet<ScrumIssue>();
         try {
-            ScrumProject project = persistenceManager.getObjectById(ScrumProject.class, projectKey);
+            ScrumProject project = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
+                    persistenceManager);
             for (ScrumMainTask m : project.getBacklog()) {
                 for (ScrumIssue i : m.getIssues()) {
                     if (i.getSprint() == null) {
@@ -253,6 +353,7 @@ public class ScrumIssueEndpoint {
                         persistenceManager.makeTransient(i.getMainTask());
                         i.getMainTask().setIssues(null);
                         issues.add(i);
+                        i.verifyAndSetStatus();
                     }
                 }
             }
@@ -273,124 +374,140 @@ public class ScrumIssueEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumIssue", path = "operationstatus/issueupdate")
-    public OperationStatus updateScrumIssue(ScrumIssue update,
+    public void updateScrumIssue(ScrumIssue update,
             @Nullable @Named("playerKey") String playerKey,
             @Nullable @Named("SprintKey") String sprintKey,
             User user)
-            throws OAuthRequestException {
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-
+            throws ServiceException {
+        if (update == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
         try {
-            if (!containsScrumIssue(update)) {
-                throw new EntityNotFoundException("Object does not exist");
-            }
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            
             transaction.begin();
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, update.getKey());
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, update.getKey(),
+                    persistenceManager);
             scrumIssue.setName(update.getName());
             scrumIssue.setDescription(update.getDescription());
             scrumIssue.setEstimation(update.getEstimation());
-            scrumIssue.setLastModDate(update.getLastModDate());
-            scrumIssue.setLastModUser(update.getLastModUser());
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
             scrumIssue.setStatus(update.getStatus());
             scrumIssue.setPriority(update.getPriority());
 
+            // update the player only if necessary
             if (playerKey != null) {
                 if (scrumIssue.getAssignedPlayer() == null) {
-                    ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                            ScrumPlayer.class, playerKey);
+                    ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                            persistenceManager);
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
+                    scrumPlayer.setLastModDate(lastDate);
+                    scrumPlayer.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumPlayer);
-                } else if (!scrumIssue.getAssignedPlayer().getKey()
-                        .equals(playerKey)) {
+                } else if (!scrumIssue.getAssignedPlayer().getKey().equals(playerKey)) {
                     scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
-                    ScrumPlayer scrumPlayer = persistenceManager.getObjectById(
-                            ScrumPlayer.class, playerKey);
+                    ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                            persistenceManager);
                     scrumPlayer.addIssue(scrumIssue);
                     scrumIssue.setAssignedPlayer(scrumPlayer);
+                    scrumPlayer.setLastModDate(lastDate);
+                    scrumPlayer.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumPlayer);
                 }
             } else {
                 if (scrumIssue.getAssignedPlayer() != null) {
+                    scrumIssue.getAssignedPlayer().setLastModDate(lastDate);
+                    scrumIssue.getAssignedPlayer().setLastModUser(lastUser);
                     scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
+                    scrumIssue.setAssignedPlayer(null);
                 }
             }
 
             // update the sprint only if necessary
             if (sprintKey != null) {
                 if (scrumIssue.getSprint() == null) {
-                    ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                            ScrumSprint.class, sprintKey);
+                    ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                            persistenceManager);
                     scrumSprint.addIssue(scrumIssue);
                     scrumIssue.setSprint(scrumSprint);
+                    scrumSprint.setLastModDate(lastDate);
+                    scrumSprint.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumSprint);
                 } else if (!scrumIssue.getSprint().getKey()
                         .equals(sprintKey)) {
                     scrumIssue.getSprint().removeIssue(scrumIssue);
-                    ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                            ScrumSprint.class, sprintKey);
+                    ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                            persistenceManager);
                     scrumSprint.addIssue(scrumIssue);
                     scrumIssue.setSprint(scrumSprint);
+                    scrumSprint.setLastModDate(lastDate);
+                    scrumSprint.setLastModUser(lastUser);
                     persistenceManager.makePersistent(scrumSprint);
                 }
             } else {
                 if (scrumIssue.getSprint() != null) {
                     scrumIssue.getSprint().removeIssue(scrumIssue);
+                    scrumIssue.getSprint().setLastModDate(lastDate);
+                    scrumIssue.getSprint().setLastModUser(lastUser);
+                    scrumIssue.setSprint(null);
                 }
             }
+            scrumIssue.verifyAndSetStatus();
             persistenceManager.makePersistent(scrumIssue);
             transaction.commit();
-            opStatus.setKey(scrumIssue.getKey());
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
     }
 
     @ApiMethod(name = "insertIssueInSprint", path = "operationstatus/insertIssueInSprint")
-    public OperationStatus insertScrumIssueInSprint(
+    public void insertScrumIssueInSprint(
             @Named("issueKey") String issueKey,
             @Named("sprintKey") String sprintKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (issueKey == null || sprintKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
-            ScrumSprint scrumSprint = persistenceManager.getObjectById(
-                    ScrumSprint.class, sprintKey);
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, issueKey);
+            ScrumSprint scrumSprint = AppEngineUtils.getObjectFromDatastore(ScrumSprint.class, sprintKey,
+                    persistenceManager);
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey,
+                    persistenceManager);
             scrumIssue.setSprint(scrumSprint);
             scrumSprint.getIssues().add(scrumIssue);
-
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
+            scrumSprint.setLastModDate(lastDate);
+            scrumSprint.setLastModUser(lastUser);
+            scrumIssue.verifyAndSetStatus();
             persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
 
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-
-        return opStatus;
     }
 
     /**
@@ -401,100 +518,90 @@ public class ScrumIssueEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumIssueFromSprint", path = "operationstatus/removeIssueFromSprint")
-    public OperationStatus removeScrumIssueFromSprint(
+    public void removeScrumIssueFromSprint(
             @Named("issueKey") String issueKey, User user)
-            throws OAuthRequestException {
+            throws ServiceException {
+        if (issueKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
 
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, issueKey);
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey,
+                    persistenceManager);
+            if (scrumIssue.getSprint() == null) {
+                throw new NotFoundException("This Issue is not assigned to any Sprint");
+            }
             ScrumSprint scrumSprint = scrumIssue.getSprint();
             
             scrumIssue.setSprint(null);
             scrumSprint.getIssues().remove(scrumIssue);
+            scrumIssue.setLastModDate(lastDate);
+            scrumIssue.setLastModUser(lastUser);
+            scrumSprint.setLastModDate(lastDate);
+            scrumSprint.setLastModUser(lastUser);
 
             transaction.begin();
             persistenceManager.makePersistent(scrumIssue);
             persistenceManager.makePersistent(scrumSprint);
             transaction.commit();
 
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-
-        return opStatus;
     }
 
     @ApiMethod(name = "removeScrumIssue", path = "operationstatus/removeIssue")
-    public OperationStatus removeScrumIssue(@Named("issueKey") String issueKey,
-            User user) throws OAuthRequestException {
+    public void removeScrumIssue(@Named("issueKey") String issueKey,
+            User user) throws ServiceException {
+        if (issueKey == null) {
+            throw new NullPointerException();
+        }
         AppEngineUtils.basicAuthentication(user);
-        OperationStatus opStatus = new OperationStatus();
-        opStatus.setSuccess(false);
-
-        PersistenceManager persistenceManager = getPersistenceManager();
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
             transaction.begin();
-            ScrumIssue scrumIssue = persistenceManager.getObjectById(
-                    ScrumIssue.class, issueKey);
+            ScrumIssue scrumIssue = AppEngineUtils.getObjectFromDatastore(ScrumIssue.class, issueKey, 
+                    persistenceManager);
             if (scrumIssue.getSprint() != null) {
                 scrumIssue.getSprint().removeIssue(scrumIssue);
+                scrumIssue.getSprint().setLastModDate(lastDate);
+                scrumIssue.getSprint().setLastModUser(lastUser);
+                persistenceManager.makePersistent(scrumIssue.getSprint());
             }
             if (scrumIssue.getAssignedPlayer() != null) {
                 scrumIssue.getAssignedPlayer().removeIssue(scrumIssue);
+                scrumIssue.getAssignedPlayer().setLastModDate(lastDate);
+                scrumIssue.getAssignedPlayer().setLastModUser(lastUser);
+                persistenceManager.makePersistent(scrumIssue.getAssignedPlayer());
             }
             if (scrumIssue.getSprint() != null) {
                 scrumIssue.getSprint().removeIssue(scrumIssue);
+                scrumIssue.getSprint().setLastModDate(lastDate);
+                scrumIssue.getSprint().setLastModUser(lastUser);
+                persistenceManager.makePersistent(scrumIssue.getSprint());
             }
             persistenceManager.deletePersistent(scrumIssue);
             transaction.commit();
-            opStatus.setKey(issueKey);
-            opStatus.setSuccess(true);
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
             persistenceManager.close();
         }
-        return opStatus;
-    }
-
-    /**
-     * Return true if the DS contains the Issue
-     * 
-     * @param scrumissue
-     * @return
-     */
-    private boolean containsScrumIssue(ScrumIssue scrumissue) {
-        PersistenceManager persistenceManager = getPersistenceManager();
-        boolean contains = true;
-        try {
-            persistenceManager.getObjectById(ScrumIssue.class,
-                    scrumissue.getKey());
-        } catch (javax.jdo.JDOObjectNotFoundException ex) {
-            contains = false;
-        } finally {
-            persistenceManager.close();
-        }
-        return contains;
-    }
-
-    private static PersistenceManager getPersistenceManager() {
-        return PMF.get().getPersistenceManager();
     }
 
 }

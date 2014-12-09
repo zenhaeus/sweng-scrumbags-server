@@ -36,6 +36,9 @@ public class ScrumPlayer {
 
     @Persistent
     private boolean admin;
+    
+    @Persistent
+    private boolean invited;
 
     @Persistent
     private long lastModDate;
@@ -120,6 +123,14 @@ public class ScrumPlayer {
 
     public boolean getAdminFlag() {
         return this.admin;
+    }
+    
+    public void setInvitedFlag(boolean invited) {
+        this.invited = invited;
+    }
+
+    public boolean getInvitedFlag() {
+        return this.invited;
     }
     
 }

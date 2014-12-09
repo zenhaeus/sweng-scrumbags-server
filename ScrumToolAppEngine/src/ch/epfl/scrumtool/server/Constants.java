@@ -30,6 +30,8 @@ public class Constants {
             "756445222019-jp9k73470ou36oqpgf3pauhvv36fv7sm.apps.googleusercontent.com";
     public static final String ANDROID_CLIENT_ID_ARNO_HP =
             "756445222019-u3jaboitv4fck86sb8pf4qqs2na6bhas.apps.googleusercontent.com";
+    public static final String ANDROID_CLIENT_ID_ARNO_THINKPAD =
+            "756445222019-i015uualri3phcscvd26di0c1imelc8n.apps.googleusercontent.com";
     
     public static final String ANDROID_AUDIENCE = WEB_CLIENT_ID;
     
