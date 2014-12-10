@@ -68,7 +68,7 @@ public class ScrumUserEndpointTest {
     
     @Test
     public void testLoginUser() throws ServiceException {
-        ScrumUser user = loginUser(USER_KEY);
+        ScrumUser user =loginUser(USER_KEY, userLoggedIn());
         assertEquals(USER_KEY, user.getEmail());
         assertEquals(USER_KEY, user.getName());
         assertEquals(USER_KEY, user.getLastModUser());
@@ -76,13 +76,13 @@ public class ScrumUserEndpointTest {
 
     @Test(expected = NullPointerException.class)
     public void testLoginUserNull() throws ServiceException {
-        assertNull(loginUser(null));
+        assertNull(loginUser(null, userLoggedIn()));
         fail("should have thrown a NullPointerException");
     }
 
     @Test
     public void testRemoveExistingUser() throws ServiceException {
-        ScrumUser user = loginUser(USER_KEY);
+        ScrumUser user = loginUser(USER_KEY, userLoggedIn());
         ENDPOINT.removeScrumUser(user.getEmail(), userLoggedIn());
     }
 
@@ -100,7 +100,7 @@ public class ScrumUserEndpointTest {
 
     @Test
     public void testUpdateExistingUser() throws ServiceException {
-        ScrumUser user = loginUser(USER_KEY);
+        ScrumUser user = loginUser(USER_KEY, userLoggedIn());
         ScrumUser updatedUser = user;
         updatedUser.setCompanyName(COMPANY_NAME);
         updatedUser.setDateOfBirth(DATE_OF_BIRTH);
@@ -130,7 +130,7 @@ public class ScrumUserEndpointTest {
 
     @Test
     public void testLoadProjectsForExistingUser() throws ServiceException {
-        loginUser(USER_KEY);
+        loginUser(USER_KEY, userLoggedIn());
         Set<ScrumProject> projects = (Set<ScrumProject>) ENDPOINT.loadProjects(USER_KEY, userLoggedIn()).getItems();
         assertNotNull(projects);
     }
@@ -162,8 +162,8 @@ public class ScrumUserEndpointTest {
      * Helper Methods
      */
 
-    private ScrumUser loginUser(String email) throws ServiceException {
-        return ENDPOINT.loginUser(email);
+    private ScrumUser loginUser(String email, User user) throws ServiceException {
+        return ENDPOINT.loginUser(email, user);
     }
     
     private User userLoggedIn() {

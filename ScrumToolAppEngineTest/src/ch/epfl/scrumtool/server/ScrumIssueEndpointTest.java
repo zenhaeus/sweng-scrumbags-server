@@ -797,7 +797,7 @@ public class ScrumIssueEndpointTest {
     }
 
     private ScrumUser loginUser(String email) throws ServiceException {
-        return USER_ENDPOINT.loginUser(email);
+        return USER_ENDPOINT.loginUser(email, userLoggedIn());
     }
 
     private User userLoggedIn() {

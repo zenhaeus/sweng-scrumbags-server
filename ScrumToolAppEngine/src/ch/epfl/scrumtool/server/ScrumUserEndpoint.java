@@ -55,10 +55,11 @@ public class ScrumUserEndpoint {
      */
     
     @ApiMethod(name = "loginUser")
-    public ScrumUser loginUser(@Named("eMail") String eMail) throws ServiceException {
+    public ScrumUser loginUser(@Named("eMail") String eMail, User user) throws ServiceException {
         if (eMail == null) {
             throw new NullPointerException();
         }
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         ScrumUser scrumUser = null;
         try {
