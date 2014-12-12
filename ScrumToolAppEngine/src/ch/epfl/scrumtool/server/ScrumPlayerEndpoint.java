@@ -127,7 +127,7 @@ public class ScrumPlayerEndpoint {
     
             if (scrumUser != null) {
                 scrumUser.setPlayers(null);
-                sendNotificationEMail(scrumUser.getEmail(), scrumProject.getName());
+                sendNotificationEMail(user.getEmail(), scrumUser.getEmail(), scrumProject.getName());
             }
         }
     }
@@ -299,19 +299,19 @@ public class ScrumPlayerEndpoint {
         }
     }
 
-    private static void sendNotificationEMail(String address, String projectName) {
+    private static void sendNotificationEMail(String sourceAddress, String destAddress, String projectName) {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
 
-        String msgBody = "Install the Android application. " 
-                + "Login with the Google Account associated with this E-Mail-Address.";
+        String msgBody = "You were invited by : " + sourceAddress + " to participate in project : " + projectName + "\n"
+                + "To accept this invitation you have just have to log in Murcs App";
 
         try {
             Message msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress("scrumtoolapp@gmail.com", "ScrumToolAapp"));
             msg.addRecipient(Message.RecipientType.TO,
-                    new InternetAddress(address, address));
-            msg.setSubject("Scrumtool: You have been added to the project: "+projectName+"");
+                    new InternetAddress(destAddress, destAddress));
+            msg.setSubject("Murcs: You received an invitation!");
             msg.setText(msgBody);
             Transport.send(msg);
 
