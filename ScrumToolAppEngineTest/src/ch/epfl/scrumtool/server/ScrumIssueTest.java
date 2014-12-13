@@ -1,6 +1,8 @@
 package ch.epfl.scrumtool.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 
@@ -33,7 +35,7 @@ public class ScrumIssueTest {
     private static final ScrumIssue ISSUE = new ScrumIssue();
     
     @Before
-    public void setup() {
+    public void setUp() {
         ISSUE.setAssignedPlayer(PLAYER_NONE);
         ISSUE.setDescription(DESCRIPTION);
         ISSUE.setKey(KEY);

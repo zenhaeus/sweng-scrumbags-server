@@ -24,6 +24,11 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
+/**
+ * 
+ * @author
+ *
+ */
 public class ScrumPlayerEndpointTest {
 
     // Since we use the High Replication Datastore we need to add .setDefaultHightRepJob...
@@ -82,10 +87,11 @@ public class ScrumPlayerEndpointTest {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         
-        ArrayList<ScrumPlayer> players = (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
+        ArrayList<ScrumPlayer> players =
+                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
                 .getItems();
         assertEquals(true, players.get(0).getAdminFlag());
-        assertEquals(USER_KEY,players.get(0).getUser().getEmail());
+        assertEquals(USER_KEY, players.get(0).getUser().getEmail());
     }
 
     @Test(expected = UnauthorizedException.class)
@@ -98,7 +104,7 @@ public class ScrumPlayerEndpointTest {
     
     //Load invited Players tests
     @Test
-    public void testLoadInvitedPlayersExistingUser() throws ServiceException{
+    public void testLoadInvitedPlayersExistingUser() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn());
@@ -107,18 +113,18 @@ public class ScrumPlayerEndpointTest {
         assertEquals(1, players.size());
         assertFalse(players.get(0).getAdminFlag());
         assertTrue(players.get(0).getInvitedFlag());
-        assertEquals(USER2_KEY,players.get(0).getUser().getEmail());
+        assertEquals(USER2_KEY, players.get(0).getUser().getEmail());
     }
     
     @Test(expected = NotFoundException.class)
-    public void testLoadInvitedPlayersNonExistingUser() throws ServiceException{
+    public void testLoadInvitedPlayersNonExistingUser() throws ServiceException {
         loginUser(USER2_KEY);
         PLAYER_ENDPOINT.loadInvitedPlayers(userLoggedIn());
         fail("should have thrown a NotFoundException");
     }
     
     @Test(expected = UnauthorizedException.class)
-    public void testLoadInvitedPlayersNotLoggedIn() throws ServiceException{
+    public void testLoadInvitedPlayersNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         PLAYER_ENDPOINT.loadInvitedPlayers(userNotLoggedIn());
         fail("should have thrown a UnauthorizedException");
@@ -263,7 +269,7 @@ public class ScrumPlayerEndpointTest {
     public void testRemoveNullPlayer() throws ServiceException {
         loginUser(USER_KEY);
         PLAYER_ENDPOINT.removeScrumPlayer(null, userLoggedIn());
-        fail("RemoveScrumPlayer should throw a NullPointerException when passing a null Player");;
+        fail("RemoveScrumPlayer should throw a NullPointerException when passing a null Player");
     }
 
     //Update Players tests
@@ -272,9 +278,11 @@ public class ScrumPlayerEndpointTest {
     public void testUpdateExistingPlayer() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ArrayList<ScrumPlayer> players = (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
+        ArrayList<ScrumPlayer> players =
+                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
                 .getItems();
-        ScrumPlayer player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
+        ScrumPlayer player =
+                PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
         player.setAdminFlag(false);
         player.setInvitedFlag(false);
         player.setRole(Role.STAKEHOLDER);
@@ -307,9 +315,11 @@ public class ScrumPlayerEndpointTest {
         loginUser(USER_KEY);
         
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
-        ArrayList<ScrumPlayer> players = (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
+        ArrayList<ScrumPlayer> players =
+                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
                 .getItems();
-        ScrumPlayer player = PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
+        ScrumPlayer player =
+                PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
         player.setAdminFlag(false);
         player.setRole(Role.STAKEHOLDER);
         PLAYER_ENDPOINT.updateScrumPlayer(player, userNotLoggedIn());

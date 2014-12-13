@@ -9,6 +9,11 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
+/**
+ * 
+ * @author
+ *
+ */
 public class ScrumSprintTest {
     private static final String KEY = "key";
     private static final String TITLE = "week 1";

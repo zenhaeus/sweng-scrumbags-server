@@ -24,6 +24,11 @@ import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
+/**
+ * 
+ * @author
+ *
+ */
 public class ScrumIssueEndpointTest {
 
     private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
@@ -101,7 +106,8 @@ public class ScrumIssueEndpointTest {
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         String playerKey = project.getPlayers().iterator().next().getKey();
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, null, userLoggedIn());
-        HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesForUser(USER_KEY, userLoggedIn()).getItems();
+        HashSet<ScrumIssue> issues =
+                (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesForUser(USER_KEY, userLoggedIn()).getItems();
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
@@ -138,7 +144,8 @@ public class ScrumIssueEndpointTest {
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn());
-        HashSet<ScrumIssue> issues =  (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesByMainTask(maintaskKey, userLoggedIn()).getItems();
+        HashSet<ScrumIssue> issues =
+                (HashSet<ScrumIssue>) ISSUE_ENDPOINT.loadIssuesByMainTask(maintaskKey, userLoggedIn()).getItems();
         assertNotNull(issues);
         assertEquals(1, issues.size());
         issue = issues.iterator().next();
@@ -260,7 +267,7 @@ public class ScrumIssueEndpointTest {
         assertIssueWithoutStatusCheck();
         assertNull(issue.getAssignedPlayer());
         assertNull(issue.getSprint());
-        }
+    }
     
     @Test
     public void testInsertIssueWithPlayer() throws ServiceException {
@@ -295,7 +302,8 @@ public class ScrumIssueEndpointTest {
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
-        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn()).getKey();
+        String issueKey =
+                ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
         assertIssueWithStatusCheck(Status.IN_SPRINT);
         assertEquals(playerKey, issue.getAssignedPlayer().getKey());
@@ -709,7 +717,7 @@ public class ScrumIssueEndpointTest {
         assertEquals(1, sprint.getIssues().size());
         assertEquals(sprintKey, issue.getSprint().getKey());
         ISSUE_ENDPOINT.removeScrumIssueFromSprint(issueKey, userLoggedIn());
-        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class,issueKey);
+        issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
         assertIssueWithoutStatusCheck();
         assertNull(issue.getSprint());
         sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);

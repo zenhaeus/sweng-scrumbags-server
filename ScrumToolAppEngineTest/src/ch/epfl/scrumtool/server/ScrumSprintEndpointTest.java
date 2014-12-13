@@ -63,7 +63,7 @@ public class ScrumSprintEndpointTest {
     
     //Insert Sprint tests
     @Test
-    public void testInsertSprint() throws ServiceException{
+    public void testInsertSprint() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
@@ -73,13 +73,13 @@ public class ScrumSprintEndpointTest {
         assertNotNull(sprintKey);
         sprint = PMF.get().getPersistenceManager().getObjectById(ScrumSprint.class, sprintKey);
         assertEquals(projectKey, sprint.getProject().getKey());
-        assertEquals(10000,sprint.getDate());
+        assertEquals(10000, sprint.getDate());
         assertEquals("Title", sprint.getTitle());
         assertEquals(USER_KEY, sprint.getLastModUser());
     }
     
     @Test(expected = NullPointerException.class)
-    public void testInsertSprintNullProjectKey() throws ServiceException{
+    public void testInsertSprintNullProjectKey() throws ServiceException {
         loginUser(USER_KEY);
         ScrumSprint sprint = new ScrumSprint();
         SPRINT_ENDPOINT.insertScrumSprint(null, sprint, userLoggedIn());
@@ -87,7 +87,7 @@ public class ScrumSprintEndpointTest {
     }
     
     @Test(expected = NotFoundException.class)
-    public void testInsertSprintNonExistingProject() throws ServiceException{
+    public void testInsertSprintNonExistingProject() throws ServiceException {
         loginUser(USER_KEY);
         ScrumSprint sprint = new ScrumSprint();
         SPRINT_ENDPOINT.insertScrumSprint("non-existing", sprint, userLoggedIn());
@@ -95,7 +95,7 @@ public class ScrumSprintEndpointTest {
     }
     
     @Test(expected = NullPointerException.class)
-    public void testInsertNullSprint() throws ServiceException{
+    public void testInsertNullSprint() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         SPRINT_ENDPOINT.insertScrumSprint(projectKey, null, userLoggedIn());
@@ -103,7 +103,7 @@ public class ScrumSprintEndpointTest {
     }
     
     @Test(expected = UnauthorizedException.class)
-    public void testInsertSprintNotLoggedIn() throws ServiceException{
+    public void testInsertSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
@@ -113,7 +113,7 @@ public class ScrumSprintEndpointTest {
     
     //Update Sprint tests
     @Test
-    public void testUpdateExistingSprint() throws ServiceException{
+    public void testUpdateExistingSprint() throws ServiceException {
         final String title = "Title";
         final long date = Calendar.getInstance().getTimeInMillis();
         HashSet<ScrumIssue> issues = new HashSet<ScrumIssue>();
@@ -140,14 +140,14 @@ public class ScrumSprintEndpointTest {
     }
     
     @Test(expected = NullPointerException.class)
-    public void testUpdateNullSprint() throws ServiceException{
+    public void testUpdateNullSprint() throws ServiceException {
         loginUser(USER_KEY);
         SPRINT_ENDPOINT.updateScrumSprint(null, userLoggedIn());
         fail("should have thrown a NullPointerEsception");
     }
     
     @Test(expected = NotFoundException.class)
-    public void testUpdateNonExistingSprint() throws ServiceException{
+    public void testUpdateNonExistingSprint() throws ServiceException {
         loginUser(USER_KEY);
         ScrumSprint sprint = new ScrumSprint();
         sprint.setKey("non-existing");
@@ -156,7 +156,7 @@ public class ScrumSprintEndpointTest {
     }
     
     @Test(expected = UnauthorizedException.class)
-    public void testUpdateSprintNotLoggedIn() throws ServiceException{
+    public void testUpdateSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
@@ -168,7 +168,7 @@ public class ScrumSprintEndpointTest {
     
     //Load Sprints tests
     @Test
-    public void testLoadSprintsExistingProject() throws ServiceException{
+    public void testLoadSprintsExistingProject() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
@@ -185,21 +185,21 @@ public class ScrumSprintEndpointTest {
     }
     
     @Test(expected = NotFoundException.class)
-    public void testLoadSprintsNonExistingProject() throws ServiceException{
+    public void testLoadSprintsNonExistingProject() throws ServiceException {
         loginUser(USER_KEY);
         SPRINT_ENDPOINT.loadSprints("non-existing", userLoggedIn()).getItems();
         fail("should have thrown NotFoundException");
     }
     
     @Test(expected = NullPointerException.class)
-    public void testLoadSprintsNullProjectKey() throws ServiceException{
+    public void testLoadSprintsNullProjectKey() throws ServiceException {
         loginUser(USER_KEY);
         SPRINT_ENDPOINT.loadSprints(null, userLoggedIn()).getItems();
         fail("should have thrown NullPointerException");
     }
     
     @Test(expected = UnauthorizedException.class)
-    public void testLoadSprintsNotLoggedIn() throws ServiceException{
+    public void testLoadSprintsNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
@@ -210,7 +210,7 @@ public class ScrumSprintEndpointTest {
     
     //Remove Sprint tests
     @Test
-    public void testRemoveExistingSprint() throws ServiceException{
+    public void testRemoveExistingSprint() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
@@ -223,21 +223,21 @@ public class ScrumSprintEndpointTest {
     }
     
     @Test(expected = NotFoundException.class)
-    public void testRemoveNonExistingSprint() throws ServiceException{
+    public void testRemoveNonExistingSprint() throws ServiceException {
         loginUser(USER_KEY);
         SPRINT_ENDPOINT.removeScrumSprint("non-existing", userLoggedIn());
         fail("should have thrown NotFoundException");
     }
     
     @Test(expected = NullPointerException.class)
-    public void testRemoveNullSprintKey() throws ServiceException{
+    public void testRemoveNullSprintKey() throws ServiceException {
         loginUser(USER_KEY);
         SPRINT_ENDPOINT.removeScrumSprint(null, userLoggedIn());
         fail("should have thrown NullPointerException");
     }
     
     @Test(expected = UnauthorizedException.class)
-    public void testRemoveSprintNotLoggedIn() throws ServiceException{
+    public void testRemoveSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();

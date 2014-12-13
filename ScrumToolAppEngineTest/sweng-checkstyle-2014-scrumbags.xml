@@ -5,7 +5,7 @@
     This configuration file was written by the eclipse-cs plugin configuration editor
 -->
 <!--
-    Checkstyle-Configuration: SwEng Code Conventions
+    Checkstyle-Configuration: SWENG-SCRUMBAGS
     Description: none
 -->
 <module name="Checker">
@@ -76,13 +76,7 @@
     <module name="EqualsHashCode"/>
     <module name="IllegalInstantiation"/>
     <module name="InnerAssignment"/>
-    <module name="MagicNumber"/>
     <module name="MissingSwitchDefault"/>
-    <!-- <module name="RedundantThrows"> -->
-    <!--   <property name="suppressLoadErrors" value="true"/> -->
-    <!--   <property name="allowSubclasses" value="true"/> -->
-    <!--   <property name="logLoadErrors" value="false"/> -->
-    <!-- </module> -->
     <module name="SimplifyBooleanReturn"/>
     <module name="FinalClass"/>
     <module name="InterfaceIsType"/>

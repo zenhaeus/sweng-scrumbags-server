@@ -1,6 +1,10 @@
 package ch.epfl.scrumtool.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import javax.jdo.JDOObjectNotFoundException;
 
@@ -155,11 +159,14 @@ public class ScrumProjectEndpointTest {
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumMainTask maintask = new ScrumMainTask();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
-        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, "joeyzenh@gmail.com", Role.DEVELOPER.name() , userLoggedIn()).getKey();
+        String playerKey =
+                PLAYER_ENDPOINT.addPlayerToProject(projectKey, "joeyzenh@gmail.com", Role.DEVELOPER.name(),
+                        userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         ScrumIssue issue = new ScrumIssue();
-        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn()).getKey();
+        String issueKey =
+                ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn()).getKey();
         PROJECT_ENDPOINT.removeScrumProject(projectKey, userLoggedIn());
         if (entityExists(ScrumProject.class, projectKey)) {
             fail("removeProject did not remove project");
@@ -206,7 +213,7 @@ public class ScrumProjectEndpointTest {
     
     private boolean entityExists(Class<?> c, String key) {
         try {
-        PMF.get().getPersistenceManager().getObjectById(c, key);
+            PMF.get().getPersistenceManager().getObjectById(c, key);
         } catch (JDOObjectNotFoundException e) {
             return false;
         }

@@ -9,6 +9,11 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
+/**
+ * 
+ * @author
+ *
+ */
 public class ScrumPlayerTest {
     private static final String KEY = "ThisIsAKey";
     private static final Role ROLE = Role.SCRUM_MASTER;

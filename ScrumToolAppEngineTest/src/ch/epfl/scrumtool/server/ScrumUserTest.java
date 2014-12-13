@@ -7,9 +7,6 @@ import java.util.Calendar;
 
 import org.junit.Test;
 
-import ch.epfl.scrumtool.server.ScrumPlayer;
-import ch.epfl.scrumtool.server.ScrumUser;
-
 /**
  * @author zenhaeus
  *
