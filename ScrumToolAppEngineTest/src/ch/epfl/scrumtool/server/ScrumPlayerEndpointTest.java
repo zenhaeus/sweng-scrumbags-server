@@ -319,12 +319,13 @@ public class ScrumPlayerEndpointTest {
     // setAdmin tests
     
     @Test
-    public void testSetAdminAsAdmin() throws ServiceException {
+    public void testSetPlayerAsAdmin() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumPlayer player1 = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey)
                 .getPlayers().iterator().next();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, playerKey).setInvitedFlag(false);
         PLAYER_ENDPOINT.setPlayerAsAdmin(playerKey, userLoggedIn());
         assertTrue(PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, playerKey).getAdminFlag());
         assertFalse(player1.getAdminFlag());
@@ -340,7 +341,7 @@ public class ScrumPlayerEndpointTest {
     }
     
     @Test(expected = UnauthorizedException.class)
-    public void testSetAdminNotNotLoggedIn() throws ServiceException {
+    public void testSetAdminNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
@@ -359,9 +360,27 @@ public class ScrumPlayerEndpointTest {
     @Test(expected = NotFoundException.class)
     public void testSetAdminNonExistingPlayer() throws ServiceException {
         loginUser(USER_KEY);
-        PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.setPlayerAsAdmin("non-existing", userLoggedIn());
         fail("expected NotFoundException");
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testSetAdminInvitedPlayer() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.setPlayerAsAdmin(playerKey, userLoggedIn());
+        fail("expected UnauthorizedException");
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testSetAdminAsAdmin() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String playerKey = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey)
+                .getPlayers().iterator().next().getKey();
+        PLAYER_ENDPOINT.setPlayerAsAdmin(playerKey, userLoggedIn());
+        fail("expected UnauthorizedException");
     }
 
     private ScrumUser loginUser(String email) throws ServiceException {

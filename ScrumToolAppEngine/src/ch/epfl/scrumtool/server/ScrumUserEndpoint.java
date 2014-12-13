@@ -16,7 +16,6 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.api.server.spi.response.InternalServerErrorException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -70,7 +69,7 @@ public class ScrumUserEndpoint {
             newUser.setEmail(eMail);
             newUser.setLastModDate(Calendar.getInstance().getTimeInMillis());
             newUser.setLastModUser(eMail);
-            newUser.setName(eMail);
+            newUser.setName(eMail.substring(0, eMail.indexOf('@')));
             insertScrumUser(newUser);
 
             scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail, persistenceManager);

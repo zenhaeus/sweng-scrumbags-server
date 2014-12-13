@@ -272,10 +272,14 @@ public class ScrumPlayerEndpoint {
             for (ScrumPlayer p : scrumUser.getPlayers()) {
                 if (p.getProject().getKey().equals(scrumPlayer.getProject().getKey())
                         && (!p.getAdminFlag())) {
-                    throw new UnauthorizedException("Only the admin can remove a player");
+                    throw new UnauthorizedException("Only the admin can select a new admin");
+                } else if (scrumPlayer.getInvitedFlag()) {
+                    throw new UnauthorizedException("Invited players cannot be admin");
+                } else if (scrumPlayer.getAdminFlag()) {
+                    throw new UnauthorizedException("You are already admin");
                 } else {
-                    scrumPlayer.setAdminFlag(true);
                     p.setAdminFlag(false);
+                    scrumPlayer.setAdminFlag(true);
                 }
             }
         } finally {

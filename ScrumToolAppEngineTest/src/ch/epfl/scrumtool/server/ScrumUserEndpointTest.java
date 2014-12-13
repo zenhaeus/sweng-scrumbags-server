@@ -70,7 +70,7 @@ public class ScrumUserEndpointTest {
     public void testLoginUser() throws ServiceException {
         ScrumUser user =loginUser(USER_KEY, userLoggedIn());
         assertEquals(USER_KEY, user.getEmail());
-        assertEquals(USER_KEY, user.getName());
+        assertEquals(USER_KEY.substring(0, USER_KEY.indexOf('@')), user.getName());
         assertEquals(USER_KEY, user.getLastModUser());
     }
 
