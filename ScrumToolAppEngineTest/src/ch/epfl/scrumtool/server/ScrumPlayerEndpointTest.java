@@ -8,8 +8,6 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import javax.persistence.EntityExistsException;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +15,7 @@ import org.junit.Test;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
+import com.google.api.server.spi.response.ConflictException;
 import com.google.api.server.spi.response.NotFoundException;
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
@@ -43,6 +42,7 @@ public class ScrumPlayerEndpointTest {
 
     private static final String USER_KEY = "vincent.debieux@gmail.com";
     private static final String USER2_KEY = "joeyzenh@gmail.com";
+    private static final String USER3_KEY = "example@gmail.com";
     private static final String ROLE = "SCRUM_MASTER";
     
     private ScrumProject project;
@@ -190,7 +190,7 @@ public class ScrumPlayerEndpointTest {
         assertFalse(player.getAdminFlag());
     }
     
-    @Test(expected = EntityExistsException.class)
+    @Test(expected = ConflictException.class)
     public void testAddExistingPlayer() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
@@ -216,6 +216,34 @@ public class ScrumPlayerEndpointTest {
         PLAYER_ENDPOINT.removeScrumPlayer(playerKey, userNotLoggedIn());
         fail("removePlayer should throw an ServiceException when the user is not logged in");
     }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testRemoveAdmin() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        ScrumProject project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
+        String playerKey = project.getPlayers().iterator().next().getKey();
+        PLAYER_ENDPOINT.removeScrumPlayer(playerKey, userLoggedIn());
+        fail("expected an UnauthorizedException");
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testRemovePlayerNotAdmin() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER3_KEY, ROLE, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.removeScrumPlayer(playerKey, user2LoggedIn());
+        fail("expected an UnauthorizedException");
+    }
+    
+    @Test
+    public void testPlayerRemovesHimself() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.removeScrumPlayer(playerKey, user2LoggedIn());
+    }
 
     @Test(expected = NotFoundException.class)
     public void testRemoveNonExistingPlayer() throws ServiceException {
@@ -224,7 +252,7 @@ public class ScrumPlayerEndpointTest {
     }
 
     @Test
-    public void testRemoveExistingPlayer() throws ServiceException {
+    public void testRemoveExistingPlayerAsAdmin() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();

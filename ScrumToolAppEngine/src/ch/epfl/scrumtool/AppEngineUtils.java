@@ -30,14 +30,14 @@ public class AppEngineUtils {
             throws ServiceException {
         if (type == null || key == null || pm == null) {
             throw new InternalServerErrorException(
-                    new IllegalArgumentException());
+                    new NullPointerException());
         }
 
         try {
             return pm.getObjectById(type, key);
 
         } catch (JDOObjectNotFoundException e) {
-            throw new NotFoundException(e);
+            throw new NotFoundException("Object not found", e);
         }
     }
 

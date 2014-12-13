@@ -17,7 +17,6 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.persistence.EntityExistsException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 
@@ -26,6 +25,8 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
+import com.google.api.server.spi.response.ConflictException;
+import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 
 
@@ -80,7 +81,7 @@ public class ScrumPlayerEndpoint {
             scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
             for (ScrumPlayer player : scrumProject.getPlayers()) {
                 if (player.getUser().getEmail().equals(userEmail)) {
-                    throw new EntityExistsException("Object already exists");
+                    throw new ConflictException("Player already exists");
                 }
             }
             scrumPlayer = new ScrumPlayer();
@@ -274,10 +275,25 @@ public class ScrumPlayerEndpoint {
         try {
             long lastDate = Calendar.getInstance().getTimeInMillis();
             String lastUser = user.getEmail();
-            
-            transaction.begin();
+            ScrumUser remover = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, user.getEmail(),
+                    persistenceManager);
             ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
                     persistenceManager);
+            // check if the user is admin
+            for (ScrumPlayer p : remover.getPlayers()) {
+                if (p.getProject().getKey().equals(scrumPlayer.getProject().getKey())
+                        && (!p.getAdminFlag())) {
+                    // or if he wants to remove himself
+                    if (!p.equals(scrumPlayer)) {
+                        throw new UnauthorizedException("Only the admin can remove a player");
+                    }
+                }
+            }
+            // cannot remove the admin
+            if (scrumPlayer.getAdminFlag()) {
+                throw new UnauthorizedException("Cannot remove the admin");
+            }
+            transaction.begin();
             ScrumUser scrumUser = scrumPlayer.getUser();
             scrumUser.setLastModDate(lastDate);
             scrumUser.setLastModUser(lastUser);

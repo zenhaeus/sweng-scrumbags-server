@@ -129,7 +129,7 @@ public class ScrumUserEndpoint {
     public void updateScrumUser(ScrumUser scrumUser, User user) throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
         if (scrumUser == null) {
-            throw new InternalServerErrorException("Null");
+            throw new NullPointerException();
         }
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();
