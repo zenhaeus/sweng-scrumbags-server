@@ -251,6 +251,40 @@ public class ScrumPlayerEndpoint {
             persistenceManager.close();
         }
     }
+    
+    @ApiMethod(name = "setPlayerAsAdmin")
+    public void setPlayerAsAdmin(@Named("playerKey") String playerKey, User user) throws ServiceException {
+        if (playerKey == null) {
+            throw new NullPointerException("playerKey cannot be null");
+        }
+        
+        AppEngineUtils.basicAuthentication(user);
+        
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        
+        try {
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, user.getEmail(),
+                    persistenceManager);
+            ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                    persistenceManager);
+            // check that the user is admin
+            for (ScrumPlayer p : scrumUser.getPlayers()) {
+                if (p.getProject().getKey().equals(scrumPlayer.getProject().getKey())
+                        && (!p.getAdminFlag())) {
+                    throw new UnauthorizedException("Only the admin can remove a player");
+                } else {
+                    scrumPlayer.setAdminFlag(true);
+                    p.setAdminFlag(false);
+                }
+            }
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            persistenceManager.close();
+        }
+    }
 
     /**
      * This method removes the entity with primary key id. It uses HTTP DELETE
@@ -261,10 +295,9 @@ public class ScrumPlayerEndpoint {
      * @throws ServiceException 
      */
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
-    public void removeScrumPlayer(@Named("playerKey") String playerKey, User user)
-        throws ServiceException {
+    public void removeScrumPlayer(@Named("playerKey") String playerKey, User user) throws ServiceException {
         if (playerKey == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("playerKey cannot be null");
         }
         
         AppEngineUtils.basicAuthentication(user);

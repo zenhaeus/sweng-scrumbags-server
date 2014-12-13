@@ -315,6 +315,54 @@ public class ScrumPlayerEndpointTest {
         PLAYER_ENDPOINT.updateScrumPlayer(player, userNotLoggedIn());
         fail("updateScrumPlayer should throw an ServiceException when user is not logged in");
     }
+    
+    // setAdmin tests
+    
+    @Test
+    public void testSetAdminAsAdmin() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        ScrumPlayer player1 = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey)
+                .getPlayers().iterator().next();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.setPlayerAsAdmin(playerKey, userLoggedIn());
+        assertTrue(PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, playerKey).getAdminFlag());
+        assertFalse(player1.getAdminFlag());
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testSetAdminNotAdmin() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.setPlayerAsAdmin(playerKey, user2LoggedIn());
+        fail("expected an UnauthorizedException");
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testSetAdminNotNotLoggedIn() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.setPlayerAsAdmin(playerKey, userNotLoggedIn());
+        fail("expected an UnauthorizedException");
+    }
+    
+    @Test(expected = NullPointerException.class)
+    public void testSetAdminNullPlayer() throws ServiceException {
+        loginUser(USER_KEY);
+        PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.setPlayerAsAdmin(null, userLoggedIn());
+        fail("expected a NullPointerException");
+    }
+    
+    @Test(expected = NotFoundException.class)
+    public void testSetAdminNonExistingPlayer() throws ServiceException {
+        loginUser(USER_KEY);
+        PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        PLAYER_ENDPOINT.setPlayerAsAdmin("non-existing", userLoggedIn());
+        fail("expected NotFoundException");
+    }
 
     private ScrumUser loginUser(String email) throws ServiceException {
         return USER_ENDPOINT.loginUser(email, userLoggedIn());
