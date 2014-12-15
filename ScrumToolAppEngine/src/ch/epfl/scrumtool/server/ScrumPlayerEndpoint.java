@@ -357,7 +357,7 @@ public class ScrumPlayerEndpoint {
         Session session = Session.getDefaultInstance(props, null);
 
         String msgBody = "You were invited by : " + sourceAddress + " to participate in project : " + projectName + "\n"
-                + "To accept this invitation you have just have to log in Murcs App";
+                + "To accept this invitation you have to log in Murcs app";
 
         try {
             Message msg = new MimeMessage(session);
