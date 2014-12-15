@@ -169,20 +169,42 @@ public class ScrumProjectEndpoint {
         Transaction transaction = persistenceManager.currentTransaction();
 
         try {
-            transaction.begin();
+            long lastDate = Calendar.getInstance().getTimeInMillis();
+            String lastUser = user.getEmail();
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, user.getEmail(),
+                    persistenceManager);
             ScrumProject scrumproject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey,
                     persistenceManager);
-            for (ScrumPlayer p : scrumproject.getPlayers()) {
-                p.getUser().setLastModDate(Calendar.getInstance().getTimeInMillis());
-                p.getUser().setLastModUser(user.getEmail());
-                persistenceManager.makePersistent(p.getUser());
-                persistenceManager.deletePersistent(p);
+            transaction.begin();
+            for (ScrumPlayer p : scrumUser.getPlayers()) {
+                if (p.getProject().getKey().equals(scrumproject.getKey())) {
+                    if (p.getAdminFlag()) {
+                        // if the user is admin we remove the whole project
+                        for (ScrumPlayer player : scrumproject.getPlayers()) {
+                            player.getUser().setLastModDate(Calendar.getInstance().getTimeInMillis());
+                            player.getUser().setLastModUser(user.getEmail());
+                            persistenceManager.makePersistent(player.getUser());
+                            persistenceManager.deletePersistent(player);
+                        }
+                        // Tasks, issues and sprints are deleted automatically (owned relationship)
+                        persistenceManager.deletePersistent(scrumproject);
+                    } else {
+                        // if not we only unsubscribe him
+                        p.getProject().setLastModDate(lastDate);
+                        p.getProject().setLastModUser(lastUser);
+                        p.getProject().removePlayer(p);
+                        persistenceManager.makePersistent(p.getProject());
+                        for (ScrumIssue i : p.getIssues()) {
+                            i.setLastModDate(lastDate);
+                            i.setLastModUser(lastUser);
+                            i.setAssignedPlayer(null);
+                            persistenceManager.makePersistent(i);
+                        }
+                        persistenceManager.deletePersistent(p);
+                    }
+                }
             }
-    
-            // Tasks, issues and sprints are deleted automatically (owned relationship)
-            persistenceManager.deletePersistent(scrumproject);
             transaction.commit();
-            
         } finally {
             if (transaction.isActive()) {
                 transaction.rollback();
