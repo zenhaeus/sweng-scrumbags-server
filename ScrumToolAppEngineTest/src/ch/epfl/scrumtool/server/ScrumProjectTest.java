@@ -18,7 +18,7 @@ public class ScrumProjectTest {
     private final static String NAME = "Murcs";
     private final static String DESCRIPTION = "description";
     private static final long DATE = Calendar.getInstance().getTimeInMillis();
-    private static final String LAST_USER = "example@mock.ch";
+    private static final String LAST_USER = "some@example.com";
 
     private static ScrumProject project = new ScrumProject();
 

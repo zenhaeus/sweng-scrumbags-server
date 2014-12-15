@@ -16,6 +16,7 @@ import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
 import com.google.api.server.spi.response.ConflictException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
@@ -45,9 +46,9 @@ public class ScrumPlayerEndpointTest {
     private static final ScrumPlayerEndpoint PLAYER_ENDPOINT = new ScrumPlayerEndpoint();
     private static final ScrumUserEndpoint USER_ENDPOINT = new ScrumUserEndpoint();
 
-    private static final String USER_KEY = "vincent.debieux@gmail.com";
-    private static final String USER2_KEY = "joeyzenh@gmail.com";
-    private static final String USER3_KEY = "example@gmail.com";
+    private static final String USER_KEY = "some@example.com";
+    private static final String USER2_KEY = "other@example.com";
+    private static final String USER3_KEY = "new@example.com";
     private static final String ROLE = "SCRUM_MASTER";
     
     private ScrumProject project;
@@ -94,12 +95,12 @@ public class ScrumPlayerEndpointTest {
         assertEquals(USER_KEY, players.get(0).getUser().getEmail());
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadPlayersNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.loadPlayers(projectKey, userNotLoggedIn());
-        fail("loadPlayers should throw a ServiceException when user is not logged in");
+        fail("loadPlayers should throw a ForbiddenException when user is not logged in");
     }
     
     //Load invited Players tests
@@ -123,11 +124,11 @@ public class ScrumPlayerEndpointTest {
         fail("should have thrown a NotFoundException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadInvitedPlayersNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         PLAYER_ENDPOINT.loadInvitedPlayers(userNotLoggedIn());
-        fail("should have thrown a UnauthorizedException");
+        fail("should have thrown a ForbiddenException");
     }
 
     //Add Players tests
@@ -204,23 +205,23 @@ public class ScrumPlayerEndpointTest {
         fail("Adding twice the same user to the same project should thrwo an EntityExists Exception");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testAddPlayerNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER_KEY, ROLE, userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
 
     // Remove Players tests
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemovePlayerNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.removeScrumPlayer(playerKey, userNotLoggedIn());
-        fail("removePlayer should throw an ServiceException when the user is not logged in");
+        fail("removePlayer should throw an ForbiddenException when the user is not logged in");
     }
     
     @Test(expected = UnauthorizedException.class)
@@ -310,7 +311,7 @@ public class ScrumPlayerEndpointTest {
         fail("updateScrumPlayer should throw a JDOObjectNotFoundException");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testUpdatePlayerNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         
@@ -323,7 +324,7 @@ public class ScrumPlayerEndpointTest {
         player.setAdminFlag(false);
         player.setRole(Role.STAKEHOLDER);
         PLAYER_ENDPOINT.updateScrumPlayer(player, userNotLoggedIn());
-        fail("updateScrumPlayer should throw an ServiceException when user is not logged in");
+        fail("updateScrumPlayer should throw an ForbiddenException when user is not logged in");
     }
     
     // setAdmin tests
@@ -350,13 +351,13 @@ public class ScrumPlayerEndpointTest {
         fail("expected an UnauthorizedException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testSetAdminNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String playerKey = PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn()).getKey();
         PLAYER_ENDPOINT.setPlayerAsAdmin(playerKey, userNotLoggedIn());
-        fail("expected an UnauthorizedException");
+        fail("expected an ForbiddenException");
     }
     
     @Test(expected = NullPointerException.class)

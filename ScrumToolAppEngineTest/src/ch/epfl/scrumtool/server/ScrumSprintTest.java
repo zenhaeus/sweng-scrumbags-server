@@ -1,8 +1,8 @@
 package ch.epfl.scrumtool.server;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 import java.util.Calendar;
 import java.util.HashSet;
@@ -19,7 +19,7 @@ public class ScrumSprintTest {
     private static final String TITLE = "week 1";
     private static final long DEADLINE = Calendar.getInstance().getTimeInMillis()+1000;
     private static final long LAST_DATE = Calendar.getInstance().getTimeInMillis();
-    private static final String LAST_USER = "example@mock.ch";
+    private static final String LAST_USER = "some@example.com";
 
     private static ScrumSprint sprint = new ScrumSprint(); 
     

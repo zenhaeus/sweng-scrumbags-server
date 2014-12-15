@@ -17,8 +17,8 @@ import org.junit.Test;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
-import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -49,7 +49,7 @@ public class ScrumMainTaskEndpointTest {
     private static final ScrumIssueEndpoint ISSUE_ENDPOINT = new ScrumIssueEndpoint();
     private static final ScrumUserEndpoint USER_ENDPOINT = new ScrumUserEndpoint();
 
-    private static final String USER_KEY = "vincent.debieux@gmail.com";
+    private static final String USER_KEY = "some@example.com";
 
     private static final String NAME = "Name";
     private static final String DESCRIPTION = "Description";
@@ -117,13 +117,13 @@ public class ScrumMainTaskEndpointTest {
         fail("loadMainTasks should throw a NullPointerException when given a null projectKey");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadMainTaskProjectNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project,
                 userLoggedIn()).getKey();
         MAINTASK_ENDPOINT.loadMainTasks(projectKey, userNotLoggedIn());
-        fail("loadMainTasks should throw a UnauthorizedException when user is not logged in");
+        fail("loadMainTasks should throw a ForbiddenException when user is not logged in");
     }
 
     // Insert Maintask tests
@@ -170,7 +170,7 @@ public class ScrumMainTaskEndpointTest {
         fail("insertScrumMainTask should throw a a NotFoundException when given a non existing projectKey");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testInsertMainTaskNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         ScrumMainTask mainTask = new ScrumMainTask();
@@ -178,7 +178,7 @@ public class ScrumMainTaskEndpointTest {
                 userLoggedIn()).getKey();
         MAINTASK_ENDPOINT.insertScrumMainTask(mainTask, projectKey,
                 userNotLoggedIn());
-        fail("insertMainTask should throw a UnauthorizedException when user is not logged in");
+        fail("insertMainTask should throw a ForbiddenException when user is not logged in");
     }
 
     // Update Maintask tests
@@ -230,7 +230,7 @@ public class ScrumMainTaskEndpointTest {
         fail("updateScrumMainTask should throw a a NullPointerException when given a null mainTaskKey");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testUpdateMainTaskNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project,
@@ -245,7 +245,7 @@ public class ScrumMainTaskEndpointTest {
                 .getObjectById(ScrumMainTask.class,
                         tasks.iterator().next().getKey());
         MAINTASK_ENDPOINT.updateScrumMainTask(mainTask, userNotLoggedIn());
-        fail("updateScrumMainTask should throw a a UnauthorizedException when the user is not logged in");
+        fail("updateScrumMainTask should throw a a ForbiddenException when the user is not logged in");
     }
 
     // Remove Maintask tests
@@ -286,7 +286,7 @@ public class ScrumMainTaskEndpointTest {
         fail("removeScrumMainTask should throw a NullPointerException when given a null mainTask");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemoveMainTaskNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         ScrumMainTask mainTask = new ScrumMainTask();
@@ -295,7 +295,7 @@ public class ScrumMainTaskEndpointTest {
         String mainTaskKey = MAINTASK_ENDPOINT.insertScrumMainTask(mainTask,
                 projectKey, userLoggedIn()).getKey();
         MAINTASK_ENDPOINT.removeScrumMainTask(mainTaskKey, userNotLoggedIn());
-        fail("removeScrumMainTask should throw an UnauthorizedException when the user is not logged in");
+        fail("removeScrumMainTask should throw an ForbiddenException when the user is not logged in");
     }
 
     // // ComputeMaintaskInfos tests

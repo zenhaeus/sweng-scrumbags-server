@@ -16,8 +16,8 @@ import org.junit.Test;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
-import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -46,8 +46,8 @@ public class ScrumIssueEndpointTest {
     private static final ScrumProjectEndpoint PROJECT_ENDPOINT = new ScrumProjectEndpoint();
     private static final ScrumMainTaskEndpoint TASK_ENDPOINT = new ScrumMainTaskEndpoint();
 
-    private static final String USER_KEY = "vincent.debieux@gmail.com";
-    private static final String USER2_KEY = "joeyzenh@gmail.com";
+    private static final String USER_KEY = "some@example.com";
+    private static final String USER2_KEY = "other@example.com";
     private static final String TITLE = "issue title";
     private static final String DESCRIPTION = "issue description";
     private static final float ESTIMATION_1 = new Float(new Random().nextInt(Integer.MAX_VALUE));
@@ -130,11 +130,11 @@ public class ScrumIssueEndpointTest {
         fail("Should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadIssuesForUserNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         ISSUE_ENDPOINT.loadIssuesForUser(USER_KEY, userNotLoggedIn()).getItems();
-        fail("Should have thrown UnauthorizedException");
+        fail("Should have thrown ForbiddenException");
     }
 
     // LoadIssuesByMaintask tests
@@ -168,13 +168,13 @@ public class ScrumIssueEndpointTest {
         fail("Should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadIssuesByMainTaskNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.loadIssuesByMainTask(maintaskKey, userNotLoggedIn()).getItems();
-        fail("Should have thrown UnauthorizedException");
+        fail("Should have thrown ForbiddenException");
     }
 
     // LoadIssuesBySprint tests
@@ -210,11 +210,11 @@ public class ScrumIssueEndpointTest {
         fail("Should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadIssuesBySprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         ISSUE_ENDPOINT.loadIssuesBySprint(USER_KEY, userNotLoggedIn()).getItems();
-        fail("Should have thrown UnauthorizedException");
+        fail("Should have thrown ForbiddenException");
     }
 
     // LoadUnsprintedIssues tests
@@ -248,12 +248,12 @@ public class ScrumIssueEndpointTest {
         fail("should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadUnsprintedIssuesNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.loadUnsprintedIssuesForProject(projectKey, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
 
     // Insert Issue tests
@@ -333,13 +333,13 @@ public class ScrumIssueEndpointTest {
         fail("should have thrown NotFoundException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testInsertIssueNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
 
     // Insert Issue in sprint tests
@@ -427,7 +427,7 @@ public class ScrumIssueEndpointTest {
         fail("should have thrown a NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testInsertIssueInSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
@@ -436,7 +436,7 @@ public class ScrumIssueEndpointTest {
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, null, userLoggedIn()).getKey();
         ISSUE_ENDPOINT.insertScrumIssueInSprint(issueKey, sprintKey, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
 
     // Update Issue tests
@@ -591,7 +591,7 @@ public class ScrumIssueEndpointTest {
         fail("should have thrown a NullPointerException");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testUpdateIssueNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
@@ -599,7 +599,7 @@ public class ScrumIssueEndpointTest {
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn()).getKey();
         issue = PMF.get().getPersistenceManager().getObjectById(ScrumIssue.class, issueKey);
         ISSUE_ENDPOINT.updateScrumIssue(issue, null, null, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
 
     // Remove Issue tests
@@ -691,7 +691,7 @@ public class ScrumIssueEndpointTest {
         fail("should have thrown NotFoundException");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemoveIssueNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
@@ -700,7 +700,7 @@ public class ScrumIssueEndpointTest {
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, sprintKey, userLoggedIn())
                 .getKey();
         ISSUE_ENDPOINT.removeScrumIssue(issueKey, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
 
     // Remove issues from sprint tests
@@ -749,7 +749,7 @@ public class ScrumIssueEndpointTest {
         fail("should have thrown NotFoundException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemoveIssueFromSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
@@ -757,7 +757,7 @@ public class ScrumIssueEndpointTest {
         String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, null, null, userLoggedIn())
                 .getKey();
         ISSUE_ENDPOINT.removeScrumIssueFromSprint(issueKey, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
     
     private void setIssue() {

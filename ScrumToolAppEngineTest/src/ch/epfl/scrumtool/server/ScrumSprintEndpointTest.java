@@ -16,8 +16,8 @@ import org.junit.Test;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
-import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -43,7 +43,7 @@ public class ScrumSprintEndpointTest {
     private static final ScrumSprintEndpoint SPRINT_ENDPOINT = new ScrumSprintEndpoint();
     private static final ScrumProjectEndpoint PROJECT_ENDPOINT = new ScrumProjectEndpoint();
 
-    private static final String USER_KEY = "vincent.debieux@gmail.com";
+    private static final String USER_KEY = "some@example.com";
     private ScrumProject project = new ScrumProject();
 
 
@@ -102,13 +102,13 @@ public class ScrumSprintEndpointTest {
         fail("should have thrown a NullPointerEsception");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testInsertSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
         SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
     
     //Update Sprint tests
@@ -155,7 +155,7 @@ public class ScrumSprintEndpointTest {
         fail("should have thrown a NotFoundException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testUpdateSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
@@ -163,7 +163,7 @@ public class ScrumSprintEndpointTest {
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         sprint.setKey(sprintKey);
         SPRINT_ENDPOINT.updateScrumSprint(sprint, userNotLoggedIn());
-        fail("should have thrown a UnauthorizedException");
+        fail("should have thrown a ForbiddenException");
     }
     
     //Load Sprints tests
@@ -198,14 +198,14 @@ public class ScrumSprintEndpointTest {
         fail("should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadSprintsNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
         SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn());
         SPRINT_ENDPOINT.loadSprints(projectKey, userNotLoggedIn()).getItems();
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
     
     //Remove Sprint tests
@@ -236,14 +236,14 @@ public class ScrumSprintEndpointTest {
         fail("should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemoveSprintNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ScrumSprint sprint = new ScrumSprint();
         String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
         SPRINT_ENDPOINT.removeScrumSprint(sprintKey, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
     
     private ScrumUser loginUser(String email) throws ServiceException {

@@ -15,8 +15,8 @@ import org.junit.Test;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
-import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -43,16 +43,17 @@ public class ScrumProjectEndpointTest {
     private static final ScrumProjectEndpoint PROJECT_ENDPOINT = new ScrumProjectEndpoint();
     private static final ScrumMainTaskEndpoint TASK_ENDPOINT = new ScrumMainTaskEndpoint();
 
-    private static final String USER_KEY = "vincent.debieux@gmail.com";
+    private static final String USER_KEY = "some@example.com";
     private static final String NAME = "Murcs";
     private static final String DESCRIPTION = "The coolest app ever";
+    private static final String USER2_KEY = "other@example.com";
+    private static final String ROLE = Role.STAKEHOLDER.name();
     
     private ScrumProject project;
 
     private static final int PERCENTAGE = 100;
     private static final String AUTH_DOMAIN = "epfl.ch";
 
-    
     @Before
     public void setUp() throws Exception {
         helper.setUp();
@@ -70,7 +71,7 @@ public class ScrumProjectEndpointTest {
     @Test
     public void testInsertProject() throws ServiceException {
         loginUser(USER_KEY);
-        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertProject();
         ScrumPlayer player = project.getPlayers().iterator().next();
@@ -83,27 +84,27 @@ public class ScrumProjectEndpointTest {
     @Test(expected = NullPointerException.class)
     public void testInsertNullProject() throws ServiceException {
         loginUser(USER_KEY);
-        PROJECT_ENDPOINT.insertScrumProject(null, userLoggedIn());
+        PROJECT_ENDPOINT.insertScrumProject(null, userLoggedIn(USER_KEY));
         fail("should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testInsertProjectNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
         PROJECT_ENDPOINT.insertScrumProject(project, userNotLoggedIn()).getKey();
-        fail("Should have thrown UnauthorizedException");
+        fail("Should have thrown ForbiddenException");
     }
 
     // update tests
     @Test
     public void testUpdateProject() throws ServiceException {
         loginUser(USER_KEY);
-        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertProject();
         project.setName("Project2");
         project.setDescription("description2");
-        PROJECT_ENDPOINT.updateScrumProject(project, userLoggedIn());
+        PROJECT_ENDPOINT.updateScrumProject(project, userLoggedIn(USER_KEY));
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertEquals("Project2", project.getName());
         assertEquals("description2", project.getDescription());
@@ -115,59 +116,71 @@ public class ScrumProjectEndpointTest {
     @Test(expected = NullPointerException.class)
     public void testUpdateNullProject() throws ServiceException {
         loginUser(USER_KEY);
-        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertProject();
-        PROJECT_ENDPOINT.updateScrumProject(null, userLoggedIn());
+        PROJECT_ENDPOINT.updateScrumProject(null, userLoggedIn(USER_KEY));
         fail("should have thrown NullPointerException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testUpdateProjectNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
-        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertProject();
         project.setName("Project2");
         project.setDescription("description2");
         PROJECT_ENDPOINT.updateScrumProject(project, userNotLoggedIn());
-        fail("should have thrown UnauthorizedException");
+        fail("should have thrown ForbiddenException");
     }
     
     @Test(expected = NotFoundException.class)
     public void testUpdateNonExistingProject() throws ServiceException {
         project.setKey("non-existing");
-        PROJECT_ENDPOINT.updateScrumProject(project, userLoggedIn());
+        PROJECT_ENDPOINT.updateScrumProject(project, userLoggedIn(USER_KEY));
         fail("should have thrown NotFoundException");
     }
 
     // remove tests
     @Test(expected = JDOObjectNotFoundException.class)
-    public void testRemoveProject() throws ServiceException {
+    public void testRemoveProjectAsAdmin() throws ServiceException {
         loginUser(USER_KEY);
-        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertProject();
-        PROJECT_ENDPOINT.removeScrumProject(projectKey, userLoggedIn());
+        PROJECT_ENDPOINT.removeScrumProject(projectKey, userLoggedIn(USER_KEY));
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         fail("should have thrown a JDOObjectNotFoundException");
     }
     
     @Test
+    public void testRemoveProjectAsNotAdmin() throws ServiceException {
+        loginUser(USER_KEY);
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
+        project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
+        assertProject();
+        PLAYER_ENDPOINT.addPlayerToProject(projectKey, USER2_KEY, ROLE, userLoggedIn(USER_KEY)).getKey();
+        PROJECT_ENDPOINT.removeScrumProject(projectKey, userLoggedIn(USER2_KEY));
+        project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
+        assertTrue(project.getPlayers().size() == 1);
+    }
+    
+    @Test
     public void testRemoveProjectWithEverything() throws ServiceException {
         loginUser(USER_KEY);
-        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
         ScrumMainTask maintask = new ScrumMainTask();
-        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn()).getKey();
+        String maintaskKey = TASK_ENDPOINT.insertScrumMainTask(maintask, projectKey, userLoggedIn(USER_KEY)).getKey();
         String playerKey =
                 PLAYER_ENDPOINT.addPlayerToProject(projectKey, "joeyzenh@gmail.com", Role.DEVELOPER.name(),
-                        userLoggedIn()).getKey();
+                        userLoggedIn(USER_KEY)).getKey();
         ScrumSprint sprint = new ScrumSprint();
-        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn()).getKey();
+        String sprintKey = SPRINT_ENDPOINT.insertScrumSprint(projectKey, sprint, userLoggedIn(USER_KEY)).getKey();
         ScrumIssue issue = new ScrumIssue();
-        String issueKey =
-                ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey, userLoggedIn()).getKey();
-        PROJECT_ENDPOINT.removeScrumProject(projectKey, userLoggedIn());
+        String issueKey = ISSUE_ENDPOINT.insertScrumIssue(issue, maintaskKey, playerKey, sprintKey,
+                userLoggedIn(USER_KEY)).getKey();
+        PROJECT_ENDPOINT.removeScrumProject(projectKey, userLoggedIn(USER_KEY));
         if (entityExists(ScrumProject.class, projectKey)) {
             fail("removeProject did not remove project");
         }
@@ -188,18 +201,18 @@ public class ScrumProjectEndpointTest {
     @Test(expected = NullPointerException.class)
     public void testRemoveNullProject() throws ServiceException {
         loginUser(USER_KEY);
-        PROJECT_ENDPOINT.removeScrumProject(null, userLoggedIn());
+        PROJECT_ENDPOINT.removeScrumProject(null, userLoggedIn(USER_KEY));
         fail("should have thrown NullPointerException");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemoveProjectNotLoggedIn() throws ServiceException {
         loginUser(USER_KEY);
-        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
+        String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn(USER_KEY)).getKey();
         project = PMF.get().getPersistenceManager().getObjectById(ScrumProject.class, projectKey);
         assertProject();
         PROJECT_ENDPOINT.removeScrumProject(projectKey, userNotLoggedIn());
-        fail("should have thrown a UnauthorizedException");
+        fail("should have thrown a ForbiddenException");
     }
     
     private void assertProject() {
@@ -221,11 +234,11 @@ public class ScrumProjectEndpointTest {
     }
 
     private ScrumUser loginUser(String email) throws ServiceException {
-        return USER_ENDPOINT.loginUser(email, userLoggedIn());
+        return USER_ENDPOINT.loginUser(email, userLoggedIn(USER_KEY));
     }
 
-    private User userLoggedIn() {
-        helper.setEnvEmail(USER_KEY);
+    private User userLoggedIn(String userKey) {
+        helper.setEnvEmail(userKey);
         helper.setEnvAuthDomain(AUTH_DOMAIN);
         helper.setEnvIsLoggedIn(true);
         return userService.getCurrentUser();

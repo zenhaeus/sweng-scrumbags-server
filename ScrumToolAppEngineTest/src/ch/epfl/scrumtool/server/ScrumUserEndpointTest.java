@@ -15,8 +15,8 @@ import org.junit.Test;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
-import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -44,7 +44,7 @@ public class ScrumUserEndpointTest {
     private static final ScrumUserEndpoint ENDPOINT = new ScrumUserEndpoint();
 
     // User Attributes
-    private static final String USER_KEY = "joeyzenh@gmail.com";
+    private static final String USER_KEY = "some@example.com";
     private static final String COMPANY_NAME = "Company";
     private static final long DATE_OF_BIRTH = Calendar.getInstance().getTimeInMillis();
     private static final String JOB_TITLE = "CEO";
@@ -139,22 +139,22 @@ public class ScrumUserEndpointTest {
      * Test authentification
      */
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemoveScrumUserIsProtected() throws ServiceException {
         ENDPOINT.removeScrumUser(USER_KEY, userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testUpdateScrumUserIsProtected() throws ServiceException {
         ENDPOINT.updateScrumUser(new ScrumUser(), userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadProjectsIsProtected() throws ServiceException {
         ENDPOINT.loadProjects(USER_KEY, userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
 
     
