@@ -19,23 +19,20 @@ public class AppEngineUtils {
      * @param user
      * @throws ForbiddenException 
      */
-    public static void basicAuthentication(User user)
-            throws ForbiddenException {
+    public static void basicAuthentication(User user) throws ForbiddenException {
         if (user == null) {
             throw new ForbiddenException("Unauthenticated request no allowed");
         }
     }
 
     public static <A> A getObjectFromDatastore(Class<A> type, String key, PersistenceManager pm)
-            throws ServiceException {
+        throws ServiceException {
         if (type == null || key == null || pm == null) {
-            throw new InternalServerErrorException(
-                    new NullPointerException());
+            throw new InternalServerErrorException(new NullPointerException());
         }
 
         try {
             return pm.getObjectById(type, key);
-
         } catch (JDOObjectNotFoundException e) {
             throw new NotFoundException("Object not found", e);
         }

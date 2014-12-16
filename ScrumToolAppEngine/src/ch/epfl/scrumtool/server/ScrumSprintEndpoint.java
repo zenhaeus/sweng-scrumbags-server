@@ -55,9 +55,9 @@ public class ScrumSprintEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumSprint")
-    public KeyResponse insertScrumSprint(
-            @Named("projectKey") String projectKey, ScrumSprint scrumSprint,
+    public KeyResponse insertScrumSprint(@Named("projectKey") String projectKey, ScrumSprint scrumSprint,
             User user) throws ServiceException {
+
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -102,8 +102,7 @@ public class ScrumSprintEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumSprint", path = "operationstatus/updatesprint")
-    public void updateScrumSprint(ScrumSprint updated, User user)
-            throws ServiceException {
+    public void updateScrumSprint(ScrumSprint updated, User user) throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -137,9 +136,7 @@ public class ScrumSprintEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumSprint", path = "operationstatus/removesprint")
-    public void removeScrumSprint(
-            @Named("sprintKey") String sprintKey, User user)
-            throws ServiceException {
+    public void removeScrumSprint(@Named("sprintKey") String sprintKey, User user) throws ServiceException {
         if (sprintKey == null) {
             throw new NullPointerException();
         }
@@ -169,9 +166,9 @@ public class ScrumSprintEndpoint {
     }
 
     @ApiMethod(name = "loadSprints")
-    public CollectionResponse<ScrumSprint> loadSprints(
-            @Named("projectKey") String projectKey, User user)
-            throws ServiceException {
+    public CollectionResponse<ScrumSprint> loadSprints(@Named("projectKey") String projectKey,
+            User user) throws ServiceException {
+
         if (projectKey == null) {
             throw new NullPointerException();
         }

@@ -58,11 +58,10 @@ public class ScrumIssueEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumIssue", path = "operationstatus/issueinsert")
-    public KeyResponse insertScrumIssue(ScrumIssue scrumIssue,
-            @Named("mainTaskKey") String maintaskKey,
-            @Nullable @Named("playerKey") String playerKey,
-            @Nullable @Named("SprintKey") String sprintKey, User user)
-            throws ServiceException {
+    public KeyResponse insertScrumIssue(ScrumIssue scrumIssue, 
+            @Named("mainTaskKey") String maintaskKey, @Nullable @Named("playerKey") String playerKey, 
+            @Nullable @Named("SprintKey") String sprintKey, User user) throws ServiceException {
+
         if (scrumIssue == null || maintaskKey == null) {
             throw new NullPointerException();
         }
@@ -126,8 +125,8 @@ public class ScrumIssueEndpoint {
 
     @ApiMethod(name = "loadIssuesByMainTask")
     public CollectionResponse<ScrumIssue> loadIssuesByMainTask(
-            @Named("mainTaskKey") String maintaskKey, User user)
-            throws ServiceException {
+            @Named("mainTaskKey") String maintaskKey, User user) throws ServiceException {
+
         if (maintaskKey == null) {
             throw new NullPointerException();
         }
@@ -185,8 +184,8 @@ public class ScrumIssueEndpoint {
 
     @ApiMethod(name = "loadIssuesBySprint")
     public CollectionResponse<ScrumIssue> loadIssuesBySprint(
-            @Named("sprintKey") String sprintKey, User user)
-            throws ServiceException {
+            @Named("sprintKey") String sprintKey, User user) throws ServiceException {
+
         if (sprintKey == null) {
             throw new NullPointerException();
         }
@@ -243,8 +242,8 @@ public class ScrumIssueEndpoint {
 
     @ApiMethod(name = "loadIssuesForUser")
     public CollectionResponse<ScrumIssue> loadIssuesForUser(
-            @Named("userKey") String userKey, User user)
-            throws ServiceException {
+            @Named("userKey") String userKey, User user) throws ServiceException {
+
         if (userKey == null) {
             throw new NullPointerException();
         }
@@ -306,8 +305,6 @@ public class ScrumIssueEndpoint {
         } finally {
             persistenceManager.close();
         }
-        
-        
         
         return CollectionResponse.<ScrumIssue>builder().setItems(issues).build();
     }
@@ -374,11 +371,9 @@ public class ScrumIssueEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumIssue", path = "operationstatus/issueupdate")
-    public void updateScrumIssue(ScrumIssue update,
-            @Nullable @Named("playerKey") String playerKey,
-            @Nullable @Named("SprintKey") String sprintKey,
-            User user)
-            throws ServiceException {
+    public void updateScrumIssue(ScrumIssue update, @Nullable @Named("playerKey") String playerKey,
+            @Nullable @Named("SprintKey") String sprintKey, User user) throws ServiceException {
+
         if (update == null) {
             throw new NullPointerException();
         }
@@ -471,10 +466,9 @@ public class ScrumIssueEndpoint {
     }
 
     @ApiMethod(name = "insertIssueInSprint", path = "operationstatus/insertIssueInSprint")
-    public void insertScrumIssueInSprint(
-            @Named("issueKey") String issueKey,
-            @Named("sprintKey") String sprintKey, User user)
-            throws ServiceException {
+    public void insertScrumIssueInSprint(@Named("issueKey") String issueKey,
+            @Named("sprintKey") String sprintKey, User user) throws ServiceException {
+
         if (issueKey == null || sprintKey == null) {
             throw new NullPointerException();
         }
@@ -518,9 +512,7 @@ public class ScrumIssueEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumIssueFromSprint", path = "operationstatus/removeIssueFromSprint")
-    public void removeScrumIssueFromSprint(
-            @Named("issueKey") String issueKey, User user)
-            throws ServiceException {
+    public void removeScrumIssueFromSprint(@Named("issueKey") String issueKey, User user) throws ServiceException {
         if (issueKey == null) {
             throw new NullPointerException();
         }
@@ -561,8 +553,7 @@ public class ScrumIssueEndpoint {
     }
 
     @ApiMethod(name = "removeScrumIssue", path = "operationstatus/removeIssue")
-    public void removeScrumIssue(@Named("issueKey") String issueKey,
-            User user) throws ServiceException {
+    public void removeScrumIssue(@Named("issueKey") String issueKey, User user) throws ServiceException {
         if (issueKey == null) {
             throw new NullPointerException();
         }

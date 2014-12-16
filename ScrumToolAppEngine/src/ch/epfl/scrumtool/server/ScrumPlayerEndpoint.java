@@ -61,8 +61,8 @@ public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "addPlayerToProject")
     public KeyResponse addPlayerToProject(@Named("projectKey") String projectKey,
-            @Named("userKey") String userEmail, @Named("role") String role,
-            User user) throws ServiceException {
+            @Named("userKey") String userEmail, @Named("role") String role, User user) throws ServiceException {
+
         if (projectKey == null || userEmail == null || role == null) {
             throw new NullPointerException();
         }
@@ -134,8 +134,8 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "loadPlayers")
-    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
-        throws ServiceException {
+    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey,
+            User user) throws ServiceException {
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -180,8 +180,7 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "loadInvitedPlayers")
-    public CollectionResponse<ScrumPlayer> loadInvitedPlayers(User user)
-        throws ServiceException {
+    public CollectionResponse<ScrumPlayer> loadInvitedPlayers(User user) throws ServiceException {
         
         AppEngineUtils.basicAuthentication(user);
     
@@ -224,8 +223,7 @@ public class ScrumPlayerEndpoint {
     }
     
     @ApiMethod(name = "updateScrumPlayer")
-    public void updateScrumPlayer(ScrumPlayer update, User user)
-        throws ServiceException {
+    public void updateScrumPlayer(ScrumPlayer update, User user) throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -376,7 +374,4 @@ public class ScrumPlayerEndpoint {
             e.printStackTrace();
         }
     }
-
-
-
 }

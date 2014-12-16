@@ -52,8 +52,7 @@ public class ScrumProjectEndpoint {
      * @return The inserted entity.
      */
     @ApiMethod(name = "insertScrumProject", path = "operationstatus/insertProject")
-    public KeyResponse insertScrumProject(ScrumProject scrumProject,
-            User user) throws ServiceException {
+    public KeyResponse insertScrumProject(ScrumProject scrumProject, User user) throws ServiceException {
         
         AppEngineUtils.basicAuthentication(user);
 
@@ -123,8 +122,7 @@ public class ScrumProjectEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumProject", path = "operationstatus/updateProject")
-    public void updateScrumProject(ScrumProject update, User user)
-            throws ServiceException {
+    public void updateScrumProject(ScrumProject update, User user) throws ServiceException {
         
         AppEngineUtils.basicAuthentication(user);
         
@@ -158,9 +156,8 @@ public class ScrumProjectEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumProject", path = "operationstatus/removeProject")
-    public void removeScrumProject(
-            @Named("projectKey") String projectKey, User user)
-            throws ServiceException {
+    public void removeScrumProject(@Named("projectKey") String projectKey, User user) throws ServiceException {
+
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -212,5 +209,4 @@ public class ScrumProjectEndpoint {
             persistenceManager.close();
         }
     }
-
 }
