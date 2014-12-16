@@ -7,15 +7,12 @@ import java.util.Calendar;
 
 import org.junit.Test;
 
-import ch.epfl.scrumtool.server.ScrumPlayer;
-import ch.epfl.scrumtool.server.ScrumUser;
-
 /**
  * @author zenhaeus
  *
  */
 public class ScrumUserTest {
-    private static final String USER_KEY = "joeyzenh@gmail.com";
+    private static final String USER_KEY = "some@example.com";
     private static final String COMPANY_NAME = "Company";
     private static final long DATE_OF_BIRTH = Calendar.getInstance().getTimeInMillis();
     private static final String JOB_TITLE = "CEO";

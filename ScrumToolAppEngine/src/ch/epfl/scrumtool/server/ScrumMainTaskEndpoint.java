@@ -55,8 +55,8 @@ public class ScrumMainTaskEndpoint {
      */
     @ApiMethod(name = "insertScrumMainTask", path = "operationstatus/taskinsert")
     public KeyResponse insertScrumMainTask(ScrumMainTask scrumMaintask,
-            @Named("projectKey") String projectKey, User user)
-            throws ServiceException {
+            @Named("projectKey") String projectKey, User user) throws ServiceException {
+
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -100,8 +100,8 @@ public class ScrumMainTaskEndpoint {
      */
     @ApiMethod(name = "loadMainTasks")
     public CollectionResponse<ScrumMainTask> loadMainTasks(
-            @Named("projectKey") String projectKey, User user)
-            throws ServiceException {
+            @Named("projectKey") String projectKey, User user) throws ServiceException {
+
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -148,8 +148,7 @@ public class ScrumMainTaskEndpoint {
      * @return The updated entity.
      */
     @ApiMethod(name = "updateScrumMainTask", path = "operationstatus/taskupdate")
-    public void updateScrumMainTask(ScrumMainTask update, User user)
-            throws ServiceException {
+    public void updateScrumMainTask(ScrumMainTask update, User user) throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
 
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
@@ -185,9 +184,7 @@ public class ScrumMainTaskEndpoint {
      *            the primary key of the entity to be deleted.
      */
     @ApiMethod(name = "removeScrumMainTask", path = "operationstatus/removeTask")
-    public void removeScrumMainTask(
-            @Named("mainTaskKey") String mainTaskKey, User user)
-            throws ServiceException {
+    public void removeScrumMainTask(@Named("mainTaskKey") String mainTaskKey, User user) throws ServiceException {
         if (mainTaskKey == null) {
             throw new NullPointerException();
         }

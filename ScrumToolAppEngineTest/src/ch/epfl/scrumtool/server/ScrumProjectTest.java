@@ -8,13 +8,17 @@ import java.util.Calendar;
 import java.util.HashSet;
 
 import org.junit.Test;
-
+/**
+ * 
+ * @author
+ *
+ */
 public class ScrumProjectTest {
     private final static String KEY = "key";
     private final static String NAME = "Murcs";
     private final static String DESCRIPTION = "description";
     private static final long DATE = Calendar.getInstance().getTimeInMillis();
-    private static final String LAST_USER = "example@mock.ch";
+    private static final String LAST_USER = "some@example.com";
 
     private static ScrumProject project = new ScrumProject();
 
@@ -59,7 +63,7 @@ public class ScrumProjectTest {
     public void testAddRemoveMaintask() {
         ScrumMainTask maintask = new ScrumMainTask();
         project.addMaintask(maintask);
-        assertEquals(project.getBacklog().size(),1);
+        assertEquals(project.getBacklog().size(), 1);
         assertTrue(project.getBacklog().contains(maintask));
         project.removeMaintask(maintask);
         assertEquals(project.getBacklog().size(), 0);
@@ -77,7 +81,7 @@ public class ScrumProjectTest {
     public void testAddRemovePlayer() {
         ScrumPlayer player = new ScrumPlayer();
         project.addPlayer(player);
-        assertEquals(project.getPlayers().size(),1);
+        assertEquals(project.getPlayers().size(), 1);
         assertTrue(project.getPlayers().contains(player));
         project.removePlayer(player);
         assertEquals(project.getPlayers().size(), 0);
@@ -95,7 +99,7 @@ public class ScrumProjectTest {
     public void testAddRemoveSprint() {
         ScrumSprint sprint = new ScrumSprint();
         project.addSprint(sprint);
-        assertEquals(project.getSprints().size(),1);
+        assertEquals(project.getSprints().size(), 1);
         assertTrue(project.getSprints().contains(sprint));
         project.removeSprint(sprint);
         assertEquals(project.getSprints().size(), 0);

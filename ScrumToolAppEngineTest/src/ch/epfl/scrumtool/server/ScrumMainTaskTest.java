@@ -1,6 +1,8 @@
 package ch.epfl.scrumtool.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 import java.util.HashSet;
@@ -18,7 +20,7 @@ public class ScrumMainTaskTest {
     private static final Priority PRIORITY = Priority.NORMAL;
     private static final Status STATUS = Status.READY_FOR_ESTIMATION;
     private static final long DATE = Calendar.getInstance().getTimeInMillis();
-    private static final String LAST_USER = "sylvain@mock.ch";
+    private static final String LAST_USER = "some@example.com";
     private static final int ISSUES_NUMBER = 4;
     private static final float ISSUES_TIME = Calendar.getInstance().getTimeInMillis();
     

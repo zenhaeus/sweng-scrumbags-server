@@ -16,7 +16,6 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
-import com.google.api.server.spi.response.InternalServerErrorException;
 import com.google.appengine.api.users.User;
 
 /**
@@ -55,10 +54,11 @@ public class ScrumUserEndpoint {
      */
     
     @ApiMethod(name = "loginUser")
-    public ScrumUser loginUser(@Named("eMail") String eMail) throws ServiceException {
+    public ScrumUser loginUser(@Named("eMail") String eMail, User user) throws ServiceException {
         if (eMail == null) {
             throw new NullPointerException();
         }
+        AppEngineUtils.basicAuthentication(user);
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         ScrumUser scrumUser = null;
         try {
@@ -69,7 +69,7 @@ public class ScrumUserEndpoint {
             newUser.setEmail(eMail);
             newUser.setLastModDate(Calendar.getInstance().getTimeInMillis());
             newUser.setLastModUser(eMail);
-            newUser.setName(eMail);
+            newUser.setName(eMail.substring(0, eMail.indexOf('@')));
             insertScrumUser(newUser);
 
             scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, eMail, persistenceManager);
@@ -128,7 +128,7 @@ public class ScrumUserEndpoint {
     public void updateScrumUser(ScrumUser scrumUser, User user) throws ServiceException {
         AppEngineUtils.basicAuthentication(user);
         if (scrumUser == null) {
-            throw new InternalServerErrorException("Null");
+            throw new NullPointerException();
         }
         PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
         Transaction transaction = persistenceManager.currentTransaction();

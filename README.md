@@ -27,3 +27,12 @@ How to setup Google App Engine in Eclipse for our project:
     1. Enter the server project properties
     2. Google -> App Engine and change the setting "Datanucleus JDO/JPA version:" to v1, press ok, then go back and change it back to v2.
     3. clean the project in eclipse. This should do the trick and you should be able to run the Server now.
+
+Build
+-----
+
+You can build and locally launch the server via command line using the following commands
+	ant compile
+	ant runserver
+in the ScrumToolAppEngine directory. Unfortunately there is no working build.xml to run the tests as well, but they can be launched from Eclipse if the Google Cloud Plugin is installed. Code coverage can then be measured using the eclemma plugin:
+<http://www.eclemma.org/download.html>

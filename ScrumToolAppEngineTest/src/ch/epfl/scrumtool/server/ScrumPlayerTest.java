@@ -9,12 +9,17 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
+/**
+ * 
+ * @author
+ *
+ */
 public class ScrumPlayerTest {
     private static final String KEY = "ThisIsAKey";
     private static final Role ROLE = Role.SCRUM_MASTER;
     private static final boolean IS_ADMIN = true;
     private static final long DATE = Calendar.getInstance().getTimeInMillis();
-    private static final String LAST_USER = "example@mock.ch";
+    private static final String LAST_USER = "some@example.com";
 
     private static ScrumPlayer player = new ScrumPlayer();
 

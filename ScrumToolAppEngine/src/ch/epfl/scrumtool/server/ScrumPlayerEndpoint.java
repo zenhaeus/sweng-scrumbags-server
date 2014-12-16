@@ -17,7 +17,6 @@ import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.persistence.EntityExistsException;
 
 import ch.epfl.scrumtool.AppEngineUtils;
 
@@ -26,6 +25,8 @@ import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 import com.google.api.server.spi.response.CollectionResponse;
+import com.google.api.server.spi.response.ConflictException;
+import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 
 
@@ -60,8 +61,8 @@ public class ScrumPlayerEndpoint {
 
     @ApiMethod(name = "addPlayerToProject")
     public KeyResponse addPlayerToProject(@Named("projectKey") String projectKey,
-            @Named("userKey") String userEmail, @Named("role") String role,
-            User user) throws ServiceException {
+            @Named("userKey") String userEmail, @Named("role") String role, User user) throws ServiceException {
+
         if (projectKey == null || userEmail == null || role == null) {
             throw new NullPointerException();
         }
@@ -80,7 +81,7 @@ public class ScrumPlayerEndpoint {
             scrumProject = AppEngineUtils.getObjectFromDatastore(ScrumProject.class, projectKey, persistenceManager);
             for (ScrumPlayer player : scrumProject.getPlayers()) {
                 if (player.getUser().getEmail().equals(userEmail)) {
-                    throw new EntityExistsException("Object already exists");
+                    throw new ConflictException("Player already exists");
                 }
             }
             scrumPlayer = new ScrumPlayer();
@@ -127,14 +128,14 @@ public class ScrumPlayerEndpoint {
     
             if (scrumUser != null) {
                 scrumUser.setPlayers(null);
-                sendNotificationEMail(scrumUser.getEmail(), scrumProject.getName());
+                sendNotificationEMail(user.getEmail(), scrumUser.getEmail(), scrumProject.getName());
             }
         }
     }
 
     @ApiMethod(name = "loadPlayers")
-    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey, User user)
-        throws ServiceException {
+    public CollectionResponse<ScrumPlayer> loadPlayers(@Named("projectKey") String projectKey,
+            User user) throws ServiceException {
         if (projectKey == null) {
             throw new NullPointerException();
         }
@@ -179,8 +180,7 @@ public class ScrumPlayerEndpoint {
     }
 
     @ApiMethod(name = "loadInvitedPlayers")
-    public CollectionResponse<ScrumPlayer> loadInvitedPlayers(User user)
-        throws ServiceException {
+    public CollectionResponse<ScrumPlayer> loadInvitedPlayers(User user) throws ServiceException {
         
         AppEngineUtils.basicAuthentication(user);
     
@@ -223,8 +223,7 @@ public class ScrumPlayerEndpoint {
     }
     
     @ApiMethod(name = "updateScrumPlayer")
-    public void updateScrumPlayer(ScrumPlayer update, User user)
-        throws ServiceException {
+    public void updateScrumPlayer(ScrumPlayer update, User user) throws ServiceException {
 
         AppEngineUtils.basicAuthentication(user);
 
@@ -250,6 +249,44 @@ public class ScrumPlayerEndpoint {
             persistenceManager.close();
         }
     }
+    
+    @ApiMethod(name = "setPlayerAsAdmin")
+    public void setPlayerAsAdmin(@Named("playerKey") String playerKey, User user) throws ServiceException {
+        if (playerKey == null) {
+            throw new NullPointerException("playerKey cannot be null");
+        }
+        
+        AppEngineUtils.basicAuthentication(user);
+        
+        PersistenceManager persistenceManager = AppEngineUtils.getPersistenceManager();
+        Transaction transaction = persistenceManager.currentTransaction();
+        
+        try {
+            ScrumUser scrumUser = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, user.getEmail(),
+                    persistenceManager);
+            ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
+                    persistenceManager);
+            // check that the user is admin
+            for (ScrumPlayer p : scrumUser.getPlayers()) {
+                if (p.getProject().getKey().equals(scrumPlayer.getProject().getKey())
+                        && (!p.getAdminFlag())) {
+                    throw new UnauthorizedException("Only the admin can select a new admin");
+                } else if (scrumPlayer.getInvitedFlag()) {
+                    throw new UnauthorizedException("Invited players cannot be admin");
+                } else if (scrumPlayer.getAdminFlag()) {
+                    throw new UnauthorizedException("You are already admin");
+                } else {
+                    p.setAdminFlag(false);
+                    scrumPlayer.setAdminFlag(true);
+                }
+            }
+        } finally {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            persistenceManager.close();
+        }
+    }
 
     /**
      * This method removes the entity with primary key id. It uses HTTP DELETE
@@ -260,10 +297,9 @@ public class ScrumPlayerEndpoint {
      * @throws ServiceException 
      */
     @ApiMethod(name = "removeScrumPlayer", path = "operationstatus/removeplayer")
-    public void removeScrumPlayer(@Named("playerKey") String playerKey, User user)
-        throws ServiceException {
+    public void removeScrumPlayer(@Named("playerKey") String playerKey, User user) throws ServiceException {
         if (playerKey == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("playerKey cannot be null");
         }
         
         AppEngineUtils.basicAuthentication(user);
@@ -274,10 +310,25 @@ public class ScrumPlayerEndpoint {
         try {
             long lastDate = Calendar.getInstance().getTimeInMillis();
             String lastUser = user.getEmail();
-            
-            transaction.begin();
+            ScrumUser remover = AppEngineUtils.getObjectFromDatastore(ScrumUser.class, user.getEmail(),
+                    persistenceManager);
             ScrumPlayer scrumPlayer = AppEngineUtils.getObjectFromDatastore(ScrumPlayer.class, playerKey,
                     persistenceManager);
+            // check if the user is admin
+            for (ScrumPlayer p : remover.getPlayers()) {
+                if (p.getProject().getKey().equals(scrumPlayer.getProject().getKey())
+                        && (!p.getAdminFlag())) {
+                    // or if he wants to remove himself
+                    if (!p.equals(scrumPlayer)) {
+                        throw new UnauthorizedException("Only the admin can remove a player");
+                    }
+                }
+            }
+            // cannot remove the admin
+            if (scrumPlayer.getAdminFlag()) {
+                throw new UnauthorizedException("Cannot remove the admin");
+            }
+            transaction.begin();
             ScrumUser scrumUser = scrumPlayer.getUser();
             scrumUser.setLastModDate(lastDate);
             scrumUser.setLastModUser(lastUser);
@@ -299,19 +350,19 @@ public class ScrumPlayerEndpoint {
         }
     }
 
-    private static void sendNotificationEMail(String address, String projectName) {
+    private static void sendNotificationEMail(String sourceAddress, String destAddress, String projectName) {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
 
-        String msgBody = "Install the Android application. " 
-                + "Login with the Google Account associated with this E-Mail-Address.";
+        String msgBody = "You were invited by : " + sourceAddress + " to participate in project : " + projectName + "\n"
+                + "To accept this invitation you have to log in Murcs app";
 
         try {
             Message msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress("scrumtoolapp@gmail.com", "ScrumToolAapp"));
             msg.addRecipient(Message.RecipientType.TO,
-                    new InternetAddress(address, address));
-            msg.setSubject("Scrumtool: You have been added to the project: "+projectName+"");
+                    new InternetAddress(destAddress, destAddress));
+            msg.setSubject("Murcs: You received an invitation!");
             msg.setText(msgBody);
             Transport.send(msg);
 
@@ -323,7 +374,4 @@ public class ScrumPlayerEndpoint {
             e.printStackTrace();
         }
     }
-
-
-
 }

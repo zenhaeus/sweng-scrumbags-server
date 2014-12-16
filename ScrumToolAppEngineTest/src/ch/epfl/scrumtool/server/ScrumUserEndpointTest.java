@@ -15,8 +15,8 @@ import org.junit.Test;
 import ch.epfl.scrumtool.PMF;
 
 import com.google.api.server.spi.ServiceException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
-import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -44,7 +44,7 @@ public class ScrumUserEndpointTest {
     private static final ScrumUserEndpoint ENDPOINT = new ScrumUserEndpoint();
 
     // User Attributes
-    private static final String USER_KEY = "joeyzenh@gmail.com";
+    private static final String USER_KEY = "some@example.com";
     private static final String COMPANY_NAME = "Company";
     private static final long DATE_OF_BIRTH = Calendar.getInstance().getTimeInMillis();
     private static final String JOB_TITLE = "CEO";
@@ -68,21 +68,21 @@ public class ScrumUserEndpointTest {
     
     @Test
     public void testLoginUser() throws ServiceException {
-        ScrumUser user = loginUser(USER_KEY);
+        ScrumUser user =loginUser(USER_KEY, userLoggedIn());
         assertEquals(USER_KEY, user.getEmail());
-        assertEquals(USER_KEY, user.getName());
+        assertEquals(USER_KEY.substring(0, USER_KEY.indexOf('@')), user.getName());
         assertEquals(USER_KEY, user.getLastModUser());
     }
 
     @Test(expected = NullPointerException.class)
     public void testLoginUserNull() throws ServiceException {
-        assertNull(loginUser(null));
+        assertNull(loginUser(null, userLoggedIn()));
         fail("should have thrown a NullPointerException");
     }
 
     @Test
     public void testRemoveExistingUser() throws ServiceException {
-        ScrumUser user = loginUser(USER_KEY);
+        ScrumUser user = loginUser(USER_KEY, userLoggedIn());
         ENDPOINT.removeScrumUser(user.getEmail(), userLoggedIn());
     }
 
@@ -100,7 +100,7 @@ public class ScrumUserEndpointTest {
 
     @Test
     public void testUpdateExistingUser() throws ServiceException {
-        ScrumUser user = loginUser(USER_KEY);
+        ScrumUser user = loginUser(USER_KEY, userLoggedIn());
         ScrumUser updatedUser = user;
         updatedUser.setCompanyName(COMPANY_NAME);
         updatedUser.setDateOfBirth(DATE_OF_BIRTH);
@@ -130,7 +130,7 @@ public class ScrumUserEndpointTest {
 
     @Test
     public void testLoadProjectsForExistingUser() throws ServiceException {
-        loginUser(USER_KEY);
+        loginUser(USER_KEY, userLoggedIn());
         Set<ScrumProject> projects = (Set<ScrumProject>) ENDPOINT.loadProjects(USER_KEY, userLoggedIn()).getItems();
         assertNotNull(projects);
     }
@@ -139,22 +139,22 @@ public class ScrumUserEndpointTest {
      * Test authentification
      */
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testRemoveScrumUserIsProtected() throws ServiceException {
         ENDPOINT.removeScrumUser(USER_KEY, userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
 
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testUpdateScrumUserIsProtected() throws ServiceException {
         ENDPOINT.updateScrumUser(new ScrumUser(), userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
     
-    @Test(expected = UnauthorizedException.class)
+    @Test(expected = ForbiddenException.class)
     public void testLoadProjectsIsProtected() throws ServiceException {
         ENDPOINT.loadProjects(USER_KEY, userNotLoggedIn());
-        fail("should have thrown an UnauthorizedException");
+        fail("should have thrown an ForbiddenException");
     }
 
     
@@ -162,8 +162,8 @@ public class ScrumUserEndpointTest {
      * Helper Methods
      */
 
-    private ScrumUser loginUser(String email) throws ServiceException {
-        return ENDPOINT.loginUser(email);
+    private ScrumUser loginUser(String email, User user) throws ServiceException {
+        return ENDPOINT.loginUser(email, user);
     }
     
     private User userLoggedIn() {

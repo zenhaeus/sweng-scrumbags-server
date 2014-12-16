@@ -4,19 +4,24 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.api.server.spi.response.UnauthorizedException;
+import com.google.api.server.spi.response.ForbiddenException;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 
+/**
+ * 
+ * @author
+ *
+ */
 public class AppEngineUtilsTest {
     private static final int PERCENTAGE = 100;
-    private final LocalServiceTestHelper helper = 
-            new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig()
-                .setDefaultHighRepJobPolicyUnappliedJobPercentage(PERCENTAGE))
-                .setEnvIsAdmin(true).setEnvIsLoggedIn(true);
+    private final LocalServiceTestHelper helper = new LocalServiceTestHelper(
+            new LocalDatastoreServiceTestConfig()
+                    .setDefaultHighRepJobPolicyUnappliedJobPercentage(PERCENTAGE))
+            .setEnvIsAdmin(true).setEnvIsLoggedIn(true);
 
     private static final String USER_KEY = "joeyzenh@gmail.com";
     private static final String AUTH_DOMAIN = "epfl.ch";
@@ -33,16 +38,16 @@ public class AppEngineUtilsTest {
         helper.tearDown();
     }
 
-    @Test(expected = UnauthorizedException.class)
-    public void testBasicAuthenticationInvalid() throws UnauthorizedException {
+    @Test(expected = ForbiddenException.class)
+    public void testBasicAuthenticationInvalid() throws ForbiddenException {
         AppEngineUtils.basicAuthentication(null);
     }
 
     @Test
-    public void testBasicAuthenticationValid() throws UnauthorizedException {
+    public void testBasicAuthenticationValid() throws ForbiddenException {
         AppEngineUtils.basicAuthentication(userLoggedIn());
     }
-    
+
     private User userLoggedIn() {
         helper.setEnvEmail(USER_KEY);
         helper.setEnvAuthDomain(AUTH_DOMAIN);
