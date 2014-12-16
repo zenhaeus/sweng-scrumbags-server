@@ -95,8 +95,6 @@ public class ScrumIssueEndpointTest {
         helper.tearDown();
     }
     
-    //TODO assign SPRINT and PLAYER to test LOADs
-
     // LoadIssuesForUser tests
     @Test
     public void testLoadIssuesForUser() throws ServiceException {
