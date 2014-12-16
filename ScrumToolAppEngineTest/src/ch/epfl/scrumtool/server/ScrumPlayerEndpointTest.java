@@ -89,8 +89,7 @@ public class ScrumPlayerEndpointTest {
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         
         ArrayList<ScrumPlayer> players =
-                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
-                .getItems();
+                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn()).getItems();
         assertEquals(true, players.get(0).getAdminFlag());
         assertEquals(USER_KEY, players.get(0).getUser().getEmail());
     }
@@ -280,8 +279,7 @@ public class ScrumPlayerEndpointTest {
         loginUser(USER_KEY);
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ArrayList<ScrumPlayer> players =
-                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
-                .getItems();
+                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn()).getItems();
         ScrumPlayer player =
                 PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
         player.setAdminFlag(false);
@@ -317,8 +315,7 @@ public class ScrumPlayerEndpointTest {
         
         String projectKey = PROJECT_ENDPOINT.insertScrumProject(project, userLoggedIn()).getKey();
         ArrayList<ScrumPlayer> players =
-                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn())
-                .getItems();
+                (ArrayList<ScrumPlayer>) PLAYER_ENDPOINT.loadPlayers(projectKey, userLoggedIn()).getItems();
         ScrumPlayer player =
                 PMF.get().getPersistenceManager().getObjectById(ScrumPlayer.class, players.get(0).getKey());
         player.setAdminFlag(false);
